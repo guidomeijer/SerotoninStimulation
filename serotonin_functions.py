@@ -52,26 +52,21 @@ def load_subjects(anesthesia='all', behavior=None):
     return subjects
 
 
-def paths(dropbox=False):
+def paths():
     """
     Load in figure path from paths.json, if this file does not exist it will be generated from
     user input
     """
     if not isfile(join(dirname(realpath(__file__)), 'paths.json')):
-        paths = dict()
-        paths['fig_path'] = input('Path folder to save figures: ')
-        paths['dropbox_path'] = input('Path to Dropbox folder (can be empty):')
+        path_dict = dict()
+        path_dict['fig_path'] = input('Path folder to save figures: ')
+        path_dict['save_path'] = join(dirname(realpath(__file__)), 'Data')
         path_file = open(join(dirname(realpath(__file__)), 'paths.json'), 'w')
-        json.dump(paths, path_file)
+        json.dump(path_dict, path_file)
         path_file.close()
     with open(join(dirname(realpath(__file__)), 'paths.json')) as json_file:
-        paths = json.load(json_file)
-    if dropbox:
-        fig_path = paths['dropbox_path']
-    else:
-        fig_path = paths['fig_path']
-    save_path = join(dirname(realpath(__file__)), 'Data')
-    return fig_path, save_path
+        path_dict = json.load(json_file)
+    return path_dict
 
 
 def figure_style():
