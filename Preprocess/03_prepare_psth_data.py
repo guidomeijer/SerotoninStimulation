@@ -25,8 +25,7 @@ BIN_SIZE = 0.1
 SMOOTHING = 0.1
 BASELINE = [-1, 0]
 MIN_FR = 0.1
-path_dict = paths()
-save_path = path_dict['save_path']
+_, save_path = paths()
 
 # Load in light modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
