@@ -2,3 +2,5 @@
 .spyproject/config/
 
 paths.json
+
+__pycache__/

@@ -66,7 +66,7 @@ def paths():
         path_file.close()
     with open(join(dirname(realpath(__file__)), 'paths.json')) as json_file:
         path_dict = json.load(json_file)
-    return path_dict
+    return path_dict['fig_path'], path_dict['save_path']
 
 
 def figure_style():
