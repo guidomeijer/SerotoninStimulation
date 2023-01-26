@@ -5,30 +5,27 @@ Created on Thu Dec  1 11:49:47 2022
 By: Guido Meijer
 """
 
-from os.path import join
+from os.path import join, realpath, dirname, split
 from serotonin_functions import paths, figure_style, load_subjects
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-
-from statsmodels.stats.oneway import anova_oneway
 from statsmodels.formula.api import ols
 import statsmodels.api as sm
-from statsmodels.stats.multicomp import pairwise_tukeyhsd, MultiComparison
+from statsmodels.stats.multicomp import MultiComparison
 
 # Settings
 var = 'mod_index_late'
 MIN_NEURONS = 5
 
 # Get paths
-fig_dir, data_dir = paths(dropbox=True)
-fig_dir = join(fig_dir, 'PaperPassive', 'figure3')
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
-light_neurons = pd.read_csv(join(data_dir, 'light_modulated_neurons.csv'))
-neuron_type = pd.read_csv(join(data_dir, 'neuron_type_multichannel.csv'))
+light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+neuron_type = pd.read_csv(join(save_path, 'neuron_type_multichannel.csv'))
 all_neurons = pd.merge(light_neurons, neuron_type, on=['subject', 'probe', 'eid', 'pid', 'neuron_id'])
 
 # Select sert-cre mice
@@ -72,7 +69,7 @@ tukey_perc = mc.tukeyhsd(alpha=0.05)
 print(f'\nANOVA percentage p = {aov_table.loc["type", "PR(>F)"]}\n')
 print(tukey_perc)
 
-# %% M2 
+# %% M2
 # Get percentage of modulated neurons per animal per neuron type
 mos_neurons = all_neurons[np.in1d(all_neurons['region'], ['MOs'])]
 perc_mod_mos = ((mos_neurons.groupby(['subject', 'type']).sum(numeric_only=True)['modulated']
@@ -128,4 +125,4 @@ ax2.set(ylabel='Modulation index', ylim=[-0.5, 0.5], yticks=[-0.5, 0, 0.5], xlab
 
 plt.tight_layout()
 sns.despine(trim=False)
-plt.savefig(join(fig_dir, 'perc_type_mod.pdf'))
+plt.savefig(join(fig_path, 'perc_type_mod.pdf'))

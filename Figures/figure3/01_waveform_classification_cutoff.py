@@ -5,7 +5,7 @@ Created on Wed Mar 10 11:17:26 2021
 By: Guido Meijer
 """
 
-from os.path import join
+from os.path import join, realpath, dirname, split
 from serotonin_functions import paths, figure_style, high_level_regions, combine_regions, remap
 from scipy.stats import kstest
 import numpy as np
@@ -18,9 +18,11 @@ import pandas as pd
 
 # Settings
 SW_CUTOFF = 0.35
-fig_dir, data_dir = paths(dropbox=True)
-fig_dir = join(fig_dir, 'PaperPassive', 'figure3')
 FEATURES = ['spike_width', 'pt_ratio']
+
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 
 def fix_hist_step_vertical_line_at_end(ax):
@@ -30,7 +32,7 @@ def fix_hist_step_vertical_line_at_end(ax):
 
 
 # Load in waveforms
-waveforms_df = pd.read_pickle(join(data_dir, 'waveform_metrics.p'))
+waveforms_df = pd.read_pickle(join(save_path, 'waveform_metrics.p'))
 waveforms_df['combined_region'] = combine_regions(remap(waveforms_df['regions']))
 waveforms_df['high_level_region'] = high_level_regions(waveforms_df['regions'], merge_cortex=True)
 waveforms_df = waveforms_df[waveforms_df['high_level_region'] != 'root']
@@ -70,7 +72,7 @@ neuron_type = waveforms_df.copy()
 neuron_type = neuron_type.drop(['waveform', 'spike_width', 'firing_rate', 'rp_slope', 'spike_amp', 'pt_ratio',
                                 'rc_slope', 'pt_subtract', 'peak_to_trough', 'n_waveforms',
                                 'waveform_2D'], axis=1)
-neuron_type.to_csv(join(data_dir, 'neuron_type.csv'), index=False)
+neuron_type.to_csv(join(save_path, 'neuron_type.csv'), index=False)
 
 _, p_value = kstest(waveforms_df.loc[waveforms_df['type'] == 'RS', 'firing_rate'],
                     waveforms_df.loc[waveforms_df['type'] == 'NS', 'firing_rate'])
@@ -94,7 +96,7 @@ ax.axis('off')
 
 #plt.tight_layout()
 #sns.despine(trim=True)
-plt.savefig(join(fig_dir, 'mean_waveforms.pdf'), bbox_inches='tight')
+plt.savefig(join(fig_path, 'mean_waveforms.pdf'), bbox_inches='tight')
 
 # %% Plot waveform clustering
 f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
@@ -113,7 +115,7 @@ ax.legend(frameon=False, markerscale=2, bbox_to_anchor=(0.2, 0.8), handletextpad
 
 plt.tight_layout()
 sns.despine(trim=True)
-plt.savefig(join(fig_dir, 'waveform_clustering.pdf'))
+plt.savefig(join(fig_path, 'waveform_clustering.pdf'))
 
 # %% Plot waveform histogram
 f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
@@ -128,8 +130,8 @@ hst.get_legend().set_bbox_to_anchor((0.55, 0.6))
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_dir, 'waveform_histogram.pdf'))
-plt.savefig(join(fig_dir, 'waveform_histogram.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'waveform_histogram.pdf'))
+plt.savefig(join(fig_path, 'waveform_histogram.jpg'), dpi=600)
 
 # %% Plot waveform histogram
 f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
@@ -140,8 +142,8 @@ ax.yaxis.labelpad = -7
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_dir, 'waveform_histogram_black.pdf'))
-plt.savefig(join(fig_dir, 'waveform_histogram_black.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'waveform_histogram_black.pdf'))
+plt.savefig(join(fig_path, 'waveform_histogram_black.jpg'), dpi=600)
 
 # %% Plot firing rate distribution of clusters
 
@@ -158,7 +160,7 @@ fix_hist_step_vertical_line_at_end(ax)
 
 plt.tight_layout()
 sns.despine(trim=True)
-plt.savefig(join(fig_dir, 'firing_rate_dist.pdf'))
+plt.savefig(join(fig_path, 'firing_rate_dist.pdf'))
 
 
 

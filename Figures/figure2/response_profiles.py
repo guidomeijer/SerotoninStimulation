@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from os.path import join
+from os.path import join, realpath, dirname, split
 from serotonin_functions import paths, figure_style, high_level_regions
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
@@ -17,16 +17,16 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 # Settings
-CLUSTER_N = 7  # number of clusters
-PCA_DIM = 10
+CLUSTER_N = 4  # number of clusters
+PCA_DIM = 6
 
 # Initialize
 tsne = TSNE(n_components=2, random_state=42)
 pca = PCA(n_components=PCA_DIM, random_state=42)
 
 # Get paths
-f_path, save_path = paths(dropbox=True)
-fig_path = join(f_path, 'PaperPassive', 'figure2')
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
 psth_df = pd.read_pickle(join(save_path, 'psth.pickle'))
@@ -37,11 +37,11 @@ neuron_type = neuron_type.rename(columns={'cluster_id': 'neuron_id'})
 psth_df = pd.merge(psth_df, neuron_type, on=['subject', 'probe', 'eid', 'pid', 'neuron_id'])
 
 # Exclude undefined neuron types
-psth_df = psth_df[psth_df['type'] != 'Und.']
+#psth_df = psth_df[psth_df['type'] != 'Und.']
 
 # Get high level regions
 psth_df['high_level_region'] = high_level_regions(psth_df['acronym'])
-psth_df = psth_df[psth_df['high_level_region'] != 'root']
+#psth_df = psth_df[psth_df['high_level_region'] != 'root']
 
 # Do dimensionality reduction on PSTHs
 all_psth = np.column_stack(psth_df['peth'].to_numpy()).T
@@ -49,8 +49,8 @@ time_ax = psth_df['time'][0]
 for i in range(all_psth.shape[0]):
     #all_psth[i, :] = all_psth[i, :] / np.max(all_psth[i, :])  # normalize
     #all_psth[i, :] = all_psth[i, :] - np.mean(all_psth[i, time_ax < 0])  # baseline subtract
-    #all_psth[i, :] = all_psth[i, :] / np.mean(all_psth[i, time_ax < 0])  # divide over baseline
-    all_psth[i, :] = all_psth[i, :] / (np.mean(all_psth[i, time_ax < 0]) + 0.1)  # divide over baseline + 0.1 spks/s (Steinmetz, 2019)
+    all_psth[i, :] = all_psth[i, :] / np.mean(all_psth[i, time_ax < 0])  # divide over baseline
+    #all_psth[i, :] = all_psth[i, :] / (np.mean(all_psth[i, time_ax < 0]) + 0.1)  # divide over baseline + 0.1 spks/s (Steinmetz, 2019)
 
 # PCA
 dim_red_pca = pca.fit_transform(all_psth)
@@ -110,7 +110,7 @@ ax1.axis('off')
 
 
 plt.tight_layout()
-plt.savefig(join(f_path, 'PaperPassive', 'figure3', 'tsne_embedding_neuron_type.pdf'))
+plt.savefig(join(f_path, 'figure3', 'tsne_embedding_neuron_type.pdf'))
 
 # %%
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)

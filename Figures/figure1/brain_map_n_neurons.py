@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from os.path import join
+from os.path import join, realpath, dirname, split
 from serotonin_functions import paths, figure_style, load_subjects, plot_scalar_on_slice
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas(res_um=10)
@@ -21,8 +21,8 @@ MIN_NEURONS = 0
 AP = [2, -1.5, -3.5]
 
 # Paths
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure1')
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in results
 all_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))

@@ -5,16 +5,13 @@ Created on Wed Mar 10 11:17:26 2021
 By: Guido Meijer
 """
 
-from os.path import join
+from os.path import join, realpath, dirname, split
 from serotonin_functions import paths, figure_style, remap
-from scipy.stats import kstest
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 from scipy.optimize import curve_fit
 from scipy.stats import linregress
-from matplotlib.lines import Line2D
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
 import pandas as pd
@@ -36,9 +33,9 @@ SW_CUTOFF = 0.35
 FEATURES_1 = ['spike_width', 'pt_ratio']
 FEATURES_2 = ['v_below', 'spread']
 
-# Paths
-fig_dir, data_dir = paths(dropbox=True)
-FIG_PATH = join(fig_dir, 'PaperPassive', 'figure3')
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in waveforms
 if DENOISED:
@@ -90,7 +87,7 @@ for i in waveforms_df.index:
 
     # Get spread and velocity
     try:
-        
+
         # Fit Gaussian with two independent arms, one for each side
         x_fit = np.arange(-0.1, 0.11, 0.001)
         param_above, _ = curve_fit(gaus, dist_soma[dist_soma >= 0], norm_amp[dist_soma >= 0], p0=[0.01])
@@ -100,17 +97,17 @@ for i in waveforms_df.index:
         fit = np.empty(x_fit.shape)
         fit[x_fit >= 0] = fit_above
         fit[x_fit <= 0] = fit_below
-        
+
         # Get spread of waveform
         lower_lim = x_fit[fit / np.max(fit) > SPREAD_CUTOFF][0]
         upper_lim = x_fit[fit / np.max(fit) > SPREAD_CUTOFF][-1]
         """
-        
+
         lower_lim = dist_soma[norm_amp > 0.12][0]
         upper_lim = dist_soma[norm_amp > 0.12][-1]
         """
         dist_soma_spread = np.abs(lower_lim) + np.abs(upper_lim)
-        
+
         """
         v_below = (np.max(time_trough[(dist_soma <= 0) & (dist_soma >= lower_lim)])
                    / dist_soma[(dist_soma <= 0) & (dist_soma >= lower_lim)][0])
@@ -120,13 +117,13 @@ for i in waveforms_df.index:
                    / dist_soma[(dist_soma >= 0) & (dist_soma <= upper_lim)][-1])
         if v_above == float('inf'):
             v_above = 0
-        
+
         v_below, _ = np.polyfit(time_trough[(dist_soma <= 0) & (dist_soma >= lower_lim)],
                                 dist_soma[(dist_soma <= 0) & (dist_soma >= lower_lim)], 1)
         v_above, _ = np.polyfit(time_trough[(dist_soma >= 0) & (dist_soma <= upper_lim)],
                                 dist_soma[(dist_soma >= 0) & (dist_soma <= upper_lim)], 1)
         """
-        
+
         if np.sum((dist_soma >= 0) & (dist_soma <= upper_lim)) <= 1:
             v_above = np.nan
         elif np.sum(np.diff(time_trough[(dist_soma >= 0) & (dist_soma <= upper_lim)])) == 0:
@@ -134,7 +131,7 @@ for i in waveforms_df.index:
         else:
             v_above = linregress(time_trough[(dist_soma >= 0) & (dist_soma <= upper_lim)],
                                  dist_soma[(dist_soma >= 0) & (dist_soma <= upper_lim)])[0]
-            
+
         if np.sum((dist_soma <= 0) & (dist_soma >= lower_lim)) <= 1:
             v_below = np.nan
         elif np.sum(np.diff(time_trough[(dist_soma <= 0) & (dist_soma >= lower_lim)])) == 0:
@@ -142,16 +139,16 @@ for i in waveforms_df.index:
         else:
             v_below = linregress(time_trough[(dist_soma <= 0) & (dist_soma >= lower_lim)],
                                  dist_soma[(dist_soma <= 0) & (dist_soma >= lower_lim)])[0]
-        
-        
-        
+
+
+
     except Exception as err:
         print(err)
         waveforms_df.loc[i, 'spread'] = np.nan
         waveforms_df.loc[i, 'v_below'] = np.nan
         waveforms_df.loc[i, 'v_above'] = np.nan
         continue
-    
+
     #if (v_below < 0.61) & (v_below > 0.59) & (dist_soma_spread < 0.05):
     #    alkdj
 
@@ -167,7 +164,7 @@ for i in waveforms_df.index:
     waveforms_df.loc[i, 'v_below'] = v_below
     waveforms_df.loc[i, 'upper_lim'] = upper_lim
     waveforms_df.loc[i, 'lower_lim'] = lower_lim
-    
+
     # Add distance and time to soma to another dataframe
     dist_time_df = pd.concat((dist_time_df, pd.DataFrame(data={
         'time_soma': time_trough[(dist_soma >= lower_lim) & (dist_soma <= upper_lim)],
@@ -279,7 +276,7 @@ waveforms_df.loc[right_10_df.index, 'type'] = right_10_df['type']
 """
 
 
-# %% Cluster neurons 
+# %% Cluster neurons
 
 """
 # First cluster narrow spiking from regular spiking
@@ -291,7 +288,7 @@ elif CLUSTERING == 'gaussian':
     # Mixture of Gaussians clustering
     gauss_mix = GaussianMixture(n_components=2, random_state=42).fit(waveforms_df[FEATURES_1].to_numpy())
     waveforms_df['group_label'] = gauss_mix.predict(waveforms_df[FEATURES_1].to_numpy())
-    
+
 # Get the RS and FS labels right
 if (waveforms_df.loc[waveforms_df['group_label'] == 0, 'spike_width'].mean()
         < waveforms_df.loc[waveforms_df['group_label'] == 1, 'spike_width'].mean()):
@@ -305,7 +302,7 @@ else:
 """
 waveforms_df.loc[waveforms_df['spike_width'] < SW_CUTOFF, 'type'] = 'NS'
 waveforms_df.loc[waveforms_df['spike_width'] >= SW_CUTOFF, 'type'] = 'RS'
-    
+
 
 # Then do another clustering on the RS group to split those into RS1 and RS2
 waveforms_rs_df = waveforms_df[(waveforms_df['type'] == 'RS') & (waveforms_df['v_below'] != 0)
@@ -456,7 +453,7 @@ ax1.text(30.5, 1.5, 'NS', fontsize=7, color='k')
 ax1.text(53, 10, f'n={np.sum(waveforms_df["type"] == "NS")}', fontsize=5, color='k')
 ax1.get_xaxis().set_visible(False)
 ax1.get_yaxis().set_visible(False)
-ax1.set(xlim=[np.argmin(np.abs(t_x - 1)), np.argmin(np.abs(t_x - 2))], 
+ax1.set(xlim=[np.argmin(np.abs(t_x - 1)), np.argmin(np.abs(t_x - 2))],
         ylabel='Distance to soma (um)')
 ax1.set_axis_off()
 
@@ -485,7 +482,7 @@ plt.savefig(join(FIG_PATH, 'multichannel_waveforms.pdf'))
 
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 sns.lineplot(data=dist_time_type_df[dist_time_type_df['type'] != 'Und.'], x='dist_soma', y='time_soma',
-             ax=ax1, errorbar='se', hue='type', hue_order=['NS', 'RS1', 'RS2'], 
+             ax=ax1, errorbar='se', hue='type', hue_order=['NS', 'RS1', 'RS2'],
              palette=[colors['NS'], colors['RS1'], colors['RS2']])
 ax1.legend(title='', frameon=False, prop={'size': 5.5}, bbox_to_anchor=(0.9, 0.35))
 ax1.set(xlabel='Distance to soma (mm)', ylabel='Time rel. to soma (ms)')

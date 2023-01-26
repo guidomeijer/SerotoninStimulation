@@ -9,21 +9,18 @@ import numpy as np
 from one.api import ONE
 import matplotlib.pyplot as plt
 import seaborn as sns
-from os.path import join
+from os.path import join, realpath, dirname, split
 from serotonin_functions import load_passive_opto_times, paths, get_artifact_neurons
-from brainbox.ephys_plots import scatter_raster_plot
 from brainbox.metrics.single_units import spike_sorting_metrics
-from brainbox.plot_base import plot_scatter
 from brainbox.processing import bincount2D
-from brainbox.plot import driftmap
 from brainbox.io.one import SpikeSortingLoader
 from ibllib.atlas import AllenAtlas
 one = ONE()
 ba = AllenAtlas()
 
 # Paths
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure1')
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # EID
 eid = '0d24afce-9d3c-449e-ac9f-577eefefbd7e'

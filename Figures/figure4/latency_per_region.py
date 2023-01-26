@@ -11,17 +11,16 @@ import seaborn as sns
 import seaborn.objects as so
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
-from os.path import join
+from os.path import join, realpath, dirname, split
 from matplotlib.colors import ListedColormap
-from serotonin_functions import (paths, figure_style, load_subjects, plot_scalar_on_slice,
-                                 combine_regions)
+from serotonin_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
 MIN_NEURONS = 10
 
-# Paths
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure4')
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in results
 all_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))

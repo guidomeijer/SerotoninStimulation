@@ -6,7 +6,7 @@ Created on Thu Jun 30 10:50:06 2022
 """
 
 import numpy as np
-from os.path import join
+from os.path import join, realpath, dirname, split
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -16,9 +16,11 @@ from serotonin_functions import paths, load_subjects, figure_style, combine_regi
 # Settings
 MIN_NEURONS = 10
 
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
+
 # Load in results
-fig_path, save_path = paths(dropbox=True)
-f_path = join(fig_path, 'PaperPassive', 'figure4')
 mod_idx_df = pd.read_pickle(join(save_path, 'mod_over_time.pickle'))
 mod_idx_df['full_region'] = combine_regions(mod_idx_df['region'], abbreviate=True)
 #mod_idx_df['full_region'] = high_level_regions(mod_idx_df['region'])

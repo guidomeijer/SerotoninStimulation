@@ -11,10 +11,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from mayavi import mlab
-from os.path import join
-import matplotlib as mpl
+from os.path import join, realpath, dirname, split
 import matplotlib.pyplot as plt
-import seaborn as sns
 import ibllib.atlas as atlas
 from atlaselectrophysiology import rendering
 from serotonin_functions import query_ephys_sessions, paths, figure_style, load_subjects
@@ -26,8 +24,8 @@ one = ONE()
 CMAP = 'tab20'
 
 # Paths
-fig_path, _ = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure1')
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in recording target coordinates
 rec_targets = pd.read_csv(join(pathlib.Path(__file__).parent.absolute(), '..', 'recording_targets.csv'))
