@@ -929,8 +929,8 @@ def peri_multiple_events_time_histogram(
     ax.spines['right'].set_visible(False)
     ax.set_xlabel('Time (s) after event')
     return ax
-
-
+ 
+    
 def get_dlc_XYs(one, eid, view='left', likelihood_thresh=0.9):
     ses_details = one.get_details(eid)
     subject = ses_details['subject']
