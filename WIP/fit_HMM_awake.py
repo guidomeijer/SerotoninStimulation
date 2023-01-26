@@ -19,7 +19,7 @@ from brainbox.plot import peri_event_time_histogram
 from brainbox.singlecell import calculate_peths
 from sklearn.model_selection import KFold
 from serotonin_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                                 get_artifact_neurons, get_neuron_qc, calculate_peths,
+                                 get_neuron_qc, calculate_peths,
                                  high_level_regions, figure_style, N_STATES)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
@@ -28,7 +28,7 @@ one = ONE()
 
 # Settings
 OVERWRITE = True
-NEURON_QC = True
+INCL_NEURONS = 'non-sig'  # all, sig or non-sig
 PRE_TIME = 1
 POST_TIME = 4
 BIN_SIZE = 0.01
@@ -46,8 +46,8 @@ fig_path, save_path = paths()
 # Query sessions
 rec = query_ephys_sessions(one=one)
 
-# Get light artifact units
-artifact_neurons = get_artifact_neurons()
+# Get significantly modulated neurons
+light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 
 # Initialize k-fold cross validation
 kf = KFold(n_splits=K_FOLDS, shuffle=CV_SHUFFLE, random_state=42)
@@ -56,7 +56,7 @@ if OVERWRITE:
     state_trans_df = pd.DataFrame()
     p_state_df = pd.DataFrame()
 else:
-    state_trans_df = pd.read_csv(join(save_path, 'HMM', 'all_state_trans.csv'))
+    state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_{INCL_NEURONS}.csv'))
     rec = rec[~rec['pid'].isin(state_trans_df['pid'])]
 
 for i in rec.index.values:
@@ -77,26 +77,26 @@ for i in rec.index.values:
     sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
     spikes, clusters, channels = sl.load_spike_sorting()
     clusters = sl.merge_clusters(spikes, clusters, channels)
-
-    # Filter neurons that pass QC
-    qc_metrics = get_neuron_qc(pid, one=one, ba=ba)
-    clusters_pass = np.where(qc_metrics['label'] == 1)[0]
-
-    # Exclude artifact neurons
-    clusters_pass = np.array([i for i in clusters_pass if i not in artifact_neurons.loc[
-        artifact_neurons['pid'] == pid, 'neuron_id'].values])
-    if clusters_pass.shape[0] == 0:
-            continue
+    
+    # Select neurons to use
+    if INCL_NEURONS == 'all':
+        use_neurons = light_neurons.loc[light_neurons['pid'] == pid, 'neuron_id'].values
+    elif INCL_NEURONS == 'sig':
+        use_neurons = light_neurons.loc[(light_neurons['pid'] == pid) & light_neurons['modulated'],
+                                        'neuron_id'].values
+    elif INCL_NEURONS == 'non-sig':
+        use_neurons = light_neurons.loc[(light_neurons['pid'] == pid) & ~light_neurons['modulated'],
+                                        'neuron_id'].values
 
     # Select QC pass neurons
-    spikes.times = spikes.times[np.isin(spikes.clusters, clusters_pass)]
-    spikes.clusters = spikes.clusters[np.isin(spikes.clusters, clusters_pass)]
-    clusters_pass = clusters_pass[np.isin(clusters_pass, np.unique(spikes.clusters))]
+    spikes.times = spikes.times[np.isin(spikes.clusters, use_neurons)]
+    spikes.clusters = spikes.clusters[np.isin(spikes.clusters, use_neurons)]
+    use_neurons = use_neurons[np.isin(use_neurons, np.unique(spikes.clusters))]
 
     # Get regions from Beryl atlas
     clusters['region'] = remap(clusters['acronym'], combine=True)
     clusters['high_level_region'] = high_level_regions(clusters['acronym'])
-    clusters_regions = clusters['high_level_region'][clusters_pass]
+    clusters_regions = clusters['high_level_region'][use_neurons]
 
     # Loop over regions
     for r, region in enumerate(np.unique(clusters['high_level_region'])):
@@ -104,7 +104,8 @@ for i in rec.index.values:
             continue
 
         # Select spikes and clusters in this brain region
-        clusters_in_region = clusters_pass[clusters_regions == region]
+        clusters_in_region = use_neurons[clusters_regions == region]
+        
         if len(clusters_in_region) < MIN_NEURONS:
             continue
 
@@ -213,8 +214,8 @@ for i in rec.index.values:
         sns.despine(trim=True)
         plt.tight_layout()
 
-        plt.savefig(join(fig_path, 'Ephys', 'UpDownStates', 'Awake', f'{region}_{subject}_{date}_trial.jpg'),
-                    dpi=600)
+        plt.savefig(join(fig_path, 'Extra plots', 'State', 'Awake', 'Non-modulated',
+                         f'{region}_{subject}_{date}_trial.jpg'), dpi=600)
         plt.close(f)
 
         # Plot session
@@ -249,13 +250,13 @@ for i in rec.index.values:
 
         sns.despine(trim=True)
         plt.tight_layout()
-        plt.savefig(join(fig_path, 'Ephys', 'UpDownStates', 'Awake', f'{region}_{subject}_{date}_ses.jpg'),
-                    dpi=600)
+        plt.savefig(join(fig_path, 'Extra plots', 'State', 'Awake', 'Non-modulated',
+                         f'{region}_{subject}_{date}_ses.jpg'), dpi=600)
         plt.close(f)
 
     # Save output
-    state_trans_df.to_csv(join(save_path, 'HMM', 'all_state_trans.csv'))
-    p_state_df.to_csv(join(save_path, 'HMM', 'p_state.csv'))
+    state_trans_df.to_csv(join(save_path, f'all_state_trans_{INCL_NEURONS}.csv'))
+    p_state_df.to_csv(join(save_path, f'p_state_{INCL_NEURONS}.csv'))
 
 
 

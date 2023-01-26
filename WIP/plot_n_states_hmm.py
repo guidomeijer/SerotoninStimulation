@@ -17,7 +17,7 @@ from os.path import join
 fig_path, save_path = paths()
 
 # Load in data
-hmm_ll_df = pd.read_csv(join(save_path, 'HMM', 'hmm_log_likelihood.csv'))
+hmm_ll_df = pd.read_csv(join(save_path, 'hmm_log_likelihood.csv'))
 
 # Convert ll
 hmm_ll_df['xcorr'] = -2 * hmm_ll_df['log_likelihood']
