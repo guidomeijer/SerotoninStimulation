@@ -6,7 +6,7 @@ By: Guido Meijer
 """
 
 import numpy as np
-from os.path import join
+from os.path import join, realpath, dirname, split
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
@@ -22,8 +22,6 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-
-
 SUBJECT = 'ZFM-03330'
 DATE = '2022-02-16'
 PROBE = 'probe00'
@@ -50,8 +48,10 @@ PRE_TIME = [1, 0]  # for modulation index
 POST_TIME = [0, 1]
 BIN_SIZE = 0.05
 SMOOTHING = 0.025
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure4')
+
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Get session details
 ins = one.alyx.rest('insertions', 'list', date=DATE, subject=SUBJECT, name=PROBE)

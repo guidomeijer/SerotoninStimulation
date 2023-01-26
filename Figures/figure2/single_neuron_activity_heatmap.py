@@ -6,23 +6,22 @@ By: Guido Meijer
 """
 
 import numpy as np
-from os.path import join
+from os.path import join, realpath, dirname, split
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from serotonin_functions import figure_style
-from brainbox.io.one import SpikeSortingLoader
-from brainbox.singlecell import calculate_peths
-from serotonin_functions import (paths, load_passive_opto_times, combine_regions, load_subjects,
-                                 high_level_regions)
+from serotonin_functions import paths
 
 # Settings
 T_BEFORE = 1  # for plotting
 T_AFTER = 2
 VMIN = 0
 VMAX = 2
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure2')
+
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
 peths_df = pd.read_pickle(join(save_path, 'psth.pickle'))

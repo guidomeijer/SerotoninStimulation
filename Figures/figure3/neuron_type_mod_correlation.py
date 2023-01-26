@@ -11,15 +11,15 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import seaborn.objects as so
 from scipy.stats import pearsonr
-from os.path import join
+from os.path import join, realpath, dirname, split
 from serotonin_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
 MIN_NEURONS = 10
 
-# Paths
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure3')
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in results
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'), index_col=0)
