@@ -55,8 +55,11 @@ kf = KFold(n_splits=K_FOLDS, shuffle=CV_SHUFFLE, random_state=42)
 
 if OVERWRITE:
     up_down_state_df = pd.DataFrame()
+    state_trans_df = pd.DataFrame()
 else:
     up_down_state_df = pd.read_csv(join(save_path, 'updown_state_anesthesia.csv'))
+    state_trans_df = pd.read_csv(join(save_path, 'state_trans_anesthesia.csv'))
+    rec = rec[~rec['pid'].isin(state_trans_df['pid'])]
 
 for i in rec.index.values:
 
@@ -127,6 +130,8 @@ for i in rec.index.values:
         simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
 
         this_df = pd.DataFrame()
+        state_trans = []
+        trans_mat = np.empty((len(trial_data), time_ax.shape[0]))
         if CROSS_VAL:
             # Cross validate
             for k, (train_index, test_index) in enumerate(kf.split(trial_data)):
@@ -150,10 +155,15 @@ for i in rec.index.values:
                     else:
                         p_down = posterior[:, 0]
 
-                # Add to dataframe
-                this_df = pd.concat((this_df, pd.DataFrame(data={
-                    'state': zhat, 'p_down': p_down, 'region': region, 'time': time_ax,
-                    'trial': t})))
+                    # Get transitions
+                    state_trans.append(time_ax[np.concatenate((np.diff(zhat) > 0, [False]))])
+                    trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
+
+                    # Add to dataframe
+                    this_df = pd.concat((this_df, pd.DataFrame(data={
+                        'state': zhat, 'p_down': p_down, 'region': region, 'time': time_ax,
+                        'trial': t})))
+
 
         else:
 
@@ -175,10 +185,15 @@ for i in rec.index.values:
                 else:
                     p_down = posterior[:, 0]
 
+                # Get transitions
+                state_trans.append(time_ax[np.concatenate((np.diff(zhat) > 0, [False]))])
+                trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
+
                 # Add to dataframe
                 this_df = pd.concat((this_df, pd.DataFrame(data={
                     'state': zhat, 'p_down': p_down, 'region': region, 'time': time_ax,
                     'trial': t})))
+        state_trans = np.concatenate(state_trans)
 
         # Add to dataframe
         p_down = this_df[['time', 'state']].groupby('time').mean().reset_index()
@@ -186,6 +201,13 @@ for i in rec.index.values:
         up_down_state_df = pd.concat((up_down_state_df, pd.DataFrame(data={
             'p_down': p_down['state'], 'time': p_down['time'], 'subject': subject,
             'pid': pid, 'region': region})))
+
+        # Add state change PSTH to dataframe
+        p_state_change = np.mean(trans_mat, axis=0)
+        state_trans_df = pd.concat((state_trans_df, pd.DataFrame(data={
+            'time': time_ax, 'p_state_change': p_state_change,
+            'trans_rate_bl': p_state_change - np.mean(p_state_change[time_ax < 0]),
+            'region': region, 'subject': subject, 'pid': pid})))
 
         # Plot example trial
         trial = 13
@@ -207,7 +229,7 @@ for i in rec.index.values:
                ylim=[-1, len(clusters_in_region)+1], title=f'{region}')
         sns.despine(trim=True)
         plt.tight_layout()
-        plt.savefig(join(fig_path, 'Ephys', 'UpDownStates', 'Anesthesia',
+        plt.savefig(join(fig_path, 'Extra plots', 'State', 'Anesthesia',
                          f'{region}_{subject}_{date}_trial.jpg'),
                     dpi=600)
         plt.close(f)
@@ -223,13 +245,14 @@ for i in rec.index.values:
                title=f'{region}')
         sns.despine(trim=True)
         plt.tight_layout()
-        plt.savefig(join(fig_path, 'Ephys', 'UpDownStates', 'Anesthesia',
+        plt.savefig(join(fig_path, 'Extra plots', 'State', 'Anesthesia',
                          f'{region}_{subject}_{date}_ses.jpg'),
                     dpi=600)
         plt.close(f)
 
     # Save result
     up_down_state_df.to_csv(join(save_path, 'updown_states_anesthesia.csv'))
+    state_trans_df.to_csv(join(save_path, 'state_trans_anesthesia.csv'))
 
 
 

@@ -26,7 +26,7 @@ NEURON_QC = True
 N_STATES = np.arange(2, 21)
 PRE_TIME = 1
 POST_TIME = 4
-BIN_SIZE = 0.01
+BIN_SIZE = 0.1
 MIN_NEURONS = 5
 K_FOLDS = 10
 CV_SHUFFLE = True
@@ -34,7 +34,6 @@ CV_SHUFFLE = True
 # Get paths
 fig_path, save_path = paths()
 fig_path = join(fig_path, 'Ephys', 'SingleNeurons', 'LightModNeurons')
-save_path = join(save_path, 'HMM')
 
 # Query sessions
 rec = query_ephys_sessions(anesthesia='no&both', one=one)
@@ -48,7 +47,7 @@ kf = KFold(n_splits=K_FOLDS, shuffle=CV_SHUFFLE, random_state=42)
 if OVERWRITE:
     log_likelihood_df = pd.DataFrame()
 else:
-    log_likelihood_df = pd.read_csv(join(save_path, 'hmm_log_likelihood.csv'))
+    log_likelihood_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_{BIN_SIZE*1000}ms_bins.csv'))
     rec = rec[~rec['pid'].isin(log_likelihood_df['pid'])]
 
 for i in rec.index.values:
@@ -136,7 +135,7 @@ for i in rec.index.values:
             'subject': subject, 'pid': pid})))
 
     # Save result
-    log_likelihood_df.to_csv(join(save_path, 'hmm_log_likelihood.csv'))
+    log_likelihood_df.to_csv(join(save_path, f'hmm_log_likelihood_{BIN_SIZE*1000}ms_bins.csv'))
 
 
 

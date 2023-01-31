@@ -35,9 +35,9 @@ else:
 
 # Initialize waveform denoiser
 if DENOISE:
-    
+
     from spike_psvae import denoise
-    
+
     denoiser = denoise.SingleChanDenoiser()
     denoiser.load()
     #if torch.cuda.is_available():
@@ -68,12 +68,13 @@ for i in rec.index.values:
     print(f'Starting {subject}, {date}')
 
     # Load in RMS ap
-    try:
-        rms_ap = one.load_object(eid, 'ephysChannels', collection=f'raw_ephys_data/{probe}',
-                                 attribute=['apRMS'])['apRMS'][1,:]
-    except Exception as err:
-        print(err)
-        continue
+    if DENOISE:
+        try:
+            rms_ap = one.load_object(eid, 'ephysChannels', collection=f'raw_ephys_data/{probe}',
+                                     attribute=['apRMS'])['apRMS'][1,:]
+        except Exception as err:
+            print(err)
+            continue
 
     # Load in spikes
     sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
@@ -227,7 +228,7 @@ for i in rec.index.values:
         # Add to dataframe
         waveforms_df = pd.concat((waveforms_df, pd.DataFrame(index=[waveforms_df.shape[0] + 1], data={
             'pid': pid, 'eid': eid, 'probe': probe, 'subject': subject, 'waveform': [mean_wf],
-            'cluster_id': neuron_id, 'regions': clusters_regions[n], 'spike_amp': spike_amp,
+            'neuron_id': neuron_id, 'acronym': clusters_regions[n], 'spike_amp': spike_amp,
             'pt_ratio': pt_ratio, 'rp_slope': rp_slope, 'pt_subtract': pt_subtract,
             'rc_slope': rc_slope, 'peak_to_trough': peak_to_trough, 'spike_width': spike_width,
             'firing_rate': neuron_fr, 'n_waveforms': n_waveforms, 'waveform_2D': [wf_ch_sort],

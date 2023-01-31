@@ -24,7 +24,6 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'), index_col=0)
 neuron_type = pd.read_csv(join(save_path, 'neuron_type.csv'))
 neuron_type = neuron_type[neuron_type['type'] != 'Und.']
-neuron_type['neuron_id'] = neuron_type['cluster_id']
 merged_df = pd.merge(light_neurons, neuron_type, on=['neuron_id', 'pid', 'eid', 'probe'])
 merged_df['merged_region'] = combine_regions(merged_df['region'], abbreviate=True)
 

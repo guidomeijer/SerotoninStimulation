@@ -15,7 +15,7 @@ from os.path import join, realpath, dirname, split
 from serotonin_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
-MIN_NEURONS = 10
+MIN_NEURONS = 20
 
 # Get paths
 f_path, save_path = paths()
@@ -25,7 +25,6 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'), index_col=0)
 neuron_type = pd.read_csv(join(save_path, 'neuron_type.csv'))
 neuron_type = neuron_type[neuron_type['type'] != 'Und.']
-neuron_type['neuron_id'] = neuron_type['cluster_id']
 merged_df = pd.merge(light_neurons, neuron_type, on=['neuron_id', 'pid', 'eid', 'probe'])
 merged_df['full_region'] = combine_regions(merged_df['region'], abbreviate=True)
 
@@ -63,11 +62,11 @@ for i in per_region_df.index:
              per_region_df.loc[i, 'full_region'],
              ha='center', va='center',
              color=per_region_df.loc[i, 'color'], fontsize=4.5, fontweight='bold')
-ax1.set(yticks=[0, 25, 50], xticks=[-0.06, -0.03, 0, 0.03],
-        ylabel='Modulated inhibitory neurons (%)', xlabel='Modulation index')
+ax1.set(yticks=[0, 20, 40], xticks=[-0.05, -0.025, 0], xticklabels=[-0.05, -0.025, 0],
+        xlim=[-0.05, 0], ylabel='Modulated inhibitory neurons (%)', xlabel='Modulation index')
 r, p = pearsonr(per_region_df['mod_index_late'], per_region_df['perc_mod_NS'])
 #ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
-#ax1.text(-0.1, 520, '***', fontsize=10, ha='center')
+ax1.text(-0.022, 40, 'n.s.', fontsize=7, ha='center')
 
 sns.despine(offset=2, trim=True)
 plt.tight_layout()
