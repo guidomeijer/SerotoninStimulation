@@ -36,11 +36,9 @@ HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 BIN_SIZE = 0.1  # s
 MIN_NEURONS = 5
-CROSS_VAL = False
-K_FOLDS = 5
-CV_SHUFFLE = True
 CMAP = 'Set3'
 PTRANS_SMOOTH = 0.2  # s
+PSTATE_SMOOTH = 0.1  # s
 
 # Get paths
 f_path, save_path = paths()
@@ -51,9 +49,6 @@ rec = query_ephys_sessions(one=one)
 
 # Get significantly modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
-
-# Initialize k-fold cross validation
-kf = KFold(n_splits=K_FOLDS, shuffle=CV_SHUFFLE, random_state=42)
 
 if OVERWRITE:
     state_trans_df = pd.DataFrame()
@@ -131,48 +126,22 @@ for i in rec.index.values:
             trial_data.append(np.transpose(binned_spikes[i, :, :]))
 
         # Loop over different number of states
-        this_df = pd.DataFrame()
-        state_trans = []
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
-        posterior = np.empty((len(trial_data), binned_spikes.shape[2], N_STATES[region]))
-        if CROSS_VAL:
-            # Cross validate
-            for k, (train_index, test_index) in enumerate(kf.split(trial_data)):
+        state_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
 
-                # Fit HMM on training data
-                lls = simple_hmm.fit(list(np.array(trial_data)[train_index]), method='em',
-                                     transitions='sticky')
+        # Fit HMM on all data
+        lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
-                for t in test_index:
+        for t in range(len(trial_data)):
 
-                    # Get posterior probability and most likely states for this trial
-                    posterior[t, :, :] = simple_hmm.filter(trial_data[t])
-                    zhat = simple_hmm.most_likely_states(trial_data[t])
-                    zhat = zhat[use_timepoints]
+            # Get most likely states for this trial
+            zhat = simple_hmm.most_likely_states(trial_data[t])
 
-                    # Add to dataframe
-                    this_df = pd.concat((this_df, pd.DataFrame(data={
-                        'state': zhat, 'region': region, 'time': time_ax, 'trial': t})))
+            # Get state transitions times
+            trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
 
-        else:
-            # Fit HMM on all data
-            lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
-
-            for t in range(len(trial_data)):
-
-                # Get posterior probability and most likely states for this trial
-                posterior[t, :, :] = simple_hmm.filter(trial_data[t])
-                zhat = simple_hmm.most_likely_states(trial_data[t])
-
-                # Get state transitions times
-                trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
-
-                # Select timepoints to use
-                zhat = zhat[use_timepoints]
-
-                # Add to dataframe
-                this_df = pd.concat((this_df, pd.DataFrame(data={
-                    'state': zhat, 'region': region, 'time': time_ax, 'trial': t})))
+            # Add state to state matrix
+            state_mat[t, :] = zhat
 
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
@@ -183,24 +152,19 @@ for i in rec.index.values:
         smooth_p_trans = smooth_p_trans[use_timepoints]
 
         # Get P(state)
-        p_state = pd.DataFrame()
-        mean_state_inc = np.empty(N_STATES[region])
+        p_state_mat = np.empty((N_STATES[region], time_ax.shape[0]))
         for ii in range(N_STATES[region]):
-            this_df[f'state_{ii}'] = (this_df['state'] == ii).astype(int)
-            p_state[f'state_{ii}'] = this_df[['time', f'state_{ii}']].groupby('time').mean()
-            p_state[f'state_{ii}_bl'] = (p_state[f'state_{ii}']
-                                         - p_state.loc[p_state.index < 0, f'state_{ii}'].mean())
-            mean_state_inc[ii] = p_state.loc[(p_state.index > 0) & (p_state.index < 1),
-                                             f'state_{ii}_bl'].mean()
 
-        # Add states with biggest increase and biggest decrease to dataframe
-        this_p_state = p_state[[f'state_{np.argmax(mean_state_inc)}_bl', f'state_{np.argmin(mean_state_inc)}_bl']].rename(
-                    columns={f'state_{np.argmax(mean_state_inc)}_bl': 'state_incr',
-                             f'state_{np.argmin(mean_state_inc)}_bl': 'state_decr'})
-        this_p_state['subject'] = subject
-        this_p_state['pid'] = pid
-        this_p_state['region'] = region
-        p_state_df = pd.concat((p_state_df, this_p_state))
+            # Get P state, first smooth, then crop timewindow
+            this_p_state = np.mean(state_mat == ii, axis=0)
+            smooth_p_state = gaussian_filter(this_p_state, PSTATE_SMOOTH / BIN_SIZE)
+            smooth_p_state = smooth_p_state[use_timepoints]
+
+            # Add to dataframe and matrix
+            p_state_mat[ii, :] = smooth_p_state
+            p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
+                'p_state': smooth_p_state, 'state': ii, 'time': time_ax,
+                'subject': subject, 'pid': pid, 'region': region})))
 
         # Add state change PSTH to dataframe
         state_trans_df = pd.concat((state_trans_df, pd.DataFrame(data={
@@ -213,7 +177,7 @@ for i in rec.index.values:
         cmap = sns.color_palette(CMAP, N_STATES[region])
         colors, dpi = figure_style()
         f, ax = plt.subplots(1, 1, figsize=(3.5, 1.75), dpi=dpi)
-        ax.imshow(this_df.loc[this_df['trial'] == trial, 'state'].values[None, :],
+        ax.imshow(state_mat[trial, use_timepoints][None, :],
                   aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1, alpha=0.4,
                   extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
         tickedges = np.arange(0, len(clusters_in_region)+1)
@@ -235,17 +199,16 @@ for i in rec.index.values:
         plt.close(f)
 
         # Plot session
-        pivot_df = this_df.pivot_table(index='trial', columns='time', values='state').sort_values(
-            'trial', ascending=False)
         f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
-        ax1.imshow(pivot_df, aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1,
+        ax1.imshow(state_mat[:, use_timepoints], aspect='auto', cmap=ListedColormap(cmap),
+                   vmin=0, vmax=N_STATES[region]-1,
                   extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
         ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
         ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
                title=f'{region}')
 
         for ii in range(N_STATES[region]):
-            ax2.plot(p_state.index.values, p_state[f'state_{ii}_bl'].values, color=cmap[ii])
+            ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
         ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
 
         ax3.imshow(trans_mat, aspect='auto', cmap='Greys', interpolation=None,
