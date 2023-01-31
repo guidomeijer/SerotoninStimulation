@@ -39,13 +39,14 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in waveforms
 if DENOISED:
-    waveforms_df = pd.read_pickle(join(data_dir, 'waveform_metrics_denoised.p'))
+    waveforms_df = pd.read_pickle(join(save_path, 'waveform_metrics_denoised.p'))
 else:
-    waveforms_df = pd.read_pickle(join(data_dir, 'waveform_metrics.p'))
+    waveforms_df = pd.read_pickle(join(save_path, 'waveform_metrics.p'))
 waveforms_df = waveforms_df.rename(columns={'cluster_id': 'neuron_id'})
 
 # Select neurons from dorsal cortex
-waveforms_df = waveforms_df[np.in1d(remap(waveforms_df['regions']), REGIONS)]
+waveforms_df['region'] = remap(waveforms_df['acronym'])
+waveforms_df = waveforms_df[np.in1d(remap(waveforms_df['acronym']), REGIONS)]
 
 """
 # Add insertion angles
@@ -349,7 +350,7 @@ neuron_type = waveforms_df.copy()
 neuron_type = neuron_type.drop(['waveform', 'spike_width', 'firing_rate', 'rp_slope', 'spike_amp', 'pt_ratio',
                                 'rc_slope', 'pt_subtract', 'peak_to_trough', 'n_waveforms',
                                 'waveform_2D'], axis=1)
-neuron_type.to_csv(join(data_dir, 'neuron_type_multichannel.csv'), index=False)
+neuron_type.to_csv(join(save_path, 'neuron_type_multichannel.csv'), index=False)
 
 # Add clustering result to distance time df
 dist_time_type_df = pd.merge(dist_time_df, neuron_type[['type', 'pid', 'neuron_id']],
@@ -413,7 +414,7 @@ ax6.set(xlabel='v below', ylabel='upper_lim')
 
 plt.tight_layout()
 sns.despine(trim=False)
-plt.savefig(join(FIG_PATH, 'multichannel_clustering.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'multichannel_clustering.jpg'), dpi=600)
 
 
 # %% Get average waveforms for the three groups
@@ -476,7 +477,7 @@ ax3.set(xlim=[np.argmin(np.abs(t_x - 1)), np.argmin(np.abs(t_x - 2))],
         yticks=np.linspace(0, 10, 5), yticklabels=np.round(np.linspace(-.1, .1, 5), 2))
 ax3.set_axis_off()
 
-plt.savefig(join(FIG_PATH, 'multichannel_waveforms.pdf'))
+plt.savefig(join(fig_path, 'multichannel_waveforms.pdf'))
 
 #%% Plot time and distance to soma
 
@@ -489,7 +490,7 @@ ax1.set(xlabel='Distance to soma (mm)', ylabel='Time rel. to soma (ms)')
 
 plt.tight_layout()
 sns.despine(trim=True)
-plt.savefig(join(FIG_PATH, 'multichannel_waveform_groups.pdf'))
+plt.savefig(join(fig_path, 'multichannel_waveform_groups.pdf'))
 
 
 """

@@ -28,8 +28,8 @@ from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
 # Number of states of awake HMM
-N_STATES = {'Frontal': 10, 'Sensory': 8, 'Hippocampus': 9, 'Striatum': 6, 'Thalamus': 7,
-            'Midbrain': 8, 'Amygdala': 8}
+N_STATES = {'Frontal': 8, 'Sensory': 8, 'Hippocampus': 8, 'Striatum': 6, 'Thalamus': 7,
+            'Midbrain': 10, 'Amygdala': 6}
 
 
 def load_subjects(anesthesia='all', behavior=None):
@@ -929,8 +929,8 @@ def peri_multiple_events_time_histogram(
     ax.spines['right'].set_visible(False)
     ax.set_xlabel('Time (s) after event')
     return ax
- 
-    
+
+
 def get_dlc_XYs(one, eid, view='left', likelihood_thresh=0.9):
     ses_details = one.get_details(eid)
     subject = ses_details['subject']

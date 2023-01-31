@@ -17,6 +17,7 @@ from statsmodels.stats.multicomp import MultiComparison
 
 # Settings
 var = 'mod_index_late'
+#var = 'mod_index_late'
 MIN_NEURONS = 5
 
 # Get paths
@@ -26,7 +27,8 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 # Load in data
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 neuron_type = pd.read_csv(join(save_path, 'neuron_type_multichannel.csv'))
-all_neurons = pd.merge(light_neurons, neuron_type, on=['subject', 'probe', 'eid', 'pid', 'neuron_id'])
+all_neurons = pd.merge(light_neurons, neuron_type, on=['subject', 'probe', 'eid', 'pid',
+                                                       'neuron_id', 'region'])
 
 # Select sert-cre mice
 subjects = load_subjects()
@@ -43,7 +45,7 @@ mod_neurons = all_neurons[all_neurons['modulated']]
 
 # %% Visual cortex
 # Get percentage of modulated neurons per animal per neuron type
-#vis_neurons = all_neurons[np.in1d(all_neurons['region'], ['VISa', 'VISam', 'VISp'])]
+#vis_neurons = all_neurons[np.in1d(all_neurons['region'], ['VISp'])]
 vis_neurons = all_neurons[np.in1d(all_neurons['region'], ['VISa', 'VISam', 'VISp', 'VISpm'])]
 perc_mod = ((vis_neurons.groupby(['subject', 'type']).sum(numeric_only=True)['modulated']
             / vis_neurons.groupby(['subject', 'type']).size()) * 100).to_frame()
@@ -116,7 +118,7 @@ sns.swarmplot(data=perc_mod_merged, x='region', y='percentage', hue='type',
               palette=['gray', 'gray', 'gray'], ax=ax1)
 """
 ax1.set(ylim=[0, 80], ylabel='Modulated neurons (%)', xlabel='')
-ax1.legend(frameon=False, prop={'size': 5.5}, bbox_to_anchor=(0.6, 0.7))
+ax1.legend(frameon=False, prop={'size': 5.5}, bbox_to_anchor=(0.8, 0.7))
 
 sns.swarmplot(data=mod_neurons, x='type', y=var, order=['NS', 'RS1', 'RS2'], legend=None,
               size=3, hue='type', palette=[colors['NS'], colors['RS1'], colors['RS2']], ax=ax2)

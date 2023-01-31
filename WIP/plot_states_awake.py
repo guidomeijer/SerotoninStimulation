@@ -14,13 +14,16 @@ from matplotlib.patches import Rectangle
 from serotonin_functions import figure_style, paths, load_subjects
 from os.path import join
 
+BIN_SIZE = 100  # ms
+NEURONS = 'non-sig'  # non-sig, sig or all
+
 # Get paths
 f_path, save_path = paths()
 fig_path = join(f_path, 'Extra plots', 'State')
 
 # Load in data
-state_trans_df = pd.read_csv(join(save_path, 'all_state_trans_non-sig.csv'))
-p_state_df = pd.read_csv(join(save_path, 'p_state_non-sig.csv'))
+state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_{BIN_SIZE}msbins_{NEURONS}.csv'))
+p_state_df = pd.read_csv(join(save_path, f'p_state_{BIN_SIZE}msbins_{NEURONS}.csv'))
 
 # Average over mice first
 state_trans_df = state_trans_df.groupby(['subject', 'time', 'region']).mean(numeric_only=True).reset_index()
@@ -42,10 +45,10 @@ axs = np.concatenate(axs)
 for i, region in enumerate(np.unique(p_state_df['region'])):
 
     axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
-    sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='trans_rate_bl',
-                 color='k', errorbar='se', ax=axs[i])
-    axs[i].set(ylabel='State change rate', xlabel='Time (s)', title=region, ylim=[-4, 1],
-               yticks=[-4, -3, -2, -1, 0, 1], xticks=[-1, 0, 1, 2, 3, 4])
+    sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans_bl',
+                 color='k', estimator=None, units='subject', ax=axs[i])
+    axs[i].set(ylabel='State change rate', xlabel='Time (s)', title=region, ylim=[-0.1, 0.1],
+               yticks=[-0.1, 0, 0.1], xticks=[-1, 0, 1, 2, 3, 4])
 axs[-1].axis('off')
 plt.tight_layout()
 sns.despine(trim=True)

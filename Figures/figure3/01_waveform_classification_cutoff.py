@@ -33,8 +33,8 @@ def fix_hist_step_vertical_line_at_end(ax):
 
 # Load in waveforms
 waveforms_df = pd.read_pickle(join(save_path, 'waveform_metrics.p'))
-waveforms_df['combined_region'] = combine_regions(remap(waveforms_df['regions']))
-waveforms_df['high_level_region'] = high_level_regions(waveforms_df['regions'], merge_cortex=True)
+waveforms_df['combined_region'] = combine_regions(remap(waveforms_df['acronym']))
+waveforms_df['high_level_region'] = high_level_regions(waveforms_df['acronym'], merge_cortex=True)
 waveforms_df = waveforms_df[waveforms_df['high_level_region'] != 'root']
 
 # Exclude positive spikes
