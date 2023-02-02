@@ -17,35 +17,18 @@ one = ONE()
 
 # Settings
 OVERWRITE = False
-DENOISE = False
 _, save_path = paths()
 
 # Query sessions
-rec = query_ephys_sessions(one=one)
+rec = query_ephys_sessions(anesthesia='all', one=one)
 
 # Get artifact neurons
 artifact_neurons = get_artifact_neurons()
 
 if OVERWRITE:
     waveforms_df = pd.DataFrame()
-elif DENOISE:
-    waveforms_df = pd.read_pickle(join(save_path, 'waveform_metrics_denoised.p'))
 else:
     waveforms_df = pd.read_pickle(join(save_path, 'waveform_metrics.p'))
-
-# Initialize waveform denoiser
-if DENOISE:
-
-    from spike_psvae import denoise
-
-    denoiser = denoise.SingleChanDenoiser()
-    denoiser.load()
-    #if torch.cuda.is_available():
-    #    device = "cuda:0"
-    #else:
-    #    device = "cpu"
-    device = "cpu"
-    denoiser.to(device)
 
 
 # %% Functions
@@ -66,15 +49,6 @@ for i in rec.index.values:
             continue
 
     print(f'Starting {subject}, {date}')
-
-    # Load in RMS ap
-    if DENOISE:
-        try:
-            rms_ap = one.load_object(eid, 'ephysChannels', collection=f'raw_ephys_data/{probe}',
-                                     attribute=['apRMS'])['apRMS'][1,:]
-        except Exception as err:
-            print(err)
-            continue
 
     # Load in spikes
     sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
@@ -98,57 +72,8 @@ for i in rec.index.values:
                              collections=[collection]*3)[0]
     waveforms, wf_spikes, wf_channels = data[0], data[1], data[2]
 
-    if DENOISE:
-        print('Preparing waveforms..')
-        wf_length = waveforms.shape[1]
-        padded_wf = np.empty((waveforms.shape[0], 121, waveforms.shape[2]))
-        zero_pad = np.zeros((waveforms.shape[0], 2, waveforms.shape[2])).astype(int)
-        for i in range(waveforms.shape[0]):
-            for j in range(waveforms.shape[2]):
-
-                # Standardize waveforms by dividing signal over ap band RMS and subtract the mean
-                waveforms[i, :, j] = waveforms[i, :, j] / rms_ap[wf_channels[i, j]]
-                waveforms[i, :, j] = waveforms[i, :, j] - np.mean(waveforms[i, :, j])
-
-                # Zero-pad so that they are 121 long and centered at 42
-                zero_pad[i, 0, j] = 42-np.argmin(waveforms[i, :, j])
-                zero_pad[i, 1, j] = 121 - (zero_pad[i, 0, j] + wf_length)
-                if zero_pad[i, 0, j] < 0:
-                    zero_pad[i, 1, j] = 121 - waveforms[i, np.abs(zero_pad[i, 0, j]):, j].shape[0]
-
-                    padded_wf[i, :, j] = np.concatenate((waveforms[i, np.abs(zero_pad[i, 0, j]):, j],
-                                                         np.zeros(zero_pad[i, 1, j])))
-                elif zero_pad[i, 1, j] < 0:
-                    padded_wf[i, :, j] = np.concatenate((np.zeros(zero_pad[i, 0, j]),
-                                                         waveforms[i, :zero_pad[i, 1, j], j]))
-                elif zero_pad[i, 0, j] > 40:
-                    zero_pad[i, 1, j] = 0
-                    padded_wf[i, :, j] = np.concatenate((np.zeros(zero_pad[i, 0, j]), waveforms[i, :, j],
-                                                         np.zeros(zero_pad[i, 1, j])))
-                else:
-                    padded_wf[i, :, j] = np.concatenate((np.zeros(zero_pad[i, 0, j]), waveforms[i, :, j],
-                                                         np.zeros(zero_pad[i, 1, j])))
-
-        # Denoise waveforms
-        print('Denoising waveforms..')
-        denoised_wf = denoise.denoise_wf_nn_tmp_single_channel(padded_wf, denoiser, device)
-
-        # Undo the zero-padding
-        for i in range(denoised_wf.shape[0]):
-            for j in range(denoised_wf.shape[2]):
-                if zero_pad[i, 1, j] < 0:
-                    waveforms[i, :, j] = np.concatenate((denoised_wf[i, zero_pad[i, 0, j]:, j],
-                                                         np.zeros(np.abs(zero_pad[i, 1, j]))))
-                elif zero_pad[i, 0, j] < 0:
-                    waveforms[i, :, j] = np.concatenate((np.zeros(np.abs(zero_pad[i, 0, j])),
-                                                         denoised_wf[i, :-zero_pad[i, 1, j], j]))
-                elif zero_pad[i, 1, j] == 0:
-                    waveforms[i, :, j] = denoised_wf[i, zero_pad[i, 0, j]:, j]
-                else:
-                    waveforms[i, :, j] = denoised_wf[i, zero_pad[i, 0, j]:-zero_pad[i, 1, j], j]
-    else:
-        # Convert to uV
-        waveforms = waveforms * 1000
+    # Convert to uV
+    waveforms = waveforms * 1000
 
     # Filter neurons that pass QC and exclude artifact neurons
     qc_metrics = get_neuron_qc(pid, one=one, ba=ba)
@@ -234,8 +159,5 @@ for i in rec.index.values:
             'firing_rate': neuron_fr, 'n_waveforms': n_waveforms, 'waveform_2D': [wf_ch_sort],
             'dist_soma': [dist_soma]})))
 
-    if DENOISE:
-        waveforms_df.to_pickle(join(save_path, 'waveform_metrics_denoised.p'))
-    else:
-        waveforms_df.to_pickle(join(save_path, 'waveform_metrics.p'))
+    waveforms_df.to_pickle(join(save_path, 'waveform_metrics.p'))
 

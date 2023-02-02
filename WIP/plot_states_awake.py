@@ -19,7 +19,7 @@ from sklearn.cluster import KMeans
 
 PCA_DIM = 10
 BIN_SIZE = 100  # ms
-NEURONS = 'non-sig'  # non-sig, sig or all
+NEURONS = 'all'  # non-sig, sig or all
 
 # Initialize
 pca = PCA(n_components=PCA_DIM, random_state=42)
@@ -33,17 +33,17 @@ fig_path = join(f_path, 'Extra plots', 'State')
 state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_{BIN_SIZE}msbins_{NEURONS}.csv'))
 p_state_df = pd.read_csv(join(save_path, f'p_state_{BIN_SIZE}msbins_{NEURONS}.csv'))
 
-"""
-# Correlate each state with each other state
-for i, region in enumerate(np.unique(p_state_df['region'])):
-    region_slice = p_state_df[p_state_df['region'] == region]
-    for state in np.unique(region_slice['state']):
-        for pid in np.unique(region_slice['pid']):
-
-            region_slice[].pivot(index='pid', columns='time', values='p_state')
-"""
+# Only select sert-cre mice
+subjects = load_subjects()
+for i, nickname in enumerate(np.unique(subjects['subject'])):
+    state_trans_df.loc[state_trans_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+    p_state_df.loc[p_state_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+state_trans_df = state_trans_df[state_trans_df['sert-cre'] == 1]
+p_state_df = p_state_df[p_state_df['sert-cre'] == 1]
 
 # Do PCA on states and cluster them
+colors, dpi = figure_style()
+time_ax = np.unique(p_state_df['time'])
 for i, region in enumerate(np.unique(p_state_df['region'])):
     region_slice = p_state_df[p_state_df['region'] == region]
     region_pivot = region_slice.pivot(index=['pid', 'state'], columns='time', values='p_state')
@@ -54,54 +54,39 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
     # Do clustering
     n_states = np.unique(region_slice['state']).shape[0]
     state_clusters = KMeans(n_clusters=n_states, random_state=42, n_init='auto').fit_predict(dim_red_pca)
-    region_pivot['state_cluster'] = state_clusters
 
+    f, axs = plt.subplots(2, 5, figsize=(7, 3.5), dpi=dpi)
+    axs = np.concatenate(axs)
     for j in range(n_states):
-        plt.plot(np.mean(region_pivot.values[state_clusters == j, :], axis=0))
+        state_mean = np.mean(region_pivot.values[state_clusters == j, :], axis=0)
+        state_sem = (np.std(region_pivot.values[state_clusters == j, :], axis=0)
+                     / np.sqrt(np.sum(state_clusters == j)))
+        axs[j].plot(time_ax, state_mean, color='k', zorder=2)
+        axs[j].fill_between(time_ax, state_mean - state_sem, state_mean + state_sem, alpha=0.25,
+                            color='k', zorder=1, lw=0)
+        axs[j].add_patch(Rectangle((0, axs[j].get_ylim()[0]), 1, axs[j].get_ylim()[1] - axs[j].get_ylim()[0],
+                                   color='royalblue', alpha=0.25, lw=0))
+        axs[j].set(xlabel='Time (s)', title=f'State {j+1} (n={np.sum(state_clusters == j)})',
+                   xticks=[-1, 0, 1, 2, 3, 4])
+    axs[0].set(ylabel='P(state)')
+    f.suptitle(f'{region}')
+    sns.despine(trim=True)
+    plt.tight_layout()
 
+# %% Plot P(state change)
 
-# Average over mice first
-state_trans_df = state_trans_df.groupby(['subject', 'time', 'region']).mean(numeric_only=True).reset_index()
-p_state_df = p_state_df.groupby(['subject', 'time', 'region']).mean(numeric_only=True).reset_index()
-
-# Only select sert-cre mice
-subjects = load_subjects()
-for i, nickname in enumerate(np.unique(subjects['subject'])):
-    state_trans_df.loc[state_trans_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
-    p_state_df.loc[p_state_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
-state_trans_df = state_trans_df[state_trans_df['sert-cre'] == 1]
-p_state_df = p_state_df[p_state_df['sert-cre'] == 1]
-
-# %% Plot
-colors, dpi = figure_style()
-
-f, axs = plt.subplots(2, 4, figsize=(7, 3.5), dpi=dpi)
+f, axs = plt.subplots(2, 4, figsize=(5.25, 2.5), dpi=dpi, sharey=True, sharex=True)
 axs = np.concatenate(axs)
 for i, region in enumerate(np.unique(p_state_df['region'])):
 
     axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans_bl',
-                 color='k', estimator=None, units='subject', ax=axs[i])
-    axs[i].set(ylabel='State change rate', xlabel='Time (s)', title=region, ylim=[-0.1, 0.1],
-               yticks=[-0.1, 0, 0.1], xticks=[-1, 0, 1, 2, 3, 4])
+                 color='k', errorbar='se', ax=axs[i], err_kws={'lw': 0})
+    axs[i].set(title=region, ylim=[-0.05, 0.055], yticks=[-0.05, 0, 0.05], xticks=[-1, 0, 1, 2, 3, 4],
+               ylabel='', xlabel='')
 axs[-1].axis('off')
-plt.tight_layout()
+f.text(0.5, 0.04, 'Time relative to stimulation onset (s)', ha='center')
+f.text(0.04, 0.5, 'P(state change) over baseline', va='center', rotation='vertical')
+plt.tight_layout(rect=(0.05, 0.05, 1, 1))
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate.jpg'), dpi=600)
-
-# %%
-f, axs = plt.subplots(2, 4, figsize=(7, 3.5), dpi=dpi)
-axs = np.concatenate(axs)
-for i, region in enumerate(np.unique(p_state_df['region'])):
-
-    axs[i].add_patch(Rectangle((0, -0.3), 1, 0.6, color='royalblue', alpha=0.25, lw=0))
-    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='state_incr',
-                 color=colors['enhanced'], errorbar='se', ax=axs[i])
-    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='state_decr',
-                 color=colors['suppressed'], errorbar='se', ax=axs[i])
-    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[-0.2, 0.2],
-               yticks=[-0.2, 0, 0.2], xticks=[-1, 0, 1, 2, 3, 4])
-axs[-1].axis('off')
-plt.tight_layout()
-sns.despine(trim=True)
-plt.savefig(join(fig_path, 'opto_state.jpg'), dpi=600)

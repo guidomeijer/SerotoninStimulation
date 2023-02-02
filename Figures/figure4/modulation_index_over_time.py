@@ -48,7 +48,7 @@ colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 ax1.add_patch(Rectangle((0, -0.1), 1, 0.2, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(x='time', y='mod_idx', data=mod_long_df[(mod_long_df['region'] == 'mPFC')],
-             errorbar='se', ax=ax1, color='k')
+             errorbar='se', ax=ax1, color='k', err_kws={'lw': 0})
 ax1.set(xlim=[-1, 3], ylim=[-0.04, 0.101], ylabel='Modulation index', xlabel='Time (s)')
 #leg = ax1.legend(title='', bbox_to_anchor=(0.9, 0.45, 0.2, 0.4), prop={'size': 5})
 #leg.get_frame().set_linewidth(0.0)
