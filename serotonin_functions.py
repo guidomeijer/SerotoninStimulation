@@ -31,6 +31,10 @@ from one.api import ONE
 N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 8, 'Striatum': 6, 'Thalamus': 7,
             'Midbrain': 10, 'Amygdala': 6}
 
+# Number of clusters of states of awake HMM
+N_CLUSTERS = {'Frontal cortex': 5, 'Sensory cortex': 4, 'Hippocampus': 8, 'Striatum': 5, 'Thalamus': 5,
+              'Midbrain': 5, 'Amygdala': 6}
+
 
 def load_subjects(anesthesia='all', behavior=None):
     assert anesthesia in ['no', 'yes', 'both', 'all', 'no&both']

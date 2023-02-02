@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Rectangle
-from serotonin_functions import figure_style, paths, load_subjects
+from serotonin_functions import figure_style, paths, load_subjects, N_CLUSTERS
 from os.path import join
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
@@ -52,12 +52,11 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
     dim_red_pca = pca.fit_transform(region_pivot.values)
 
     # Do clustering
-    n_states = np.unique(region_slice['state']).shape[0]
-    state_clusters = KMeans(n_clusters=n_states, random_state=42, n_init='auto').fit_predict(dim_red_pca)
+    state_clusters = KMeans(n_clusters=N_CLUSTERS[region], random_state=42, n_init='auto').fit_predict(dim_red_pca)
 
     f, axs = plt.subplots(2, 5, figsize=(7, 3.5), dpi=dpi)
     axs = np.concatenate(axs)
-    for j in range(n_states):
+    for j in range(N_CLUSTERS[region]):
         state_mean = np.mean(region_pivot.values[state_clusters == j, :], axis=0)
         state_sem = (np.std(region_pivot.values[state_clusters == j, :], axis=0)
                      / np.sqrt(np.sum(state_clusters == j)))
@@ -72,6 +71,7 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
     f.suptitle(f'{region}')
     sns.despine(trim=True)
     plt.tight_layout()
+    plt.savefig(join(fig_path, f'states_{region}.jpg'), dpi=600)
 
 # %% Plot P(state change)
 
