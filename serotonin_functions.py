@@ -28,7 +28,7 @@ from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
 # Number of states of awake HMM
-N_STATES = {'Frontal': 8, 'Sensory': 8, 'Hippocampus': 8, 'Striatum': 6, 'Thalamus': 7,
+N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 8, 'Striatum': 6, 'Thalamus': 7,
             'Midbrain': 10, 'Amygdala': 6}
 
 
@@ -314,8 +314,8 @@ def high_level_regions(acronyms, merge_cortex=False):
         regions[cosmos_regions == 'Isocortex'] = 'Cortex'
         regions[first_level_regions == 'Pir'] = 'Cortex'
     else:
-        regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2'])] = 'Frontal'
-        regions[np.in1d(first_level_regions, ['Pir', 'BC', 'VISa/am'])] = 'Sensory'
+        regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2'])] = 'Frontal cortex'
+        regions[np.in1d(first_level_regions, ['Pir', 'BC', 'VIS'])] = 'Sensory cortex'
     regions[cosmos_regions == 'MB'] = 'Midbrain'
     regions[cosmos_regions == 'HPF'] = 'Hippocampus'
     regions[cosmos_regions == 'TH'] = 'Thalamus'

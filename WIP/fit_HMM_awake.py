@@ -28,17 +28,17 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-OVERWRITE = True
+BIN_SIZE = 0.05  # s
 INCL_NEURONS = 'non-sig'  # all, sig or non-sig
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
-BIN_SIZE = 0.1  # s
 MIN_NEURONS = 5
 CMAP = 'Set3'
-PTRANS_SMOOTH = 0.2  # s
-PSTATE_SMOOTH = 0.1  # s
+PTRANS_SMOOTH = BIN_SIZE * 2
+PSTATE_SMOOTH = BIN_SIZE
+OVERWRITE = True
 
 # Get paths
 f_path, save_path = paths()

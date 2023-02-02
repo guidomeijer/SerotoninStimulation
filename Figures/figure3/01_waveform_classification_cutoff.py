@@ -79,8 +79,8 @@ _, p_value = kstest(waveforms_df.loc[waveforms_df['type'] == 'RS', 'firing_rate'
 print(f'KS-test p-value: {p_value}')
 
 # %% Plot mean waveforms
-time_ax = np.linspace(0, (waveforms_df.loc[1, 'waveform'].shape[0]/30000)*1000,
-                      waveforms_df.loc[1, 'waveform'].shape[0])
+time_ax = np.linspace(0, (waveforms_df.loc[waveforms_df.index[0], 'waveform'].shape[0]/30000)*1000,
+                      waveforms_df.loc[waveforms_df.index[0], 'waveform'].shape[0])
 
 f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
 ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'RS', 'waveform'].to_numpy().mean(),
