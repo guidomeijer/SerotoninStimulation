@@ -32,8 +32,8 @@ N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 8, 'Striatu
             'Midbrain': 10, 'Amygdala': 6}
 
 # Number of clusters of states of awake HMM
-N_CLUSTERS = {'Frontal cortex': 5, 'Sensory cortex': 4, 'Hippocampus': 8, 'Striatum': 5, 'Thalamus': 5,
-              'Midbrain': 5, 'Amygdala': 6}
+N_CLUSTERS = {'Frontal cortex': 5, 'Sensory cortex': 5, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 8,
+              'Midbrain': 8, 'Amygdala': 7}
 
 
 def load_subjects(anesthesia='all', behavior=None):

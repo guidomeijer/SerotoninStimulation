@@ -36,7 +36,7 @@ HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 MIN_NEURONS = 5
 CMAP = 'Set3'
-PTRANS_SMOOTH = BIN_SIZE * 2
+PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
 
@@ -122,16 +122,15 @@ for i in rec.index.values:
 
         # Create list of (time_bins x neurons) per stimulation trial
         trial_data = []
-        for i in range(binned_spikes.shape[0]):
-            trial_data.append(np.transpose(binned_spikes[i, :, :]))
+        for j in range(binned_spikes.shape[0]):
+            trial_data.append(np.transpose(binned_spikes[j, :, :]))
 
-        # Loop over different number of states
-        trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
-        state_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
-
-        # Fit HMM on all data
+        # Initialize HMM
         lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
+        # Loop over trials
+        trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
+        state_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
@@ -181,11 +180,11 @@ for i in rec.index.values:
                   aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1, alpha=0.4,
                   extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
         tickedges = np.arange(0, len(clusters_in_region)+1)
-        for i, n in enumerate(clusters_in_region):
+        for k, n in enumerate(clusters_in_region):
             idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
                                  spikes.times[spikes.clusters == n] <= opto_times[trial] + POST_TIME)
             neuron_spks = spikes.times[spikes.clusters == n][idx]
-            ax.vlines(neuron_spks - opto_times[trial], tickedges[i + 1], tickedges[i], color='black',
+            ax.vlines(neuron_spks - opto_times[trial], tickedges[k + 1], tickedges[k], color='black',
                       lw=0.4, zorder=1)
         ax.set(xlabel='Time (s)', ylabel='Neurons', yticks=[0, len(clusters_in_region)],
                yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
