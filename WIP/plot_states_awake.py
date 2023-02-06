@@ -19,7 +19,8 @@ from sklearn.cluster import KMeans
 
 PCA_DIM = 10
 BIN_SIZE = 100  # ms
-NEURONS = 'all'  # non-sig, sig or all
+NEURONS = 'non-sig'  # non-sig, sig or all
+SERT_CRE = 1
 
 # Initialize
 pca = PCA(n_components=PCA_DIM, random_state=42)
@@ -38,8 +39,8 @@ subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     state_trans_df.loc[state_trans_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
     p_state_df.loc[p_state_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
-state_trans_df = state_trans_df[state_trans_df['sert-cre'] == 1]
-p_state_df = p_state_df[p_state_df['sert-cre'] == 1]
+state_trans_df = state_trans_df[state_trans_df['sert-cre'] == SERT_CRE]
+p_state_df = p_state_df[p_state_df['sert-cre'] == SERT_CRE]
 
 # Do PCA on states and cluster them
 colors, dpi = figure_style()
