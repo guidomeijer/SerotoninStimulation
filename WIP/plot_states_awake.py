@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Rectangle
-from serotonin_functions import figure_style, paths, load_subjects, N_CLUSTERS
+from stim_functions import figure_style, paths, load_subjects, N_CLUSTERS
 from os.path import join
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
