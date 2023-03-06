@@ -19,7 +19,7 @@ from sklearn.cluster import KMeans
 
 PCA_DIM = 10
 BIN_SIZE = 100  # ms
-NEURONS = 'non-sig'  # non-sig, sig or all
+NEURONS = 'all'  # non-sig, sig or all
 SERT_CRE = 1
 
 # Initialize
@@ -83,7 +83,7 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
     axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans_bl',
                  color='k', errorbar='se', ax=axs[i], err_kws={'lw': 0})
-    axs[i].set(title=region, ylim=[-0.05, 0.055], yticks=[-0.05, 0, 0.05], xticks=[-1, 0, 1, 2, 3, 4],
+    axs[i].set(title=region, ylim=[-0.05, 0.08], yticks=[-0.05, 0, 0.05], xticks=[-1, 0, 1, 2, 3, 4],
                ylabel='', xlabel='')
 axs[-1].axis('off')
 f.text(0.5, 0.04, 'Time relative to stimulation onset (s)', ha='center')
