@@ -10,8 +10,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.patches import Rectangle
-from serotonin_functions import figure_style, paths, load_subjects
+from stim_functions import figure_style, paths, load_subjects
 from os.path import join
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
