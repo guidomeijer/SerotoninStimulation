@@ -19,17 +19,17 @@ from matplotlib.ticker import FormatStrFormatter
 from brainbox.plot import peri_event_time_histogram
 from brainbox.singlecell import calculate_peths
 from sklearn.model_selection import KFold
-from serotonin_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                                 get_neuron_qc, calculate_peths,
-                                 high_level_regions, figure_style, N_STATES)
+from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
+                            get_neuron_qc, calculate_peths,
+                            high_level_regions, figure_style, N_STATES)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
 # Settings
-BIN_SIZE = 0.05  # s
-INCL_NEURONS = 'non-sig'  # all, sig or non-sig
+BIN_SIZE = 0.1  # s
+INCL_NEURONS = 'all'  # all, sig or non-sig
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
