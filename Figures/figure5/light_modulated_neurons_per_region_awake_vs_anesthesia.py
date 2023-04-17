@@ -10,16 +10,16 @@ import pandas as pd
 import seaborn as sns
 import seaborn.objects as so
 import matplotlib.pyplot as plt
-from os.path import join
+from os.path import join, realpath, dirname, split
 from scipy.stats import wilcoxon, ttest_rel
-from serotonin_functions import paths, figure_style, combine_regions, load_subjects
+from stim_functions import paths, figure_style, combine_regions, load_subjects
 
 # Settings
 MIN_MOD_NEURONS = 3
 
-# Paths
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure5')
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in results
 awake_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
@@ -64,7 +64,9 @@ ax1.plot([-0.3, 0.3], [-0.3, 0.3], color='lightgrey', ls='--', zorder=0)
  .plot()
  )
 _, p = ttest_rel(merged_regions['mod_index_late_x'], merged_regions['mod_index_late_y'])
-if p < 0.01:
+if p < 0.001:
+    ax1.text(0, 0.25, '***', fontsize=12, ha='center', va='center')
+elif p < 0.01:
     ax1.text(0, 0.25, '**', fontsize=12, ha='center', va='center')
 elif p < 0.05:
     ax1.text(0, 0.25, '*', fontsize=12, ha='center', va='center')
@@ -94,7 +96,9 @@ for i in merged_regions.index:
              ha='center', va='center',
              color=merged_regions.loc[i, 'color'], fontsize=4.5, fontweight='bold')
 _, p = ttest_rel(merged_regions['mod_index_late_x'], merged_regions['mod_index_late_y'])
-if p < 0.01:
+if p < 0.001:
+    ax1.text(0, 0.25, '***', fontsize=12, ha='center', va='center')
+elif p < 0.01:
     ax1.text(0, 0.25, '**', fontsize=12, ha='center', va='center')
 elif p < 0.05:
     ax1.text(0, 0.25, '*', fontsize=12, ha='center', va='center')

@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Rectangle
-from serotonin_functions import figure_style, paths, load_subjects
+from stim_functions import figure_style, paths, load_subjects
 from os.path import join
 
 # Get paths
@@ -51,6 +51,7 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
                  color=colors['enhanced'], errorbar='se', ax=axs[i])
     axs[i].set(ylabel='P(down state)', xlabel='Time (s)', title=region, ylim=[0, 1],
                yticks=[0, 0.5, 1], xticks=[-1, 0, 1, 2, 3, 4])
+    
 axs[-1].axis('off')
 plt.tight_layout()
 sns.despine(trim=True)

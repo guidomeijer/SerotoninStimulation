@@ -11,7 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import seaborn as sns
-from serotonin_functions import paths, load_subjects, figure_style, combine_regions
+from stim_functions import paths, load_subjects, figure_style, combine_regions
 
 # Settings
 MIN_NEURONS = 10
@@ -55,5 +55,5 @@ ax1.set(xlim=[-1, 3], ylim=[-0.04, 0.101], ylabel='Modulation index', xlabel='Ti
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(f_path, 'modulation_index_over_time.pdf'))
+plt.savefig(join(fig_path, 'modulation_index_over_time.pdf'))
 
