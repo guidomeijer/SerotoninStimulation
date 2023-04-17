@@ -28,8 +28,8 @@ from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
 # Number of states of awake HMM
-N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 8, 'Striatum': 6, 'Thalamus': 7,
-            'Midbrain': 10, 'Amygdala': 6}
+N_STATES = {'Frontal cortex': 7, 'Sensory cortex': 8, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 7,
+            'Midbrain': 6, 'Amygdala': 7}
 
 # Number of clusters of states of awake HMM
 N_CLUSTERS = {'Frontal cortex': 5, 'Sensory cortex': 5, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 8,
@@ -416,8 +416,10 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
         # Get the stimulation frequencies
         opto_freqs = np.empty(opto_train_times.shape)
         for i, t_time in enumerate(opto_train_times):
-            opto_freqs[i] = 1/np.mean(np.diff(opto_on_times[(opto_on_times >= t_time)
-                                                            & (opto_on_times <= t_time + 1)]))
+            #opto_freqs[i] = 1/np.mean(np.diff(opto_on_times[(opto_on_times >= t_time)
+            #                                                & (opto_on_times <= t_time + 1)]))
+            opto_freqs[i] = opto_on_times[(opto_on_times >= t_time)
+                                          & (opto_on_times <= t_time + 1)].shape[0]
         opto_freqs = opto_freqs - opto_freqs % 5  # round to 5
         opto_freqs[opto_freqs == 0] = 1
 
@@ -448,7 +450,10 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
                 for ii, t_time in enumerate(these_train_times):
                     these_freqs[ii] = these_on_times[(these_on_times >= t_time) & (these_on_times <= t_time + 1)].shape[0]
                     this_amp = np.max(analog_chunk[(times_chunk >= t_time) & (times_chunk <= t_time + 1)])
-                    these_amps[ii] = np.round(this_amp * 2) / 2  # round to 0.5 or 1
+                    if this_amp > 0.6:
+                        these_amps[ii] = 1
+                    else:
+                        these_amps[ii] = 0.5
                 these_freqs = these_freqs - these_freqs % 5  # round to 5
                 these_freqs[these_freqs == 0] = 1
 

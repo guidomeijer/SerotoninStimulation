@@ -10,8 +10,8 @@ import pandas as pd
 import seaborn as sns
 import seaborn.objects as so
 import matplotlib.pyplot as plt
-from os.path import join
-from serotonin_functions import paths, figure_style, combine_regions, load_subjects
+from os.path import join, realpath, dirname, split
+from stim_functions import paths, figure_style, combine_regions, load_subjects
 
 # Settings
 MIN_NEURONS_POOLED = 1
@@ -19,9 +19,9 @@ MIN_NEURONS_PER_MOUSE = 1
 MIN_MOD_NEURONS = 1
 MIN_REC = 1
 
-# Paths
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure5')
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in results
 awake_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))

@@ -12,9 +12,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from brainbox.io.one import SpikeSortingLoader
 from sklearn.model_selection import KFold
-from serotonin_functions import (paths, remap, query_ephys_sessions, load_trials,
-                                 get_artifact_neurons, get_neuron_qc, calculate_peths,
-                                 high_level_regions)
+from stim_functions import (paths, remap, query_ephys_sessions, load_trials,
+                            get_artifact_neurons, get_neuron_qc, calculate_peths,
+                            high_level_regions)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -47,7 +47,7 @@ kf = KFold(n_splits=K_FOLDS, shuffle=CV_SHUFFLE, random_state=42)
 if OVERWRITE:
     log_likelihood_df = pd.DataFrame()
 else:
-    log_likelihood_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE*1000}ms_bins.csv'))
+    log_likelihood_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{int(BIN_SIZE*1000)}ms_bins.csv'))
     rec = rec[~rec['pid'].isin(log_likelihood_df['pid'])]
 
 for i in rec.index.values:

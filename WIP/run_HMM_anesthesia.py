@@ -15,9 +15,9 @@ from matplotlib.colors import ListedColormap
 from brainbox.plot import peri_event_time_histogram
 from brainbox.io.one import SpikeSortingLoader
 from sklearn.model_selection import KFold
-from serotonin_functions import (load_passive_opto_times, get_neuron_qc, paths, query_ephys_sessions,
-                                 figure_style, load_subjects, remap, high_level_regions,
-                                 get_artifact_neurons, calculate_peths)
+from stim_functions import (load_passive_opto_times, get_neuron_qc, paths, query_ephys_sessions,
+                            figure_style, load_subjects, remap, high_level_regions,
+                            get_artifact_neurons, calculate_peths)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()

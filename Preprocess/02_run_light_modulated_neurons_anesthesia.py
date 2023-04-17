@@ -14,8 +14,8 @@ from brainbox.io.one import SpikeSortingLoader
 from scipy.signal import find_peaks
 from scipy.stats import zscore
 from dlc_functions import smooth_interpolate_signal_sg
-from serotonin_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                                 remove_artifact_neurons, get_neuron_qc)
+from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
+                            remove_artifact_neurons, get_neuron_qc)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -53,14 +53,11 @@ for i in rec.index.values:
     print(f'\nStarting {subject}, {date}')
 
     # Load in laser pulse times
-    try:
-        if rec.loc[i, 'anesthesia'] == 'both':
-            opto_train_times, _ = load_passive_opto_times(eid, anesthesia=True, one=one)
-        elif rec.loc[i, 'anesthesia'] == 'yes':
-            opto_train_times, _ = load_passive_opto_times(eid, one=one)
-    except:
-        print('Session does not have passive laser pulses')
-        continue
+    if rec.loc[i, 'anesthesia'] == 'both':
+        opto_train_times, _ = load_passive_opto_times(eid, anesthesia=True, one=one)
+    elif rec.loc[i, 'anesthesia'] == 'yes':
+        opto_train_times, _ = load_passive_opto_times(eid, one=one)
+
     if len(opto_train_times) == 0:
         print('Did not find ANY laser pulses!')
         continue

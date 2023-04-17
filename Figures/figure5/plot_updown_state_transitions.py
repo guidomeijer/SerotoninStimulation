@@ -10,13 +10,13 @@ from os.path import join
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from serotonin_functions import paths, figure_style
+from stim_functions import paths, figure_style
 
 # Get paths
 fig_path, save_path = paths()
 
 # Load in data
-updown_df = pd.read_csv(join(save_path, 'up_down_state_transitions.csv'))
+updown_df = pd.read_csv(join(save_path, 'updown_state_trans_anesthesia.csv'))
 
 # Get average over regions per animal
 per_animal_df = updown_df.groupby(['subject', 'region', 'time']).mean(numeric_only=True).reset_index()

@@ -14,12 +14,16 @@ from stim_functions import figure_style, paths, load_subjects
 from os.path import join
 
 BIN_SIZE = 100
+PART = 'task'  # task or passive
 
 # Get paths
 fig_path, save_path = paths()
 
 # Load in data
-hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_{BIN_SIZE}ms_bins.csv'))
+if PART == 'task':
+    hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
+else:
+    hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_{BIN_SIZE}ms_bins.csv'))
 
 # Convert ll
 hmm_ll_df['xcorr'] = -2 * hmm_ll_df['log_likelihood']
