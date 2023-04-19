@@ -39,9 +39,11 @@ p_state_df['p_up'] = 1 - p_state_df['p_down']
 
 # %% Plot
 colors, dpi = figure_style()
-f, axs = plt.subplots(2, 4, figsize=(7, 3.5), dpi=dpi)
-axs = np.concatenate(axs)
-for i, region in enumerate(np.unique(p_state_df['region'])):
+f, axs = plt.subplots(1, 7, figsize=(5.5, 1.75), dpi=dpi, sharey=True)
+#axs = np.concatenate(axs)
+regions = ['Frontal cortex', 'Amygdala', 'Striatum', 'Sensory cortex', 'Thalamus',
+           'Hippocampus', 'Midbrain']
+for i, region in enumerate(regions):
 
     axs[i].add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
     axs[i].plot([-1, 4], [0.5, 0.5], ls='--', color='grey')
@@ -49,12 +51,18 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
                  color=colors['suppressed'], errorbar='se', ax=axs[i])
     sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_up',
                  color=colors['enhanced'], errorbar='se', ax=axs[i])
-    axs[i].set(ylabel='P(down state)', xlabel='Time (s)', title=region, ylim=[0, 1],
-               yticks=[0, 0.5, 1], xticks=[-1, 0, 1, 2, 3, 4])
+    axs[i].set(xlabel='Time (s)', title=region, ylim=[0, 1],
+               yticks=[0, 0.5, 1])
+    if i == 0:
+        axs[i].set(ylabel='P(down state)')
+        axs[i].get_xaxis().set_visible(False)
+        sns.despine(trim=True, bottom=True, ax=axs[i])
+    else:
+        axs[i].get_yaxis().set_visible(False)
+        axs[i].axis('off')
     
-axs[-1].axis('off')
-plt.tight_layout()
-sns.despine(trim=True)
+plt.subplots_adjust(left=0.08, bottom=0.15, right=1, top=0.85, wspace=0, hspace=0.4)
+#plt.tight_layout(h_pad=-10, w_pad=1.08)
 plt.savefig(join(fig_path, 'p_down_state_anesthesia.jpg'), dpi=600)
 
 # %%
@@ -65,8 +73,8 @@ for i, region in enumerate(np.unique(state_trans_df['region'])):
     axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_state_change',
                  color='k', errorbar='se', ax=axs[i])
-    axs[i].set(ylabel='P(state change)', xlabel='Time (s)', title=region, ylim=[-0.2, 0.2],
-               yticks=[-0.2, 0, 0.2], xticks=[-1, 0, 1, 2, 3, 4])
+    axs[i].set(ylabel='P(state change)', xlabel='Time (s)', title=region, ylim=[0, 0.2],
+               yticks=[0, 0.2], xticks=[-1, 0, 1, 2, 3, 4])
 axs[-1].axis('off')
 plt.tight_layout()
 sns.despine(trim=True)
