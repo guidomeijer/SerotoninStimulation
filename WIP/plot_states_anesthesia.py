@@ -48,7 +48,7 @@ for i, region in enumerate(regions):
     axs[i].add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
     axs[i].plot([-1, 4], [0.5, 0.5], ls='--', color='grey')
     sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_down',
-                 color=colors['suppressed'], errorbar='se', ax=axs[i])
+                 color=colors['suppressed'], errorbar='se', err_kws={'lw': 0}, ax=axs[i])
     sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_up',
                  color=colors['enhanced'], errorbar='se', ax=axs[i])
     axs[i].set(xlabel='Time (s)', title=region, ylim=[0, 1],

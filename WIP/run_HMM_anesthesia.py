@@ -27,12 +27,14 @@ one = ONE()
 N_STATES = 2
 BIN_SIZE = 0.2
 MIN_NEURONS = 5
+PRE_TIME = 1  # final time window to use
+POST_TIME = 4
+HMM_PRE_TIME = 2  # time window to run HMM on
+HMM_POST_TIME = 5
 CROSS_VAL = False
 K_FOLDS = 10
 CV_SHUFFLE = True
 OVERWRITE = True
-PRE_TIME = 1
-POST_TIME = 4
 PLOT = True
 MIN_NEURONS = 5
 
