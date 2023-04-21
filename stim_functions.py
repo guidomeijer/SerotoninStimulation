@@ -37,7 +37,7 @@ N_CLUSTERS = {'Frontal cortex': 5, 'Sensory cortex': 5, 'Hippocampus': 7, 'Stria
 
 
 def load_subjects(anesthesia='all', behavior=None):
-    assert anesthesia in ['no', 'yes', 'both', 'all', 'no&both']
+    assert anesthesia in ['no', 'yes', 'both', 'all', 'no&both', 'yes&both']
     subjects = pd.read_csv(join(pathlib.Path(__file__).parent.resolve(), 'subjects.csv'),
                            delimiter=';|,', engine='python')
     subjects = subjects[~((subjects['expression'] == 0) & (subjects['sert-cre'] == 1))]
@@ -192,7 +192,7 @@ def remove_artifact_neurons(df):
 
 def query_ephys_sessions(aligned=True, behavior_crit=False, n_trials=0, anesthesia='no',
                          acronym=None, one=None):
-    assert anesthesia in ['no', 'both', 'yes', 'all', 'no&both']
+    assert anesthesia in ['no', 'both', 'yes', 'all', 'no&both', 'yes&both']
     if one is None:
         one = ONE()
 

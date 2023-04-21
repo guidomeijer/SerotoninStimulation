@@ -16,8 +16,8 @@ from sklearn.preprocessing import StandardScaler
 from matplotlib.colors import ListedColormap
 import ssm
 from os.path import join
-from serotonin_functions import (load_passive_opto_times, paths, get_artifact_neurons,
-                                 query_ephys_sessions, figure_style, get_neuron_qc)
+from stim_functions import (load_passive_opto_times, paths, get_artifact_neurons,
+                            query_ephys_sessions, figure_style, get_neuron_qc)
 from brainbox.processing import bincount2D
 from ibllib.atlas import AllenAtlas
 one = ONE()

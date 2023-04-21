@@ -9,12 +9,12 @@ import numpy as np
 import seaborn as sns
 import ssm
 import matplotlib.pyplot as plt
-from os.path import join
+from os.path import join, dirname, realpath, split
 from brainbox.processing import bincount2D
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from serotonin_functions import (figure_style, get_neuron_qc, load_passive_opto_times, paths,
-                                 high_level_regions)
+from stim_functions import (figure_style, get_neuron_qc, load_passive_opto_times, paths,
+                            high_level_regions)
 from brainbox.io.one import SpikeSortingLoader
 from matplotlib.colors import ListedColormap
 from brainbox.singlecell import calculate_peths
@@ -26,11 +26,11 @@ ba = AllenAtlas()
 K = 2    # number of discrete states
 do_PCA = True
 D = 10   # dimensions of PCA
-BIN_SIZE = 0.25
+BIN_SIZE = 0.2
 SMOOTHING = 0
 PID = '04954136-75a8-4a20-9054-37b0bffd3b8b'
-fig_path, _ = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure6')
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in opto times
 opto_times, _ = load_passive_opto_times(one.pid2eid(PID)[0], anesthesia=True, one=one)
