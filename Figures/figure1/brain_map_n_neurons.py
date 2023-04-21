@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
-from serotonin_functions import paths, figure_style, load_subjects, plot_scalar_on_slice
+from stim_functions import paths, figure_style, load_subjects, plot_scalar_on_slice
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas(res_um=10)
 
@@ -25,7 +25,9 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in results
-all_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+awake_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+anes_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons_anesthesia.csv'))
+all_neurons = pd.concat((awake_neurons, anes_neurons))
 all_neurons = all_neurons[all_neurons['region'] != 'root']
 all_neurons = all_neurons[all_neurons['region'] != 'void']
 

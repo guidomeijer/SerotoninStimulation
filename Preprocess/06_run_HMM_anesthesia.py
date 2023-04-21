@@ -12,9 +12,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-from brainbox.plot import peri_event_time_histogram
 from brainbox.io.one import SpikeSortingLoader
-from sklearn.model_selection import KFold
 from stim_functions import (load_passive_opto_times, get_neuron_qc, paths, query_ephys_sessions,
                             figure_style, load_subjects, remap, high_level_regions,
                             get_artifact_neurons, calculate_peths)
@@ -27,9 +25,6 @@ one = ONE()
 N_STATES = 2
 BIN_SIZE = 0.2
 MIN_NEURONS = 5
-CROSS_VAL = False
-K_FOLDS = 10
-CV_SHUFFLE = True
 OVERWRITE = True
 PRE_TIME = 1
 POST_TIME = 4
@@ -49,9 +44,6 @@ subjects = load_subjects()
 
 # Get artifact neurons
 artifact_neurons = get_artifact_neurons()
-
-# Initialize k-fold cross validation
-kf = KFold(n_splits=K_FOLDS, shuffle=CV_SHUFFLE, random_state=42)
 
 if OVERWRITE:
     up_down_state_df = pd.DataFrame()
@@ -132,67 +124,33 @@ for i in rec.index.values:
         this_df = pd.DataFrame()
         state_trans = []
         trans_mat = np.empty((len(trial_data), time_ax.shape[0]))
-        if CROSS_VAL:
-            # Cross validate
-            for k, (train_index, test_index) in enumerate(kf.split(trial_data)):
 
-                # Fit HMM on training data
-                lls = simple_hmm.fit(list(np.array(trial_data)[train_index]), method='em',
-                                     transitions='sticky')
+        # Fit HMM on all data
+        lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
-                for t in test_index:
+        for t in range(len(trial_data)):
 
-                    # Get posterior probability and most likely states for this trial
-                    posterior = simple_hmm.filter(trial_data[t])
-                    zhat = simple_hmm.most_likely_states(trial_data[t])
+            # Get posterior probability and most likely states for this trial
+            posterior = simple_hmm.filter(trial_data[t])
+            zhat = simple_hmm.most_likely_states(trial_data[t])
 
-                    # Make sure 0 is down state and 1 is up state
-                    if np.mean(binned_spikes[t, :, zhat==0]) > np.mean(binned_spikes[t, :, zhat==1]):
+            # Make sure 0 is down state and 1 is up state
+            if np.mean(binned_spikes[t, :, zhat==0]) > np.mean(binned_spikes[t, :, zhat==1]):
 
-                        # State 0 is up state
-                        zhat = np.where((zhat==0)|(zhat==1), zhat^1, zhat)
-                        p_down = posterior[:, 1]
-                    else:
-                        p_down = posterior[:, 0]
+                # State 0 is up state
+                zhat = np.where((zhat==0)|(zhat==1), zhat^1, zhat)
+                p_down = posterior[:, 1]
+            else:
+                p_down = posterior[:, 0]
 
-                    # Get transitions
-                    state_trans.append(time_ax[np.concatenate((np.diff(zhat) > 0, [False]))])
-                    trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
+            # Get transitions
+            state_trans.append(time_ax[np.concatenate((np.diff(zhat) > 0, [False]))])
+            trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
 
-                    # Add to dataframe
-                    this_df = pd.concat((this_df, pd.DataFrame(data={
-                        'state': zhat, 'p_down': p_down, 'region': region, 'time': time_ax,
-                        'trial': t})))
-
-
-        else:
-
-            # Fit HMM on all data
-            lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
-
-            for t in range(len(trial_data)):
-
-                # Get posterior probability and most likely states for this trial
-                posterior = simple_hmm.filter(trial_data[t])
-                zhat = simple_hmm.most_likely_states(trial_data[t])
-
-                # Make sure 0 is down state and 1 is up state
-                if np.mean(binned_spikes[t, :, zhat==0]) > np.mean(binned_spikes[t, :, zhat==1]):
-
-                    # State 0 is up state
-                    zhat = np.where((zhat==0)|(zhat==1), zhat^1, zhat)
-                    p_down = posterior[:, 1]
-                else:
-                    p_down = posterior[:, 0]
-
-                # Get transitions
-                state_trans.append(time_ax[np.concatenate((np.diff(zhat) > 0, [False]))])
-                trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
-
-                # Add to dataframe
-                this_df = pd.concat((this_df, pd.DataFrame(data={
-                    'state': zhat, 'p_down': p_down, 'region': region, 'time': time_ax,
-                    'trial': t})))
+            # Add to dataframe
+            this_df = pd.concat((this_df, pd.DataFrame(data={
+                'state': zhat, 'p_down': p_down, 'region': region, 'time': time_ax,
+                'trial': t})))
         state_trans = np.concatenate(state_trans)
 
         # Add to dataframe
@@ -216,7 +174,7 @@ for i in rec.index.values:
         f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
         ax.imshow(this_df.loc[this_df['trial'] == trial, 'state'].values[None, :],
                   aspect='auto', cmap=cmap, vmin=0, vmax=1, alpha=0.5,
-                  extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
+                  extent=(-0.9, 4, -1, len(clusters_in_region)+1))
         tickedges = np.arange(0, len(clusters_in_region)+1)
         for i, n in enumerate(clusters_in_region):
             idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
@@ -224,11 +182,19 @@ for i in rec.index.values:
             neuron_spks = spikes.times[spikes.clusters == n][idx]
             ax.vlines(neuron_spks - opto_times[trial], tickedges[i + 1], tickedges[i], color='black',
                       lw=0.5)
-        ax.set(xlabel='Time (s)', ylabel='Neurons', yticks=[0, len(clusters_in_region)],
+        """
+        ax2 = ax.twinx()
+        ax2.plot(this_df.loc[this_df['trial'] == trial, 'time'],
+                 this_df.loc[this_df['trial'] == trial, 'p_down'])
+        """
+            
+        ax.set(xlabel='Time (s)', yticks=[0, len(clusters_in_region)],
                yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
-               ylim=[-1, len(clusters_in_region)+1], title=f'{region}')
+               ylim=[-1, len(clusters_in_region)+1], title=f'{region}')        	
+        plt.ylabel('Neurons', labelpad=-2)
         sns.despine(trim=True)
         plt.tight_layout()
+        
         plt.savefig(join(fig_path, 'Extra plots', 'State', 'Anesthesia',
                          f'{region}_{subject}_{date}_trial.jpg'),
                     dpi=600)
