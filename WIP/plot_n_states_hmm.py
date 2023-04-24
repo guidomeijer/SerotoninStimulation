@@ -14,7 +14,7 @@ from stim_functions import figure_style, paths, load_subjects
 from os.path import join
 
 BIN_SIZE = 100
-PART = 'task'  # task or passive
+PART = 'passive'  # task or passive
 
 # Get paths
 fig_path, save_path = paths()

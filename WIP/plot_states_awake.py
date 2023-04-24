@@ -54,7 +54,7 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
 
     # Do clustering
     state_clusters = KMeans(n_clusters=N_CLUSTERS[region], random_state=42, n_init='auto').fit_predict(dim_red_pca)
-
+    
     f, axs = plt.subplots(2, 5, figsize=(7, 3.5), dpi=dpi)
     axs = np.concatenate(axs)
     for j in range(N_CLUSTERS[region]):
