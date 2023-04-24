@@ -29,7 +29,7 @@ one = ONE()
 
 # Settings
 BIN_SIZE = 0.1  # s
-INCL_NEURONS = 'all'  # all, sig or non-sig
+INCL_NEURONS = 'sig'  # all, sig or non-sig
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
@@ -39,6 +39,7 @@ CMAP = 'Set3'
 PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
+PLOT = False
 
 # Get paths
 f_path, save_path = paths()
@@ -158,11 +159,12 @@ for i in rec.index.values:
             this_p_state = np.mean(state_mat == ii, axis=0)
             smooth_p_state = gaussian_filter(this_p_state, PSTATE_SMOOTH / BIN_SIZE)
             smooth_p_state = smooth_p_state[use_timepoints]
+            p_state_bl = smooth_p_state - np.mean(smooth_p_state[time_ax < 0])
 
             # Add to dataframe and matrix
             p_state_mat[ii, :] = smooth_p_state
             p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
-                'p_state': smooth_p_state, 'state': ii, 'time': time_ax,
+                'p_state': smooth_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
                 'subject': subject, 'pid': pid, 'region': region})))
 
         # Add state change PSTH to dataframe
@@ -171,58 +173,59 @@ for i in rec.index.values:
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
 
-        # Plot example trial
-        trial = 1
-        cmap = sns.color_palette(CMAP, N_STATES[region])
-        colors, dpi = figure_style()
-        f, ax = plt.subplots(1, 1, figsize=(3.5, 1.75), dpi=dpi)
-        ax.imshow(state_mat[trial, use_timepoints][None, :],
-                  aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1, alpha=0.4,
-                  extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
-        tickedges = np.arange(0, len(clusters_in_region)+1)
-        for k, n in enumerate(clusters_in_region):
-            idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
-                                 spikes.times[spikes.clusters == n] <= opto_times[trial] + POST_TIME)
-            neuron_spks = spikes.times[spikes.clusters == n][idx]
-            ax.vlines(neuron_spks - opto_times[trial], tickedges[k + 1], tickedges[k], color='black',
-                      lw=0.4, zorder=1)
-        ax.set(xlabel='Time (s)', ylabel='Neurons', yticks=[0, len(clusters_in_region)],
-               yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
-               ylim=[-1, len(clusters_in_region)+1], title=f'{region}')
-        sns.despine(trim=True)
-        plt.tight_layout()
-
-        plt.savefig(join(
-            fig_path, f'{region}_{subject}_{date}_trial.jpg'),
-            dpi=600)
-        plt.close(f)
-
-        # Plot session
-        f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
-        ax1.imshow(state_mat[:, use_timepoints], aspect='auto', cmap=ListedColormap(cmap),
-                   vmin=0, vmax=N_STATES[region]-1,
-                  extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
-        ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
-        ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
-               title=f'{region}')
-
-        for ii in range(N_STATES[region]):
-            ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
-        ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
-
-        ax3.imshow(trans_mat, aspect='auto', cmap='Greys', interpolation=None,
-                   extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)))
-        ax32 = ax3.twinx()
-        ax32.plot(time_ax, smooth_p_trans)
-        ax32.set(ylabel='P(state change)')
-        ax3.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4])
-
-        #sns.despine(trim=True)
-        plt.tight_layout()
-        plt.savefig(join(
-            fig_path, f'{region}_{subject}_{date}_ses.jpg'),
-            dpi=600)
-        plt.close(f)
+        if PLOT:
+            # Plot example trial
+            trial = 1
+            cmap = sns.color_palette(CMAP, N_STATES[region])
+            colors, dpi = figure_style()
+            f, ax = plt.subplots(1, 1, figsize=(3.5, 1.75), dpi=dpi)
+            ax.imshow(state_mat[trial, use_timepoints][None, :],
+                      aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1, alpha=0.4,
+                      extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
+            tickedges = np.arange(0, len(clusters_in_region)+1)
+            for k, n in enumerate(clusters_in_region):
+                idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
+                                     spikes.times[spikes.clusters == n] <= opto_times[trial] + POST_TIME)
+                neuron_spks = spikes.times[spikes.clusters == n][idx]
+                ax.vlines(neuron_spks - opto_times[trial], tickedges[k + 1], tickedges[k], color='black',
+                          lw=0.4, zorder=1)
+            ax.set(xlabel='Time (s)', ylabel='Neurons', yticks=[0, len(clusters_in_region)],
+                   yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
+                   ylim=[-1, len(clusters_in_region)+1], title=f'{region}')
+            sns.despine(trim=True)
+            plt.tight_layout()
+    
+            plt.savefig(join(
+                fig_path, f'{region}_{subject}_{date}_trial.jpg'),
+                dpi=600)
+            plt.close(f)
+    
+            # Plot session
+            f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
+            ax1.imshow(state_mat[:, use_timepoints], aspect='auto', cmap=ListedColormap(cmap),
+                       vmin=0, vmax=N_STATES[region]-1,
+                      extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
+            ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
+            ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
+                   title=f'{region}')
+    
+            for ii in range(N_STATES[region]):
+                ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
+            ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
+    
+            ax3.imshow(trans_mat, aspect='auto', cmap='Greys', interpolation=None,
+                       extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)))
+            ax32 = ax3.twinx()
+            ax32.plot(time_ax, smooth_p_trans)
+            ax32.set(ylabel='P(state change)')
+            ax3.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4])
+    
+            #sns.despine(trim=True)
+            plt.tight_layout()
+            plt.savefig(join(
+                fig_path, f'{region}_{subject}_{date}_ses.jpg'),
+                dpi=600)
+            plt.close(f)
 
     # Save output
     state_trans_df.to_csv(join(save_path, f'all_state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))

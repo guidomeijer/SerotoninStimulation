@@ -28,12 +28,8 @@ from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
 # Number of states of awake HMM
-N_STATES = {'Frontal cortex': 7, 'Sensory cortex': 8, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 7,
-            'Midbrain': 6, 'Amygdala': 7}
-
-# Number of clusters of states of awake HMM
-N_CLUSTERS = {'Frontal cortex': 5, 'Sensory cortex': 5, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 8,
-              'Midbrain': 8, 'Amygdala': 7}
+N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 7,
+            'Midbrain': 7, 'Amygdala': 6}
 
 
 def load_subjects(anesthesia='all', behavior=None):
