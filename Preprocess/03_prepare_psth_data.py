@@ -12,7 +12,7 @@ import seaborn as sns
 import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.singlecell import calculate_peths
-from serotonin_functions import paths, load_passive_opto_times, combine_regions, load_subjects
+from stim_functions import paths, load_passive_opto_times, combine_regions, load_subjects
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()

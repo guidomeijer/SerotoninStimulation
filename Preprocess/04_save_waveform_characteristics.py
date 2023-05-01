@@ -9,7 +9,7 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
-from serotonin_functions import paths, query_ephys_sessions, get_neuron_qc, get_artifact_neurons
+from stim_functions import paths, query_ephys_sessions, get_neuron_qc, get_artifact_neurons
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()

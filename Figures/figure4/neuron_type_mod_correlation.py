@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn.objects as so
 from scipy.stats import pearsonr
 from os.path import join, realpath, dirname, split
-from serotonin_functions import paths, figure_style, load_subjects, combine_regions
+from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
 MIN_NEURONS = 20

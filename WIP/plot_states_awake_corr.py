@@ -90,14 +90,14 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
                                                        & (region_copy['state'] == this_main_state)].index)
 
 # %% Plot states
-f, axs = plt.subplots(2, 4, figsize=(5.25, 2.5), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
 axs = np.concatenate(axs)
 for i, region in enumerate(np.unique(p_state_df['region'])):
     axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
-    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_state_bl',
+    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_state',
                  hue='main_state', ax=axs[i], errorbar='se', legend=None, palette='tab10',
                  err_kws={'lw': 0})
-    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[-0.2, 0.2],
+    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[0, 0.5],
                xticks=[-1, 0, 1, 2, 3, 4])
     if i > 4:
         axs[i].set(xlabel='Time (s)')
@@ -106,16 +106,34 @@ sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'brain_states.jpg'), dpi=600)
 
+# %%
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
+axs = np.concatenate(axs)
+for i, region in enumerate(np.unique(p_state_df['region'])):
+    axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
+    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_state_bl',
+                 hue='main_state', ax=axs[i], errorbar='se', legend=None, palette='tab10',
+                 err_kws={'lw': 0})
+    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[-0.12, 0.2],
+               xticks=[-1, 0, 1, 2, 3, 4])
+    if i > 4:
+        axs[i].set(xlabel='Time (s)')
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'brain_states_baseline.jpg'), dpi=600)
+
+
 # %% Plot P(state change)
 
-f, axs = plt.subplots(2, 4, figsize=(5.25, 2.5), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
 axs = np.concatenate(axs)
 for i, region in enumerate(np.unique(p_state_df['region'])):
 
     axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans',
                  color='k', errorbar='se', ax=axs[i], err_kws={'lw': 0})
-    axs[i].set(title=region, ylim=[0.05, 0.3], yticks=[0.1], xticks=[-1, 0, 1, 2, 3, 4],
+    axs[i].set(title=region, ylim=[0.05, 0.3], xticks=[-1, 0, 1, 2, 3, 4],
                ylabel='', xlabel='')
 axs[-1].axis('off')
 f.text(0.5, 0.04, 'Time relative to stimulation onset (s)', ha='center')
@@ -125,7 +143,7 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate.jpg'), dpi=600)
 
 # %%
-f, axs = plt.subplots(2, 4, figsize=(5.25, 2.5), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
 axs = np.concatenate(axs)
 for i, region in enumerate(np.unique(p_state_df['region'])):
 
@@ -139,4 +157,4 @@ f.text(0.5, 0.04, 'Time relative to stimulation onset (s)', ha='center')
 f.text(0.04, 0.5, 'P(state change) over baseline', va='center', rotation='vertical')
 plt.tight_layout(rect=(0.05, 0.05, 1, 1))
 sns.despine(trim=True)
-plt.savefig(join(fig_path, 'state_change_rate.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'state_change_rate_baseline.jpg'), dpi=600)

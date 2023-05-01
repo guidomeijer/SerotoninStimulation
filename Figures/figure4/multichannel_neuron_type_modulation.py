@@ -6,7 +6,7 @@ By: Guido Meijer
 """
 
 from os.path import join, realpath, dirname, split
-from serotonin_functions import paths, figure_style, load_subjects
+from stim_functions import paths, figure_style, load_subjects
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -105,6 +105,9 @@ perc_mod_mos['region'] = 'M2'
 perc_mod_merged = pd.concat((perc_mod, perc_mod_mos))
 
 # %% Plot modulation
+PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'none'},
+         'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
+
 colors, dpi = figure_style()
 f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
 plt.subplots_adjust(wspace=2)
@@ -120,9 +123,15 @@ sns.swarmplot(data=perc_mod_merged, x='region', y='percentage', hue='type',
 ax1.set(ylim=[0, 80], ylabel='Modulated neurons (%)', xlabel='')
 ax1.legend(frameon=False, prop={'size': 5.5}, bbox_to_anchor=(0.8, 0.7))
 
+
+sns.boxplot(x='type', y=var, ax=ax2, data=mod_neurons, showmeans=True,
+            meanprops={"marker": "_", "markeredgecolor": "black", "markersize": "8"},
+            order=['NS', 'RS1', 'RS2'], fliersize=0, zorder=2, **PROPS)
 sns.swarmplot(data=mod_neurons, x='type', y=var, order=['NS', 'RS1', 'RS2'], legend=None,
-              size=3, hue='type', palette=[colors['NS'], colors['RS1'], colors['RS2']], ax=ax2)
-ax2.set(ylabel='Modulation index', ylim=[-0.5, 0.5], yticks=[-0.5, 0, 0.5], xlabel='')
+              size=2, hue='type', palette=[colors['NS'], colors['RS1'], colors['RS2']], ax=ax2,
+              zorder=1)
+ax2.set(ylabel='Modulation index', ylim=[-.75, .75], yticks=[-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75],
+        xlabel='')
 
 
 plt.tight_layout()
