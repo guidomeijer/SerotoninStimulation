@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import ttest_ind
-from serotonin_functions import paths, figure_style, combine_regions, load_subjects
+from stim_functions import paths, figure_style, combine_regions, load_subjects
 
 # Settings
 MIN_NEURONS = 3
@@ -26,7 +26,6 @@ light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 neuron_type = pd.read_csv(join(save_path, 'neuron_type.csv'))
 
 # Merge dataframes
-neuron_type['neuron_id'] = neuron_type['cluster_id']
 merged_df = pd.merge(light_neurons, neuron_type, on=['subject', 'probe', 'eid', 'pid', 'neuron_id'])
 
 # Get full region names

@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.stats import wilcoxon
 from os.path import join, realpath, dirname, split
-from serotonin_functions import paths, figure_style, load_subjects, combine_regions
+from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
 MIN_NEURONS = 30

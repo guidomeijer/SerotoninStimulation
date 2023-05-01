@@ -10,8 +10,7 @@ from os.path import join, realpath, dirname, split
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-from serotonin_functions import figure_style
-from serotonin_functions import paths
+from stim_functions import figure_style, paths
 
 # Settings
 T_BEFORE = 1  # for plotting

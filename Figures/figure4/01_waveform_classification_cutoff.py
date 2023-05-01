@@ -6,14 +6,13 @@ By: Guido Meijer
 """
 
 from os.path import join, realpath, dirname, split
-from serotonin_functions import paths, figure_style, high_level_regions, combine_regions, remap
+from stim_functions import paths, figure_style, high_level_regions, combine_regions, remap
 from scipy.stats import kstest
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.lines import Line2D
-from sklearn.mixture import GaussianMixture
 import pandas as pd
 
 # Settings
@@ -69,7 +68,7 @@ print(f'{perc_reg:.2f}% regural spiking')
 
 # Save result
 neuron_type = waveforms_df.copy()
-neuron_type = neuron_type.drop(['waveform', 'spike_width', 'firing_rate', 'rp_slope', 'spike_amp', 'pt_ratio',
+neuron_type = neuron_type.drop(['waveform', 'spike_width', 'rp_slope', 'spike_amp', 'pt_ratio',
                                 'rc_slope', 'pt_subtract', 'peak_to_trough', 'n_waveforms',
                                 'waveform_2D'], axis=1)
 neuron_type.to_csv(join(save_path, 'neuron_type.csv'), index=False)

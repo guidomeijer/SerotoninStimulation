@@ -6,7 +6,7 @@ By: Guido Meijer
 """
 
 from os.path import join, realpath, dirname, split
-from serotonin_functions import paths, figure_style, remap
+from stim_functions import paths, figure_style, remap
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
