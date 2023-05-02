@@ -11,7 +11,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Rectangle
-from stim_functions import figure_style, paths, load_subjects, N_CLUSTERS
+from scipy.stats import pearsonr
+from stim_functions import figure_style, paths, load_subjects
 from os.path import join
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
@@ -42,48 +43,105 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 state_trans_df = state_trans_df[state_trans_df['sert-cre'] == SERT_CRE]
 p_state_df = p_state_df[p_state_df['sert-cre'] == SERT_CRE]
 
-# Do PCA on states and cluster them
+# Correlate states and match them over recordings
 colors, dpi = figure_style()
 time_ax = np.unique(p_state_df['time'])
 for i, region in enumerate(np.unique(p_state_df['region'])):
-    region_slice = p_state_df[p_state_df['region'] == region]
-    region_pivot = region_slice.pivot(index=['pid', 'state'], columns='time', values='p_state')
-
-    # Do PCA
-    dim_red_pca = pca.fit_transform(region_pivot.values)
-
-    # Do clustering
-    state_clusters = KMeans(n_clusters=N_CLUSTERS[region], random_state=42, n_init='auto').fit_predict(dim_red_pca)
+    region_copy = p_state_df[p_state_df['region'] == region].copy()
+    region_pivot = region_copy.pivot(index=['pid', 'state'], columns='time', values='p_state')
+       
+    # Loop over states
+    these_states = np.unique(region_copy['state'])
+    these_pids = np.unique(region_copy['pid'])
     
-    f, axs = plt.subplots(2, 5, figsize=(7, 3.5), dpi=dpi)
-    axs = np.concatenate(axs)
-    for j in range(N_CLUSTERS[region]):
-        state_mean = np.mean(region_pivot.values[state_clusters == j, :], axis=0)
-        state_sem = (np.std(region_pivot.values[state_clusters == j, :], axis=0)
-                     / np.sqrt(np.sum(state_clusters == j)))
-        axs[j].plot(time_ax, state_mean, color='k', zorder=2)
-        axs[j].fill_between(time_ax, state_mean - state_sem, state_mean + state_sem, alpha=0.25,
-                            color='k', zorder=1, lw=0)
-        axs[j].add_patch(Rectangle((0, axs[j].get_ylim()[0]), 1, axs[j].get_ylim()[1] - axs[j].get_ylim()[0],
-                                   color='royalblue', alpha=0.25, lw=0))
-        axs[j].set(xlabel='Time (s)', title=f'State {j+1} (n={np.sum(state_clusters == j)})',
-                   xticks=[-1, 0, 1, 2, 3, 4])
-    axs[0].set(ylabel='P(state)')
-    f.suptitle(f'{region}')
-    sns.despine(trim=True)
-    plt.tight_layout()
-    plt.savefig(join(fig_path, f'states_{region}.jpg'), dpi=600)
+    for main_state in these_states:
+        these_main_states = np.empty(these_pids.shape[0]).astype(int)
+        
+        for jj, this_pid in enumerate(these_pids):
+            
+            if jj == 0:                   
+                # Start with state with the highest variance
+                rem_states = np.unique(region_copy.loc[region_copy['pid'] == this_pid, 'state'])
+                state_var = np.empty(rem_states.shape[0])
+                for dd, state in enumerate(rem_states):
+                    state_var[dd] = np.std(region_copy.loc[(region_copy['pid'] == this_pid)
+                                                            & (region_copy['state'] == state), 'p_state'].values)
+                these_main_states[jj] = rem_states[np.argmax(state_var)]
+                
+            else:
+                # Correlate state from previous session to each of these
+                rem_states = np.unique(region_copy.loc[region_copy['pid'] == this_pid, 'state'])
+                state_r = np.empty(rem_states.shape[0])
+                for nn, state2 in enumerate(rem_states):
+                    state_r[nn], _ = pearsonr(region_pivot.loc[these_pids[jj-1], these_main_states[jj-1]].values,
+                                              region_pivot.loc[this_pid, state2].values)
+                these_main_states[jj] = rem_states[np.argmax(state_r)]
+                                
+        # Add main state to overall df and remove from slice copy for next iteration
+        for tt, this_main_state in enumerate(these_main_states):
+            
+            # Set main state in dataframe
+            p_state_df.loc[(p_state_df['pid'] == these_pids[tt])
+                           & (p_state_df['region'] == region)
+                           & (p_state_df['state'] == this_main_state), 'main_state'] = main_state 
+                                    
+            # Remove from df slice copy for next iteration
+            region_copy = region_copy.drop(region_copy[(region_copy['pid'] == these_pids[tt])
+                                                       & (region_copy['state'] == this_main_state)].index)
+
+# Order states by if they go up or down
+for i, region in enumerate(np.unique(p_state_df['region'])):
+    for state in np.unique(p_state_df.loc[p_state_df['region'] == region, 'main_state']):
+        sdf
+        p_state_slice = p_state_df[(p_state_df['main_state'] == state) & (p_state_df['region'] == region)]
+        state_score = p_state_slice.loc[(p_state_slice['time'] > 0) & (p_state_slice['time'] < 1), 'p_state_bl'].mean()
+
+
+# %% Plot states
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
+axs = np.concatenate(axs)
+for i, region in enumerate(np.unique(p_state_df['region'])):
+    axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
+    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_state',
+                 hue='main_state', ax=axs[i], errorbar='se', legend=None, palette='tab10',
+                 err_kws={'lw': 0})
+    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[0, 0.5],
+               xticks=[-1, 0, 1, 2, 3, 4])
+    if i > 4:
+        axs[i].set(xlabel='Time (s)')
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'brain_states.jpg'), dpi=600)
+
+# %%
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
+axs = np.concatenate(axs)
+for i, region in enumerate(np.unique(p_state_df['region'])):
+    axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
+    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_state_bl',
+                 hue='main_state', ax=axs[i], errorbar='se', legend=None, palette='tab10',
+                 err_kws={'lw': 0})
+    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[-0.12, 0.2],
+               xticks=[-1, 0, 1, 2, 3, 4])
+    if i > 4:
+        axs[i].set(xlabel='Time (s)')
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'brain_states_baseline.jpg'), dpi=600)
+
 
 # %% Plot P(state change)
 
-f, axs = plt.subplots(2, 4, figsize=(5.25, 2.5), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
 axs = np.concatenate(axs)
 for i, region in enumerate(np.unique(p_state_df['region'])):
 
     axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans',
                  color='k', errorbar='se', ax=axs[i], err_kws={'lw': 0})
-    axs[i].set(title=region, ylim=[0.05, 0.3], yticks=[0.1], xticks=[-1, 0, 1, 2, 3, 4],
+    axs[i].set(title=region, ylim=[0.05, 0.3], xticks=[-1, 0, 1, 2, 3, 4],
                ylabel='', xlabel='')
 axs[-1].axis('off')
 f.text(0.5, 0.04, 'Time relative to stimulation onset (s)', ha='center')
@@ -93,7 +151,7 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate.jpg'), dpi=600)
 
 # %%
-f, axs = plt.subplots(2, 4, figsize=(5.25, 2.5), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
 axs = np.concatenate(axs)
 for i, region in enumerate(np.unique(p_state_df['region'])):
 
@@ -108,3 +166,18 @@ f.text(0.04, 0.5, 'P(state change) over baseline', va='center', rotation='vertic
 plt.tight_layout(rect=(0.05, 0.05, 1, 1))
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate_baseline.jpg'), dpi=600)
+
+# %%
+p_plot_df = p_state_df.copy()
+for i in np.unique(p_plot_df['main_state']):
+    p_plot_df.loc[p_plot_df['main_state'] == i, 'p_state_bl'] += i/4
+
+f, axs = plt.subplots(1, 7, figsize=(7, 5.25), dpi=dpi, sharey=True, sharex=True)
+
+for i, region in enumerate(np.unique(p_state_df['region'])):
+    sns.lineplot(data=p_plot_df[p_plot_df['region'] == region], x='time', y='p_state_bl',
+                 hue='main_state', ax=axs[i], errorbar='se', legend=None, err_kws={'lw': 0},
+                 palette='coolwarm')
+    
+
+
