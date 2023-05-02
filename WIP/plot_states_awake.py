@@ -16,7 +16,6 @@ from stim_functions import figure_style, paths, load_subjects
 from os.path import join
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
 
 PCA_DIM = 10
 BIN_SIZE = 100  # ms
@@ -51,7 +50,7 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
     region_pivot = region_copy.pivot(index=['pid', 'state'], columns='time', values='p_state')
        
     # Loop over states
-    these_states = np.unique(region_copy['state'])
+    these_states = np.unique(region_copy['state']).astype(int)
     these_pids = np.unique(region_copy['pid'])
     
     for main_state in these_states:
@@ -88,15 +87,24 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
             # Remove from df slice copy for next iteration
             region_copy = region_copy.drop(region_copy[(region_copy['pid'] == these_pids[tt])
                                                        & (region_copy['state'] == this_main_state)].index)
+p_state_df['main_state'] = p_state_df['main_state'].astype(int)
+
 
 # Order states by if they go up or down
 for i, region in enumerate(np.unique(p_state_df['region'])):
-    for state in np.unique(p_state_df.loc[p_state_df['region'] == region, 'main_state']):
-        sdf
+    main_states = np.unique(p_state_df.loc[p_state_df['region'] == region, 'main_state'])
+    state_scores = np.empty(main_states.shape[0])
+    for state in main_states:
         p_state_slice = p_state_df[(p_state_df['main_state'] == state) & (p_state_df['region'] == region)]
-        state_score = p_state_slice.loc[(p_state_slice['time'] > 0) & (p_state_slice['time'] < 1), 'p_state_bl'].mean()
+        p_slice_group = p_state_slice[['time', 'p_state_bl']].groupby('time').mean().reset_index()
+        state_trace = p_slice_group.loc[(p_slice_group['time'] > 0) & (p_slice_group['time'] < 2), 'p_state_bl'].values
+        state_scores[state] = state_trace[np.argmax(np.abs(state_trace))]
+    sorted_states = np.argsort(-state_scores)
+    state_map = {sorted_states[ii]: main_states[ii] for ii in range(len(sorted_states))}
+    p_state_df.loc[p_state_df['region'] == region, 'main_state'] = p_state_df.loc[
+        p_state_df['region'] == region, 'main_state'].replace(state_map)
 
-
+    
 # %% Plot states
 f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
 axs = np.concatenate(axs)
@@ -170,14 +178,24 @@ plt.savefig(join(fig_path, 'state_change_rate_baseline.jpg'), dpi=600)
 # %%
 p_plot_df = p_state_df.copy()
 for i in np.unique(p_plot_df['main_state']):
-    p_plot_df.loc[p_plot_df['main_state'] == i, 'p_state_bl'] += i/4
+    p_plot_df.loc[p_plot_df['main_state'] == i, 'p_state_bl'] -= i/6
 
 f, axs = plt.subplots(1, 7, figsize=(7, 5.25), dpi=dpi, sharey=True, sharex=True)
 
 for i, region in enumerate(np.unique(p_state_df['region'])):
+    axs[i].plot([0, 0],
+                [0.1, -0.16*np.unique(p_plot_df.loc[p_plot_df['region'] == region, 'main_state']).shape[0]],
+                ls='--', color='grey')
     sns.lineplot(data=p_plot_df[p_plot_df['region'] == region], x='time', y='p_state_bl',
                  hue='main_state', ax=axs[i], errorbar='se', legend=None, err_kws={'lw': 0},
-                 palette='coolwarm')
+                 palette='coolwarm_r')
+    axs[i].axis('off')
+    axs[i].set_title(region, pad=0)
+axs[0].plot([-1, -1], [-1.05, -1.15], color='k')
+axs[0].text(-0.7, -1.1, '10%', ha='left', va='center')
+axs[0].plot([0, 2], [-1.2, -1.2], color='k')
+axs[0].text(1, -1.22, '2s', ha='center', va='top')
+axs[0].text(-2.5, -0.5, 'P(state)', rotation=90, ha='left', va='center')
     
 
 
