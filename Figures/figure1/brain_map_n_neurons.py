@@ -30,6 +30,7 @@ anes_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons_anesthesia.c
 all_neurons = pd.concat((awake_neurons, anes_neurons))
 all_neurons = all_neurons[all_neurons['region'] != 'root']
 all_neurons = all_neurons[all_neurons['region'] != 'void']
+print(f'Total of {all_neurons.shape[0]} neurons')
 
 # Add genotype
 subjects = load_subjects()
