@@ -21,6 +21,8 @@ PCA_DIM = 10
 BIN_SIZE = 100  # ms
 NEURONS = 'all'  # non-sig, sig or all
 SERT_CRE = 1
+REGION_ORDER = ['Frontal cortex', 'Hippocampus', 'Thalamus', 'Amygdala', 'Sensory cortex',
+                'Midbrain', 'Striatum']
 
 # Initialize
 pca = PCA(n_components=PCA_DIM, random_state=42)
@@ -104,42 +106,7 @@ for i, region in enumerate(np.unique(p_state_df['region'])):
     p_state_df.loc[p_state_df['region'] == region, 'main_state'] = p_state_df.loc[
         p_state_df['region'] == region, 'main_state'].replace(state_map)
 
-    
-# %% Plot states
-f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
-axs = np.concatenate(axs)
-for i, region in enumerate(np.unique(p_state_df['region'])):
-    axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
-    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_state',
-                 hue='main_state', ax=axs[i], errorbar='se', legend=None, palette='tab10',
-                 err_kws={'lw': 0})
-    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[0, 0.5],
-               xticks=[-1, 0, 1, 2, 3, 4])
-    if i > 4:
-        axs[i].set(xlabel='Time (s)')
-
-sns.despine(trim=True)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'brain_states.jpg'), dpi=600)
-
-# %%
-f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
-axs = np.concatenate(axs)
-for i, region in enumerate(np.unique(p_state_df['region'])):
-    axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
-    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_state_bl',
-                 hue='main_state', ax=axs[i], errorbar='se', legend=None, palette='tab10',
-                 err_kws={'lw': 0})
-    axs[i].set(ylabel='P(state)', xlabel='Time (s)', title=region, ylim=[-0.12, 0.2],
-               xticks=[-1, 0, 1, 2, 3, 4])
-    if i > 4:
-        axs[i].set(xlabel='Time (s)')
-
-sns.despine(trim=True)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'brain_states_baseline.jpg'), dpi=600)
-
-
+"""
 # %% Plot P(state change)
 
 f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
@@ -157,20 +124,26 @@ f.text(0.04, 0.5, 'P(state change) over baseline', va='center', rotation='vertic
 plt.tight_layout(rect=(0.05, 0.05, 1, 1))
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate.jpg'), dpi=600)
+"""
 
 # %%
-f, axs = plt.subplots(2, 4, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
-axs = np.concatenate(axs)
-for i, region in enumerate(np.unique(p_state_df['region'])):
-
-    axs[i].add_patch(Rectangle((0, -4), 1, 5, color='royalblue', alpha=0.25, lw=0))
+f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi, sharey=True, sharex=True)
+for i, region in enumerate(REGION_ORDER):
+    axs[i].add_patch(Rectangle((0, -0.05), 1, 0.1, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans_bl',
                  color='k', errorbar='se', ax=axs[i], err_kws={'lw': 0})
-    axs[i].set(title=region, ylim=[-0.05, 0.055], yticks=[-0.05, 0, 0.05], xticks=[-1, 0, 1, 2, 3, 4],
-               ylabel='', xlabel='')
-axs[-1].axis('off')
-f.text(0.5, 0.04, 'Time relative to stimulation onset (s)', ha='center')
-f.text(0.04, 0.5, 'P(state change) over baseline', va='center', rotation='vertical')
+    axs[i].set(xlabel='Time (s)', title=region, ylim=[-0.052, 0.055],
+               yticks=[-0.05, 0, 0.05])
+    if i == 0:
+        axs[i].set(ylabel='P(state change)', xticks=[0, 2])
+        axs[i].get_xaxis().set_visible(False)
+        sns.despine(trim=True, bottom=True, ax=axs[i])
+        axs[i].text(1, -0.055, '2s', ha='center', va='top')
+    else:
+        axs[i].get_yaxis().set_visible(False)
+        axs[i].axis('off')
+            
+plt.subplots_adjust(left=0.08, bottom=0.15, right=1, top=0.85, wspace=0, hspace=0.4)
 plt.tight_layout(rect=(0.05, 0.05, 1, 1))
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate_baseline.jpg'), dpi=600)
@@ -182,20 +155,21 @@ for i in np.unique(p_plot_df['main_state']):
 
 f, axs = plt.subplots(1, 7, figsize=(7, 5.25), dpi=dpi, sharey=True, sharex=True)
 
-for i, region in enumerate(np.unique(p_state_df['region'])):
-    axs[i].plot([0, 0],
-                [0.1, -0.16*np.unique(p_plot_df.loc[p_plot_df['region'] == region, 'main_state']).shape[0]],
-                ls='--', color='grey')
+for i, region in enumerate(REGION_ORDER):
+    n_states = np.unique(p_plot_df.loc[p_plot_df['region'] == region, 'main_state']).shape[0]
+    axs[i].add_patch(Rectangle((0, -0.16*n_states), 1, 2, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=p_plot_df[p_plot_df['region'] == region], x='time', y='p_state_bl',
                  hue='main_state', ax=axs[i], errorbar='se', legend=None, err_kws={'lw': 0},
-                 palette='coolwarm_r')
+                 palette=sns.diverging_palette(145, 300, s=60, center='dark', as_cmap=True))
     axs[i].axis('off')
-    axs[i].set_title(region, pad=0)
-axs[0].plot([-1, -1], [-1.05, -1.15], color='k')
-axs[0].text(-0.7, -1.1, '10%', ha='left', va='center')
-axs[0].plot([0, 2], [-1.2, -1.2], color='k')
-axs[0].text(1, -1.22, '2s', ha='center', va='top')
-axs[0].text(-2.5, -0.5, 'P(state)', rotation=90, ha='left', va='center')
+    axs[i].set_title(region)
+    axs[i].set(ylim=[-1.3, 0.2])
+axs[0].plot([-1.5, -1.5], [0, 0.1], color='k')
+axs[0].text(-1.6, 0.05, '10%', ha='right', va='center')
+axs[0].plot([0, 2], [-1.3, -1.3], color='k')
+axs[0].text(1, -1.32, '2s', ha='center', va='top')
+axs[0].text(-2.5, -0.5, 'State probability', rotation=90, ha='left', va='center')
+plt.savefig(join(fig_path, 'p_state_awake.jpg'), dpi=600)
     
 
 

@@ -51,12 +51,14 @@ for i, region in enumerate(regions):
                  color=colors['suppressed'], errorbar='se', err_kws={'lw': 0}, ax=axs[i])
     sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_up',
                  color=colors['enhanced'], errorbar='se', ax=axs[i])
-    axs[i].set(xlabel='Time (s)', title=region, ylim=[0, 1],
-               yticks=[0, 0.5, 1])
+    axs[i].set(xlabel='Time (s)', title=region, ylim=[-0.02, 1],
+               yticks=[0, 0.5, 1], yticklabels=[0, 50, 100])
     if i == 0:
-        axs[i].set(ylabel='P(down state)')
+        axs[i].set(ylabel='Down state probability (%)')
         axs[i].get_xaxis().set_visible(False)
         sns.despine(trim=True, bottom=True, ax=axs[i])
+        axs[i].plot([0, 2], [-0.01, -0.01], color='k', lw=0.5)
+        axs[i].text(1, -0.03, '2s', ha='center', va='top')
     else:
         axs[i].get_yaxis().set_visible(False)
         axs[i].axis('off')
