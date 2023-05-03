@@ -160,7 +160,7 @@ for i, region in enumerate(REGION_ORDER):
     axs[i].add_patch(Rectangle((0, -0.16*n_states), 1, 2, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=p_plot_df[p_plot_df['region'] == region], x='time', y='p_state_bl',
                  hue='main_state', ax=axs[i], errorbar='se', legend=None, err_kws={'lw': 0},
-                 palette=sns.diverging_palette(145, 300, s=60, center='dark', as_cmap=True))
+                 palette=sns.diverging_palette(20, 210, l=55, center='dark', as_cmap=True))
     axs[i].axis('off')
     axs[i].set_title(region)
     axs[i].set(ylim=[-1.3, 0.2])
