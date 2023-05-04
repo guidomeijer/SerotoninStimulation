@@ -13,14 +13,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from brainbox.io.one import SpikeSortingLoader
-from matplotlib.patches import Rectangle
 from scipy.ndimage import gaussian_filter
-from matplotlib.ticker import FormatStrFormatter
-from brainbox.plot import peri_event_time_histogram
 from brainbox.singlecell import calculate_peths
-from sklearn.model_selection import KFold
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                            get_neuron_qc, calculate_peths,
                             high_level_regions, figure_style, N_STATES)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
@@ -29,7 +24,7 @@ one = ONE()
 
 # Settings
 BIN_SIZE = 0.1  # s
-INCL_NEURONS = 'sig'  # all, sig or non-sig
+INCL_NEURONS = 'all'  # all, sig or non-sig
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
@@ -39,7 +34,7 @@ CMAP = 'Set3'
 PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = False
+PLOT = True
 
 # Get paths
 f_path, save_path = paths()
@@ -132,11 +127,13 @@ for i in rec.index.values:
         # Loop over trials
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
+        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES[region]))
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
             zhat = simple_hmm.most_likely_states(trial_data[t])
-
+            prob_mat[t, :, :] = simple_hmm.filter(trial_data[t])
+            
             # Get state transitions times
             trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
 
@@ -150,6 +147,7 @@ for i in rec.index.values:
         # Select time period to use
         trans_mat = trans_mat[:, use_timepoints]
         smooth_p_trans = smooth_p_trans[use_timepoints]
+        prob_mat = prob_mat[:, use_timepoints, :]
 
         # Get P(state)
         p_state_mat = np.empty((N_STATES[region], time_ax.shape[0]))
@@ -172,16 +170,16 @@ for i in rec.index.values:
             'time': time_ax, 'p_trans': smooth_p_trans,
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
-
+        
         if PLOT:
             # Plot example trial
-            trial = 1
+            trial = 0
             cmap = sns.color_palette(CMAP, N_STATES[region])
             colors, dpi = figure_style()
-            f, ax = plt.subplots(1, 1, figsize=(3.5, 1.75), dpi=dpi)
-            ax.imshow(state_mat[trial, use_timepoints][None, :],
-                      aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1, alpha=0.4,
-                      extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
+            f, ax = plt.subplots(1, 1, figsize=(2.5, 1.75), dpi=dpi)
+            #ax.imshow(state_mat[trial, use_timepoints][None, :],
+            #          aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1, alpha=0.4,
+            #          extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
             tickedges = np.arange(0, len(clusters_in_region)+1)
             for k, n in enumerate(clusters_in_region):
                 idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
@@ -189,15 +187,17 @@ for i in rec.index.values:
                 neuron_spks = spikes.times[spikes.clusters == n][idx]
                 ax.vlines(neuron_spks - opto_times[trial], tickedges[k + 1], tickedges[k], color='black',
                           lw=0.4, zorder=1)
+            ax2 = ax.twinx()
+            for k in range(N_STATES[region]):
+                ax2.plot(time_ax, prob_mat[trial, :, k])
             ax.set(xlabel='Time (s)', ylabel='Neurons', yticks=[0, len(clusters_in_region)],
                    yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
-                   ylim=[-1, len(clusters_in_region)+1], title=f'{region}')
-            sns.despine(trim=True)
+                   ylim=[0, len(clusters_in_region)], title=f'{region}')
+            ax2.set(ylabel='P(state)', ylim=[0, 1])
+            sns.despine(trim=True, right=False)
             plt.tight_layout()
-    
-            plt.savefig(join(
-                fig_path, f'{region}_{subject}_{date}_trial.jpg'),
-                dpi=600)
+            
+            plt.savefig(join(fig_path, f'{region}_{subject}_{date}_trial.jpg'), dpi=600)
             plt.close(f)
     
             # Plot session
