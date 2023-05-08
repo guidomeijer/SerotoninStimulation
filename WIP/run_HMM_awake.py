@@ -23,7 +23,7 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-BIN_SIZE = 0.1  # s
+BIN_SIZE = 0.05  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
