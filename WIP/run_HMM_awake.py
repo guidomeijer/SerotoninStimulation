@@ -12,6 +12,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
 from scipy.ndimage import gaussian_filter
 from brainbox.singlecell import calculate_peths
@@ -23,14 +24,14 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-BIN_SIZE = 0.05  # s
+BIN_SIZE = 0.1  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 MIN_NEURONS = 5
-CMAP = 'Set3'
+CMAP = 'colorblind'
 PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
@@ -125,8 +126,8 @@ for i in rec.index.values:
         lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
         # Loop over trials
-        trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
-        state_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
+        trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
+        state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES[region]))
         for t in range(len(trial_data)):
 
@@ -147,7 +148,7 @@ for i in rec.index.values:
         # Select time period to use
         trans_mat = trans_mat[:, use_timepoints]
         smooth_p_trans = smooth_p_trans[use_timepoints]
-        prob_mat = prob_mat[:, use_timepoints, :]
+        prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
         # Get P(state)
         p_state_mat = np.empty((N_STATES[region], time_ax.shape[0]))
@@ -171,15 +172,21 @@ for i in rec.index.values:
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
         
+        # Crop timewindow for plotting
+        state_mat = state_mat[:, use_timepoints]
+        
         if PLOT:
             # Plot example trial
             trial = 0
             cmap = sns.color_palette(CMAP, N_STATES[region])
             colors, dpi = figure_style()
-            f, ax = plt.subplots(1, 1, figsize=(2.5, 1.75), dpi=dpi)
-            #ax.imshow(state_mat[trial, use_timepoints][None, :],
-            #          aspect='auto', cmap=ListedColormap(cmap), vmin=0, vmax=N_STATES[region]-1, alpha=0.4,
-            #          extent=(-PRE_TIME, POST_TIME, -1, len(clusters_in_region)+1))
+            f, ax = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
+            
+            for kk, time_bin in enumerate(time_ax):
+                ax.add_patch(Rectangle((time_bin-BIN_SIZE/2, -1), BIN_SIZE, len(clusters_in_region)+1,
+                                       color=cmap[state_mat[trial, kk]],
+                                       alpha=0.25, lw=0)) 
+                
             tickedges = np.arange(0, len(clusters_in_region)+1)
             for k, n in enumerate(clusters_in_region):
                 idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
@@ -189,11 +196,13 @@ for i in rec.index.values:
                           lw=0.4, zorder=1)
             ax2 = ax.twinx()
             for k in range(N_STATES[region]):
-                ax2.plot(time_ax, prob_mat[trial, :, k])
-            ax.set(xlabel='Time (s)', ylabel='Neurons', yticks=[0, len(clusters_in_region)],
+                ax2.plot(time_ax, prob_mat[trial, :, k], color=cmap[k])
+            ax.set(xlabel='Time (s)', yticks=[0, len(clusters_in_region)],
                    yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
                    ylim=[0, len(clusters_in_region)], title=f'{region}')
-            ax2.set(ylabel='P(state)', ylim=[0, 1])
+            ax.set_ylabel('Neurons', labelpad=-5)
+            ax2.set(ylim=[0, 1])
+            ax2.set_ylabel('P(state)', rotation=270, labelpad=10)
             sns.despine(trim=True, right=False)
             plt.tight_layout()
             
@@ -202,7 +211,7 @@ for i in rec.index.values:
     
             # Plot session
             f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
-            ax1.imshow(state_mat[:, use_timepoints], aspect='auto', cmap=ListedColormap(cmap),
+            ax1.imshow(state_mat, aspect='auto', cmap=ListedColormap(cmap),
                        vmin=0, vmax=N_STATES[region]-1,
                       extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
             ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
