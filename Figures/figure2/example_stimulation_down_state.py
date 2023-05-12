@@ -110,7 +110,7 @@ for t in range(len(trial_data)):
 trial = 3
 colors, dpi = figure_style()
 cmap = ListedColormap([colors['down-state'], colors['up-state']])
-f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(1.8, 1.75), dpi=dpi)
 state_starts = np.concatenate(([0], np.where(np.diff(state_mat[trial, :]) != 0)[0] + 1, [state_mat.shape[1]]))
 for kk, state_start in enumerate(state_starts[:-1]):
     ax.add_patch(Rectangle((time_ax[state_start]-BIN_SIZE/2, -1),
@@ -128,12 +128,12 @@ for i, n in enumerate(clusters_in_region):
 
 ax.set(xlabel='Time from stimulation start (s)', yticks=[0, len(clusters_in_region)],
        yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
-       ylim=[0, len(clusters_in_region)], title='Frontal cortex')
+       ylim=[0, len(clusters_in_region)])
 ax.set_ylabel('Neurons', labelpad=-5)
 
 ax2 = ax.twinx()
 ax2.plot(time_ax, p_down_mat[trial, :], color=colors['down-state'], lw=0.75)
-ax2.set(ylim=[-0.01, 1.01])            
+ax2.set(ylim=[-0.01, 1.01], title='Frontal cortex')            
 ax2.set_ylabel('P(down state)', rotation=270, labelpad=10)
 ax2.yaxis.label.set_color(colors['suppressed'])
 ax2.tick_params(axis='y', colors=colors['suppressed'])            
@@ -145,13 +145,12 @@ plt.savefig(join(fig_path, 'example_updown_trial.pdf'))
 
 # %% Plot example session
  
-f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(1.7, 1.75), dpi=dpi)
 ax.imshow(np.flipud(state_mat), aspect='auto', cmap=cmap, vmin=0, vmax=1,
           extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)))
 ax.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
 ax.set(ylabel='Trials', xlabel='Time from stimulation start (s)', yticks=[1, 25, 50],
-       xticks=[-1, 0, 1, 2, 3, 4],
-       title='Frontal cortex')
+       xticks=[-1, 0, 1, 2, 3, 4], title='Frontal cortex')
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'example_updown_session.pdf'))

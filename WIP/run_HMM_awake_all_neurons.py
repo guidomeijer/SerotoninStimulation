@@ -16,8 +16,8 @@ from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
 from scipy.ndimage import gaussian_filter
 from brainbox.singlecell import calculate_peths
-from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                            high_level_regions, figure_style, N_STATES)
+from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times,
+                            figure_style, N_STATES)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -35,7 +35,7 @@ INCL_NEURONS = 'all'  # all, sig or non-sig
 PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = True
+PLOT = False
 
 # Get paths
 f_path, save_path = paths()
@@ -266,7 +266,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     
         # Get binned spikes centered at stimulation onset
         peth, these_spikes = calculate_peths(spikes[probe].times, spikes[probe].clusters, use_neurons,
-                                             opto_times, pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME,
+                                             random_times, pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME,
                                              bin_size=BIN_SIZE, smoothing=0, return_fr=False)
         binned_spikes.append(these_spikes)
         full_time_ax = peth['tscale']

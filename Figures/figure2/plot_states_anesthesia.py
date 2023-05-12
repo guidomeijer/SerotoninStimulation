@@ -78,9 +78,9 @@ f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi)
 for i, region in enumerate(regions):
     axs[i].add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_down_state_change',
-                 color=colors['suppressed'], errorbar='se', ax=axs[i], label='Down', err_kws={'lw': 0})
+                 color=colors['suppressed'], errorbar='se', ax=axs[i], label='To down', err_kws={'lw': 0})
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_up_state_change',
-                 color=colors['enhanced'], errorbar='se', ax=axs[i], label='Up', err_kws={'lw': 0})
+                 color=colors['enhanced'], errorbar='se', ax=axs[i], label='To up', err_kws={'lw': 0})
     axs[i].set(ylabel='P(state change)', xlabel='Time (s)', title=region, ylim=[-0.012, 0.2],
                yticks=[0, 0.25], yticklabels=[0, 25], xticks=[-1, 0, 1, 2, 3, 4])
     if i == 0:

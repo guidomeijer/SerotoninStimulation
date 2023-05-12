@@ -29,9 +29,9 @@ BIN_SIZE = 0.2
 SMOOTHING = 0
 D = 5   # dimensions of PCA
 
-# Paths
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'figure5')
+# Get paths
+f_path, save_path = paths()
+fig_path = join(f_path, 'Extra plots', 'State')
 
 # Recording
 SUBJECT = 'ZFM-04820'
