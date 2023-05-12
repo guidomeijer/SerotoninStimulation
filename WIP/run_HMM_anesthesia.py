@@ -49,11 +49,13 @@ subjects = load_subjects()
 artifact_neurons = get_artifact_neurons()
 
 if OVERWRITE:
-    up_down_state_df = pd.DataFrame()
-    state_trans_df = pd.DataFrame()
+    up_down_state_df, state_trans_df = pd.DataFrame(), pd.DataFrame()
+    up_down_state_null_df, state_trans_null_df = pd.DataFrame(), pd.DataFrame()
 else:
     up_down_state_df = pd.read_csv(join(save_path, 'updown_state_anesthesia.csv'))
     state_trans_df = pd.read_csv(join(save_path, 'state_trans_anesthesia.csv'))
+    up_down_state_null_df = pd.read_csv(join(save_path, 'updown_state_null_anesthesia.csv'))
+    state_trans_null_df = pd.read_csv(join(save_path, 'state_trans_null_anesthesia.csv'))
     rec = rec[~rec['pid'].isin(state_trans_df['pid'])]
 
 for i in rec.index.values:
@@ -148,11 +150,7 @@ for i in rec.index.values:
                 p_down = posterior[:, 1]
             else:
                 p_down = posterior[:, 0]
-    
-            # Normalize P(down) between 0 and 1
-            p_down -= np.min(p_down)
-            p_down /= np.max(p_down)
-        
+            
             # Get transitions
             trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
             down_trans_mat[t, :] = np.concatenate((np.diff(zhat) == -1, [False])).astype(int)
@@ -237,10 +235,89 @@ for i in rec.index.values:
                              f'{region}_{subject}_{date}_ses.jpg'),
                         dpi=600)
             plt.close(f)
+        
+        # Run HMM for random onset times
+        random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10, size=100))
+        
+        # Get binned spikes centered at random onset times
+        peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, random_times,
+                                              pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME, bin_size=BIN_SIZE,
+                                              smoothing=0, return_fr=False)
+        binned_spikes = binned_spikes.astype(int)
+        full_time_ax = peth['tscale']
+        use_timepoints = (full_time_ax > -PRE_TIME) & (full_time_ax < POST_TIME)
+        time_ax = full_time_ax[use_timepoints]
+
+        # Create list of (time_bins x neurons) per stimulation trial
+        trial_data = []
+        for i in range(binned_spikes.shape[0]):
+            trial_data.append(np.transpose(binned_spikes[i, :, :]))
+
+        # Initialize HMM
+        simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
+
+        this_df = pd.DataFrame()
+        trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
+        down_trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
+        up_trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
+       
+        # Fit HMM on all data
+        lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
+    
+        for t in range(len(trial_data)):
+    
+            # Get posterior probability and most likely states for this trial
+            posterior = simple_hmm.filter(trial_data[t])
+            posterior = posterior[np.concatenate(([False], use_timepoints[:-1])), :]  
+            zhat = simple_hmm.most_likely_states(trial_data[t])
+            
+            # Make sure 0 is down state and 1 is up state
+            if np.mean(binned_spikes[t, :, zhat==0]) > np.mean(binned_spikes[t, :, zhat==1]):
+                # State 0 is up state
+                zhat = np.where((zhat==0)|(zhat==1), zhat^1, zhat)
+                p_down = posterior[:, 1]
+            else:
+                p_down = posterior[:, 0]
+    
+            # Normalize P(down) between 0 and 1
+            #p_down -= np.min(p_down)
+            #p_down /= np.max(p_down)
+        
+            # Get transitions
+            trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
+            down_trans_mat[t, :] = np.concatenate((np.diff(zhat) == -1, [False])).astype(int)
+            up_trans_mat[t, :] = np.concatenate((np.diff(zhat) == 1, [False])).astype(int)
+            
+            # Select trial timewindow
+            zhat = zhat[use_timepoints]
+    
+            # Add to dataframe
+            this_df = pd.concat((this_df, pd.DataFrame(data={
+                'state': zhat, 'p_down': p_down, 'region': region, 'time': time_ax,
+                'trial': t})))
+
+        # Add to dataframe
+        p_down = this_df[['time', 'state']].groupby('time').mean().reset_index()
+        p_down['state'] = 1-p_down['state']
+        up_down_state_null_df = pd.concat((up_down_state_null_df, pd.DataFrame(data={
+            'p_down': p_down['state'], 'time': p_down['time'], 'subject': subject,
+            'pid': pid, 'region': region})))
+
+        # Add state change PSTH to dataframe
+        p_state_change = np.mean(trans_mat[:, use_timepoints], axis=0)
+        p_down_state_change = np.mean(down_trans_mat[:, use_timepoints], axis=0)
+        p_up_state_change = np.mean(up_trans_mat[:, use_timepoints], axis=0)
+        state_trans_null_df = pd.concat((state_trans_null_df, pd.DataFrame(data={
+            'time': time_ax, 'p_state_change': p_state_change,
+            'p_down_state_change': p_down_state_change, 'p_up_state_change': p_up_state_change,
+            'region': region, 'subject': subject, 'pid': pid})))
+        
 
     # Save result
     up_down_state_df.to_csv(join(save_path, 'updown_states_anesthesia.csv'))
     state_trans_df.to_csv(join(save_path, 'state_trans_anesthesia.csv'))
+    up_down_state_null_df.to_csv(join(save_path, 'updown_states_null_anesthesia.csv'))
+    state_trans_null_df.to_csv(join(save_path, 'state_trans_null_anesthesia.csv'))
 
 
 
