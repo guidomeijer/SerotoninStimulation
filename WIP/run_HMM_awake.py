@@ -35,7 +35,7 @@ CMAP = 'colorblind'
 PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = True
+PLOT = False
 
 # Get paths
 f_path, save_path = paths()
