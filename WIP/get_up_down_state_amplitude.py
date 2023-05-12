@@ -20,9 +20,9 @@ ba = AllenAtlas()
 one = ONE()
 
 MIN_NEURONS = 5
-BIN_SIZE = 0.05
+BIN_SIZE = 0.1
 SMOOTHING = 0.05
-RANGE = [0.2, 0.5]  # Hz
+RANGE = [0.25, 0.35]  # Hz
 
 # Query sessions
 rec_both = query_ephys_sessions(anesthesia='both', one=one)
@@ -38,8 +38,7 @@ for i in rec.index.values:
     # Get session details
     pid, eid, probe = rec.loc[i, 'pid'], rec.loc[i, 'eid'], rec.loc[i, 'probe']
     subject, date = rec.loc[i, 'subject'], rec.loc[i, 'date']
-
-    print(f'\nStarting {subject}, {date}')
+    print(f'{subject}, {date}')
     
     # Load opto times
     if rec.loc[i, 'anesthesia'] == 'yes': 
@@ -88,8 +87,6 @@ for i in rec.index.values:
         tscale = peth['tscale'] + spikes.times[0]            
         pop_act = peth['means'].T
         
-        pop_act = peth['means'].T
-        
         # Calculate power spectrum
         freq, psd = welch(np.mean(pop_act, axis=1), fs=1/BIN_SIZE)
         
@@ -98,6 +95,7 @@ for i in rec.index.values:
             'freq': freq, 'psd': psd, 'region': region, 'subject': subject, 'date': date})))
         updown_max_df = pd.concat((updown_max_df, pd.DataFrame(index=[updown_max_df.shape[0]+1], data={
             'psd_max': np.max(psd[(freq >= RANGE[0]) & (freq <= RANGE[1])]),
+            'psd_mean': np.mean(psd[(freq >= RANGE[0]) & (freq <= RANGE[1])]),
             'region': region, 'subject': subject, 'date': date})))
         
 # %% Plot

@@ -28,8 +28,11 @@ from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
 # Number of states of awake HMM
-N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 7,
-            'Midbrain': 7, 'Amygdala': 6}
+#N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 7,
+#            'Midbrain': 7, 'Amygdala': 6}
+#N_STATES = {'Frontal cortex': 6, 'Sensory cortex': 6, 'Hippocampus': 6, 'Striatum': 6, 'Thalamus': 6,
+#            'Midbrain': 6, 'Amygdala': 6}
+N_STATES = 6
 
 
 def load_subjects(anesthesia='all', behavior=None):
@@ -101,20 +104,17 @@ def figure_style():
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
     colors = {'general': 'orange',
-              'grey': [0.75, 0.75, 0.75],
+              'grey': [0.7, 0.7, 0.7],
               'sert': sns.color_palette('Dark2')[0],
-              'wt': [0.75, 0.75, 0.75],
+              'wt': [0.7, 0.7, 0.7],
               'awake': sns.color_palette('Dark2')[2],
               'anesthesia': sns.color_palette('Dark2')[3],
               'enhanced': sns.color_palette('colorblind')[3],
               'suppressed': sns.color_palette('colorblind')[0],
-              'stim': sns.color_palette('colorblind')[9],
+              'stim': sns.color_palette('colorblind')[0],
+              'down-state': sns.color_palette('colorblind')[0],
+              'up-state': sns.color_palette('colorblind')[3],
               'no-stim': sns.color_palette('colorblind')[7],
-              'left': 'royalblue',
-              'right': 'indianred',
-              'task': 'darkviolet',
-              'glm_stim': '#CF453C',
-              'glm_motion': '#6180E9',
               'probe': sns.color_palette('colorblind')[4],
               'block': sns.color_palette('colorblind')[6],
               'FS': sns.color_palette('Set2')[0],
@@ -159,9 +159,7 @@ def figure_style():
               'Frontal': sns.color_palette('Dark2')[2],
               'Sensory': sns.color_palette('Dark2')[5],
               'Midbrain': sns.color_palette('Set1')[7],
-              'Striatum': sns.color_palette('Accent')[1],
-              'M2-mPFC': sns.color_palette('Dark2')[1],
-              'M2-ORB': sns.color_palette('Dark2')[0]}
+              'Striatum': sns.color_palette('Accent')[1]}
     screen_width = tk.Tk().winfo_screenwidth()
     dpi = screen_width / 10
     return colors, dpi
