@@ -12,9 +12,9 @@ import seaborn as sns
 from os.path import join, realpath, dirname, split
 from brainbox.singlecell import calculate_peths
 from brainbox.io.one import SpikeSortingLoader
-from scipy.signal import welch
+from scipy.signal import welch, butter, lfilter
 import scikit_posthocs as sp
-from scipy.stats import kruskal
+from scipy.stats import kruskal, skew
 from stim_functions import (query_ephys_sessions, high_level_regions, get_neuron_qc, remap,
                             figure_style, load_passive_opto_times, paths)
 from one.api import ONE
@@ -24,8 +24,9 @@ one = ONE()
 
 MIN_NEURONS = 5
 BIN_SIZE = 0.2
-SMOOTHING = 0.2
-RANGE = [0.25, 0.5]  # Hz
+SMOOTHING = 0.05
+DURATION = 360  # s
+RANGE = [0.2, 1]  # Hz
 
 # Paths
 f_path, save_path = paths()
@@ -76,14 +77,43 @@ for i in rec.index.values:
             continue
 
         # Get smoothed firing rates    
-        peth, _ = calculate_peths(region_spikes, region_clusters, np.unique(region_clusters),
-                                  [opto_times[0]-360], pre_time=0, post_time=360,
+        peth, _ = calculate_peths(region_spikes, np.ones(region_spikes.shape[0]), [1],
+                                  [region_spikes[-1]-DURATION], pre_time=0, post_time=DURATION,
                                   bin_size=BIN_SIZE, smoothing=SMOOTHING)
+        asd
+        """
+        if rec.loc[i, 'anesthesia'] == 'yes': 
+            peth, _ = calculate_peths(region_spikes, region_clusters, np.unique(region_clusters),
+                                      [region_spikes[-1]-DURATION], pre_time=0, post_time=DURATION,
+                                      bin_size=BIN_SIZE, smoothing=SMOOTHING)
+        elif rec.loc[i, 'anesthesia'] == 'both': 
+            peth, _ = calculate_peths(region_spikes, region_clusters, np.unique(region_clusters),
+                                      [opto_times[0]-DURATION], pre_time=0, post_time=DURATION,
+                                      bin_size=BIN_SIZE, smoothing=SMOOTHING)
+        """
         tscale = peth['tscale'] + spikes.times[0]            
-        pop_act = peth['means'].T
+        pop_act = np.squeeze(peth['means'])
+        
+        # Filter
+        b, a = butter(1, 0.5, fs=1/BIN_SIZE, btype='highpass')
+        pop_act_filt = lfilter(b, a, pop_act)
         
         # Calculate power spectrum
-        freq, psd = welch(np.mean(pop_act, axis=1), fs=1/BIN_SIZE)
+        freq, psd = welch(pop_act, fs=1/BIN_SIZE)
+        
+        pop_skew = skew(pop_act)
+        
+        """
+        f, (ax1, ax2) = plt.subplots(2, 1)
+        ax1.plot(pop_act)
+        #ax1.plot(pop_act_filt[-500:])
+        ax1.set(title=f'{subject} {date} {region}')
+        ax1.axis('off')
+        
+        ax2.hist(pop_act, bins=50)
+        ax2.set(title=f'{pop_skew}')
+        plt.show()
+        """
         
         # Add to dataframe
         updown_psd_df = pd.concat((updown_psd_df, pd.DataFrame(data={
@@ -91,22 +121,26 @@ for i in rec.index.values:
         updown_max_df = pd.concat((updown_max_df, pd.DataFrame(index=[updown_max_df.shape[0]+1], data={
             'psd_max': np.max(psd[(freq >= RANGE[0]) & (freq <= RANGE[1])]),
             'psd_mean': np.mean(psd[(freq >= RANGE[0]) & (freq <= RANGE[1])]),
+            'skewness': pop_skew,
             'region': region, 'subject': subject, 'date': date})))
-  
+    
 # %% Do statistics
+grouped_updown_df = updown_max_df.groupby(['subject', 'region']).median().reset_index()
 
-_, p = kruskal(*[group["psd_max"].values for name, group in updown_max_df.groupby("region")])    
+_, p = kruskal(*[group["skewness"].values for name, group in grouped_updown_df.groupby('region')])    
 print(f'\nKruskal wallis p = {p}\n')
-dunn_ph = sp.posthoc_conover(updown_max_df, val_col='psd_max', group_col='region')
+dunn_ph = sp.posthoc_conover(updown_max_df, val_col='skewness', group_col='region')
 print(dunn_ph)        
+
 
 # %% Plot
 region_order = ['Cortex', 'Amygdala', 'Striatum', 'Hippocampus', 'Thalamus', 'Midbrain']
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
-sns.barplot(data=updown_max_df, y='psd_max', x='region', errorbar='se', ax=ax1, order=region_order,
+sns.barplot(data=grouped_updown_df, y='skewness', x='region', errorbar=None, ax=ax1, order=region_order,
             color=colors['grey'])
-ax1.set(ylabel='Power spectral density', xlabel='', ylim=[0, 30], yticks=np.arange(0, 31, 10))
+sns.swarmplot(data=grouped_updown_df, y='skewness', x='region', ax=ax1, order=region_order, size=3)
+#ax1.set(ylabel='Power spectral density', xlabel='', ylim=[0, 35], yticks=np.arange(0, 36, 5))
 ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right')
 
 sns.despine(trim=False)

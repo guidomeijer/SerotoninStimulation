@@ -13,7 +13,7 @@ import pandas as pd
 from matplotlib.patches import Rectangle
 from scipy.stats import pearsonr
 from stim_functions import figure_style, paths, load_subjects
-from os.path import join
+from os.path import join, realpath, dirname, split
 
 BIN_SIZE = 100  # ms
 NEURONS = 'all'  # non-sig, sig or all
@@ -21,9 +21,9 @@ SERT_CRE = 1
 REGION_ORDER = ['Frontal cortex', 'Hippocampus', 'Thalamus', 'Amygdala', 'Sensory cortex',
                 'Midbrain', 'Striatum']
 
-# Get paths
+# Paths
 f_path, save_path = paths()
-fig_path = join(f_path, 'Extra plots', 'State')
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
 state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_{BIN_SIZE}msbins_{NEURONS}.csv'))
@@ -174,7 +174,7 @@ for i, region in enumerate(REGION_ORDER):
                  color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans_bl',
                  color=colors['stim'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
-    axs[i].set(xlabel='Time (s)', title=region, ylim=[-0.052, 0.055],
+    axs[i].set(xlabel='Time from stimulation start (s)', title=region, ylim=[-0.052, 0.055],
                yticks=[-0.05, 0, 0.05])
     if i == 0:
         axs[i].set(ylabel='P(state change)', xticks=[0, 2])
@@ -197,7 +197,7 @@ for i in np.unique(p_plot_df['main_state']):
     p_plot_df.loc[p_plot_df['main_state'] == i, 'p_state_bl'] -= i/6
     p_plot_null_df.loc[p_plot_null_df['main_state'] == i, 'p_state_bl'] -= i/6
 
-f, axs = plt.subplots(1, 7, figsize=(7, 5.25), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(1, 7, figsize=(7, 3.5), dpi=dpi, sharey=True, sharex=True)
 
 for i, region in enumerate(REGION_ORDER):
     n_states = np.unique(p_plot_df.loc[p_plot_df['region'] == region, 'main_state']).shape[0]
@@ -210,13 +210,13 @@ for i, region in enumerate(REGION_ORDER):
                  palette=sns.diverging_palette(20, 210, l=55, center='dark', as_cmap=True))
     axs[i].axis('off')
     axs[i].set_title(region)
-    axs[i].set(ylim=[-1.3, 0.2])
+    axs[i].set(ylim=[-1, 0.2])
 axs[0].plot([-1.5, -1.5], [0, 0.1], color='k')
 axs[0].text(-1.6, 0.05, '10%', ha='right', va='center')
-axs[0].plot([0, 2], [-1.3, -1.3], color='k')
-axs[0].text(1, -1.32, '2s', ha='center', va='top')
+axs[0].plot([0, 2], [-0.97, -0.97], color='k')
+axs[0].text(1, -0.99, '2s', ha='center', va='top')
 axs[0].text(-2.5, -0.5, 'State probability', rotation=90, ha='left', va='center')
-plt.savefig(join(fig_path, 'p_state_awake.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'p_state_awake.pdf'))
     
 
 

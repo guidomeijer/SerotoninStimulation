@@ -27,11 +27,7 @@ from ibllib.atlas import BrainRegions
 from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
-# Number of states of awake HMM
-#N_STATES = {'Frontal cortex': 8, 'Sensory cortex': 8, 'Hippocampus': 7, 'Striatum': 6, 'Thalamus': 7,
-#            'Midbrain': 7, 'Amygdala': 6}
-#N_STATES = {'Frontal cortex': 6, 'Sensory cortex': 6, 'Hippocampus': 6, 'Striatum': 6, 'Thalamus': 6,
-#            'Midbrain': 6, 'Amygdala': 6}
+# Number of states of HMM
 N_STATES = 6
 
 
@@ -115,51 +111,13 @@ def figure_style():
               'down-state': sns.color_palette('colorblind')[0],
               'up-state': sns.color_palette('colorblind')[3],
               'no-stim': sns.color_palette('colorblind')[7],
-              'probe': sns.color_palette('colorblind')[4],
-              'block': sns.color_palette('colorblind')[6],
               'FS': sns.color_palette('Set2')[0],
               'NS': sns.color_palette('Set2')[0],
               'RS': sns.color_palette('Set2')[1],
               'RS1': sns.color_palette('Set2')[1],
               'RS2': sns.color_palette('Set2')[2],
-              'OFC': sns.color_palette('Dark2')[0],
-              'mPFC': sns.color_palette('Dark2')[1],
-              'M2': sns.color_palette('Dark2')[2],
-              'Amyg': sns.color_palette('Dark2')[3],
-              'Hipp': sns.color_palette('Dark2')[4],
-              'VIS': sns.color_palette('Dark2')[5],
-              'Pir': sns.color_palette('Dark2')[6],
-              'SC': sns.color_palette('Dark2')[7],
-              'Thal': sns.color_palette('tab10')[9],
-              'PAG': sns.color_palette('Set1')[7],
-              'BC': sns.color_palette('Accent')[0],
-              'Str': sns.color_palette('Accent')[1],
-              'MRN': sns.color_palette('Accent')[2],
-              'OLF': sns.color_palette('tab10')[8],
-              'RSP': 'r',
-              'SNr': [0.75, 0.75, 0.75],
-              'Orbitofrontal cortex': sns.color_palette('Dark2')[0],
-              'Medial prefrontal cortex': sns.color_palette('Dark2')[1],
-              'Secondary motor cortex': sns.color_palette('Dark2')[2],
-              'Amygdala': sns.color_palette('Dark2')[3],
-              'Hippocampus': sns.color_palette('Dark2')[4],
-              'Visual cortex': sns.color_palette('Dark2')[5],
-              'Piriform': sns.color_palette('Dark2')[6],
-              'Superior colliculus': sns.color_palette('Dark2')[7],
-              'Periaqueductal gray': sns.color_palette('Set1')[7],
-              'Barrel cortex': sns.color_palette('Set2')[0],
-              'Thalamus': sns.color_palette('tab10')[9],
-              'Tail of the striatum': sns.color_palette('Set2')[1],
-              'Midbrain reticular nucleus': sns.color_palette('Accent')[2],
-              'Olfactory areas': sns.color_palette('tab10')[8],
-              'Substantia nigra': [0.75, 0.75, 0.75],
-              'Retrosplenial cortex': 'r',
-              'Globus pallidus': 'teal',
-              'Zona incerta': 'sienna',
-              'Frontal': sns.color_palette('Dark2')[2],
-              'Sensory': sns.color_palette('Dark2')[5],
-              'Midbrain': sns.color_palette('Set1')[7],
-              'Striatum': sns.color_palette('Accent')[1]}
+              'states': 'Dark2',
+              'states_light': 'Set2'}
     screen_width = tk.Tk().winfo_screenwidth()
     dpi = screen_width / 10
     return colors, dpi
@@ -309,8 +267,9 @@ def high_level_regions(acronyms, merge_cortex=False):
     cosmos_regions = remap(acronyms, dest='Cosmos')
     regions = np.array(['root'] * len(first_level_regions), dtype=object)
     if merge_cortex:
-        regions[cosmos_regions == 'Isocortex'] = 'Cortex'
-        regions[first_level_regions == 'Pir'] = 'Cortex'
+        #regions[cosmos_regions == 'Isocortex'] = 'Cortex'
+        #regions[first_level_regions == 'Pir'] = 'Cortex'
+        regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2', 'Pir', 'BC', 'VIS'])] = 'Cortex'
     else:
         regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2'])] = 'Frontal cortex'
         regions[np.in1d(first_level_regions, ['Pir', 'BC', 'VIS'])] = 'Sensory cortex'
