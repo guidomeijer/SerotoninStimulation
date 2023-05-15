@@ -13,15 +13,15 @@ import pandas as pd
 from matplotlib.patches import Rectangle
 from scipy.stats import pearsonr
 from stim_functions import figure_style, paths, load_subjects
-from os.path import join
+from os.path import join, realpath, dirname, split
 
 BIN_SIZE = 100  # ms
 NEURONS = 'all'  # non-sig, sig or all
 SERT_CRE = 1
 
-# Get paths
+# Paths
 f_path, save_path = paths()
-fig_path = join(f_path, 'Extra plots', 'State')
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
 state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_all-neurons_{BIN_SIZE}msbins_{NEURONS}.csv'))
@@ -164,39 +164,61 @@ ax.set(xlabel='Time from stimulation start (s)', ylim=[-0.03, 0.03], yticks=[-0.
 plt.tight_layout()
 sns.despine(trim=True)
 
-#plt.savefig(join(fig_path, 'state_change_rate_baseline.jpg'), dpi=600)
+# %%
+f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi, sharey=True, sharex=True)
+ax.add_patch(Rectangle((0, -0.2), 1, 0.4, color='royalblue', alpha=0.25, lw=0))
+sns.lineplot(data=p_state_df, x='time', y='p_state_bl', hue='main_state',
+             palette=colors['states'],
+             errorbar='se', ax=ax, err_kws={'lw': 0}, legend=None)
+ax.set(ylabel='State probability (%)', xlabel='Time from stimulation start (s)',
+       yticks=[-0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15], yticklabels=[-15, -10, -5, 0, 5, 10, 15],
+       xticks=[-1, 0, 1, 2, 3, 4], ylim=[-0.16, 0.16])
+plt.tight_layout()
+sns.despine(trim=True)
 
-"""
 # %%
 p_plot_df = p_state_df.copy()
 p_plot_null_df = p_state_null_df.copy()
 for i in np.unique(p_plot_df['main_state']):
     p_plot_df.loc[p_plot_df['main_state'] == i, 'p_state_bl'] -= i/6
-    #p_plot_null_df.loc[p_plot_null_df['main_state'] == i, 'p_state_bl'] -= i/6
+    p_plot_null_df.loc[p_plot_null_df['main_state'] == i, 'p_state_bl'] -= i/6
 
-f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi, sharey=True, sharex=True)
+f, ax = plt.subplots(1, 1, figsize=(1.75, 3.5), dpi=dpi, sharey=True, sharex=True)
 
 n_states = np.unique(p_plot_df['main_state']).shape[0]
-ax.add_patch(Rectangle((0, -0.16*n_states), 1, 2, color='royalblue', alpha=0.25, lw=0))
-#sns.lineplot(data=p_plot_null_df[p_plot_null_df['region'] == region], x='time', y='p_state_bl',
-#             hue='main_state', ax=axs[i], errorbar='se', legend=None, err_kws={'lw': 0},
-#             palette=[colors['grey']]*n_states)
+ax.add_patch(Rectangle((0, -1), 1, 2, color='royalblue', alpha=0.25, lw=0))
+sns.lineplot(data=p_plot_null_df, x='time', y='p_state_bl',
+             hue='main_state', ax=ax, errorbar='se', legend=None, err_kws={'lw': 0},
+             palette=[colors['grey']]*n_states)
 sns.lineplot(data=p_plot_df, x='time', y='p_state_bl',
              hue='main_state', ax=ax, errorbar='se', legend=None, err_kws={'lw': 0},
              palette=sns.diverging_palette(20, 210, l=55, center='dark', as_cmap=True))
-#plt.savefig(join(fig_path, 'p_state_awake.jpg'), dpi=600)
-"""
-# %%
-f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi, sharey=True, sharex=True)
-ax.add_patch(Rectangle((0, -0.2), 1, 0.4, color='royalblue', alpha=0.25, lw=0))
-sns.lineplot(data=p_state_df, x='time', y='p_state_bl', hue='main_state',
-             palette=sns.diverging_palette(20, 210, l=55, center='dark', as_cmap=True),
-             errorbar='se', ax=ax, err_kws={'lw': 0}, legend=None)
-ax.set(ylabel='State probability (%)', xlabel='Time from stimulation start (s)',
-       yticks=[-0.1, -0.05, 0, 0.05, 0.1], yticklabels=[-10, -5, 0, 5, 10],
-       xticks=[-1, 0, 1, 2, 3, 4], ylim=[-0.11, 0.11])
+ax.axis('off')
+ax.set(ylim=[-1.03, 0.2])
+
+ax.plot([-1.5, -1.5], [0, 0.1], color='k')
+ax.text(-1.6, 0.05, '10%', ha='right', va='center')
+ax.plot([0, 2], [-1.02, -1.02], color='k')
+ax.text(1, -1.04, '2s', ha='center', va='top')
+ax.text(-2.5, -0.5, 'State probability', rotation=90, ha='left', va='center')
+
+ax.text(4.4, 0.11, 'State', ha='center', va='center')
+ax.text(4.4, 0.01, '1', ha='center', va='center', fontsize=10,
+        color=sns.diverging_palette(20, 210, l=55, center='dark')[0])
+ax.text(4.4, -0.17, '2', ha='center', va='center', fontsize=10,
+        color=sns.diverging_palette(20, 210, l=55, center='dark')[1])
+ax.text(4.4, -0.33, '3', ha='center', va='center', fontsize=10,
+        color=sns.diverging_palette(20, 210, l=55, center='dark')[2])
+ax.text(4.4, -0.51, '4', ha='center', va='center', fontsize=10,
+        color=sns.diverging_palette(20, 210, l=55, center='dark')[3])
+ax.text(4.4, -0.67, '5', ha='center', va='center', fontsize=10,
+        color=sns.diverging_palette(20, 210, l=55, center='dark')[4])
+ax.text(4.4, -0.85, '6', ha='center', va='center', fontsize=10,
+        color=sns.diverging_palette(20, 210, l=55, center='dark')[5])
+
+plt.subplots_adjust(left=0.8)
 plt.tight_layout()
-sns.despine(trim=True)
+plt.savefig(join(fig_path, 'p_state_all-neurons_awake.pdf'))
 
 
 

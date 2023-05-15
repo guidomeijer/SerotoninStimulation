@@ -68,11 +68,13 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.5, 1.5), dpi=dpi)
 
 ax1.imshow(R, aspect='auto', cmap='binary', vmin=0, vmax=np.std(R),
            extent=np.r_[times[[0, -1]], depths[[0, -1]]], origin='upper')
-ax1.plot([times[0], times[0]+3], [depths[0]-10, depths[0]-10], color='k')
+ax1.plot([times[0], times[0]+3], [depths[0]-10, depths[0]-10], color='k', lw=0.75)
 ax1.text(times[0]+1.5, depths[0]-30, '3s', ha='center', va='center')
+ax1.plot([times[0]-.5, times[0]-.5], [1300, 1400], color='k', lw=0.75)
+ax1.text(times[0]-1.2, 1350, '0.1 mm', rotation=90, ha='center', va='center')
 ax2 = ax1.twinx()
 ax2.plot(tscale + region_spikes[-1]-603, np.mean(pop_act, axis=1), color=colors['grey'], lw=0.75)
-ax2.set(ylim=[-0.3, 4], title='Frontal cortex')
+ax2.set(ylim=[-0.3, 4])
 ax1.axis('off')
 ax2.axis('off')
 
