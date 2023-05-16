@@ -24,9 +24,9 @@ one = ONE()
 
 MIN_NEURONS = 5
 BIN_SIZE = 0.2
-SMOOTHING = 0.05
+SMOOTHING = 0.4
 DURATION = 360  # s
-RANGE = [0.2, 1]  # Hz
+RANGE = [0.1, 0.5]  # Hz
 
 # Paths
 f_path, save_path = paths()
@@ -39,8 +39,7 @@ rec_anes = query_ephys_sessions(anesthesia='yes', one=one)
 rec_anes['anesthesia'] = 'yes'
 rec = pd.concat((rec_both, rec_anes)).reset_index(drop=True)
 
-updown_psd_df = pd.DataFrame()
-updown_max_df = pd.DataFrame()
+updown_df = pd.DataFrame()
 for i in rec.index.values:
 
     # Get session details
@@ -80,28 +79,11 @@ for i in rec.index.values:
         peth, _ = calculate_peths(region_spikes, np.ones(region_spikes.shape[0]), [1],
                                   [region_spikes[-1]-DURATION], pre_time=0, post_time=DURATION,
                                   bin_size=BIN_SIZE, smoothing=SMOOTHING)
-        asd
-        """
-        if rec.loc[i, 'anesthesia'] == 'yes': 
-            peth, _ = calculate_peths(region_spikes, region_clusters, np.unique(region_clusters),
-                                      [region_spikes[-1]-DURATION], pre_time=0, post_time=DURATION,
-                                      bin_size=BIN_SIZE, smoothing=SMOOTHING)
-        elif rec.loc[i, 'anesthesia'] == 'both': 
-            peth, _ = calculate_peths(region_spikes, region_clusters, np.unique(region_clusters),
-                                      [opto_times[0]-DURATION], pre_time=0, post_time=DURATION,
-                                      bin_size=BIN_SIZE, smoothing=SMOOTHING)
-        """
-        tscale = peth['tscale'] + spikes.times[0]            
+        tscale = peth['tscale'] + (region_spikes[-1]-DURATION)
         pop_act = np.squeeze(peth['means'])
-        
-        # Filter
-        b, a = butter(1, 0.5, fs=1/BIN_SIZE, btype='highpass')
-        pop_act_filt = lfilter(b, a, pop_act)
         
         # Calculate power spectrum
         freq, psd = welch(pop_act, fs=1/BIN_SIZE)
-        
-        pop_skew = skew(pop_act)
         
         """
         f, (ax1, ax2) = plt.subplots(2, 1)
@@ -110,40 +92,19 @@ for i in rec.index.values:
         ax1.set(title=f'{subject} {date} {region}')
         ax1.axis('off')
         
-        ax2.hist(pop_act, bins=50)
-        ax2.set(title=f'{pop_skew}')
+        #ax2.hist(pop_act, bins=50)
+        #ax2.set(title=f'{pop_skew}')
+        ax2.plot(freq, psd)
+        ax2.set(xlim=[0, 2], xticks=np.arange(0, 2.1, 0.1))
         plt.show()
         """
         
         # Add to dataframe
-        updown_psd_df = pd.concat((updown_psd_df, pd.DataFrame(data={
-            'freq': freq, 'psd': psd, 'region': region, 'subject': subject, 'date': date})))
-        updown_max_df = pd.concat((updown_max_df, pd.DataFrame(index=[updown_max_df.shape[0]+1], data={
+        updown_df = pd.concat((updown_df, pd.DataFrame(index=[updown_df.shape[0]+1], data={
             'psd_max': np.max(psd[(freq >= RANGE[0]) & (freq <= RANGE[1])]),
             'psd_mean': np.mean(psd[(freq >= RANGE[0]) & (freq <= RANGE[1])]),
-            'skewness': pop_skew,
             'region': region, 'subject': subject, 'date': date})))
     
-# %% Do statistics
-grouped_updown_df = updown_max_df.groupby(['subject', 'region']).median().reset_index()
-
-_, p = kruskal(*[group["skewness"].values for name, group in grouped_updown_df.groupby('region')])    
-print(f'\nKruskal wallis p = {p}\n')
-dunn_ph = sp.posthoc_conover(updown_max_df, val_col='skewness', group_col='region')
-print(dunn_ph)        
-
-
-# %% Plot
-region_order = ['Cortex', 'Amygdala', 'Striatum', 'Hippocampus', 'Thalamus', 'Midbrain']
-colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
-sns.barplot(data=grouped_updown_df, y='skewness', x='region', errorbar=None, ax=ax1, order=region_order,
-            color=colors['grey'])
-sns.swarmplot(data=grouped_updown_df, y='skewness', x='region', ax=ax1, order=region_order, size=3)
-#ax1.set(ylabel='Power spectral density', xlabel='', ylim=[0, 35], yticks=np.arange(0, 36, 5))
-ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right')
-
-sns.despine(trim=False)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'updown_states_power.pdf'))
-
+    # Save to disk
+    updown_df.to_csv(join(save_path, 'updown_amplitude_anesthetized.csv'))
+    

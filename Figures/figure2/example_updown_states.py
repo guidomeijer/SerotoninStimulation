@@ -23,7 +23,7 @@ one = ONE()
 
 PID = '04954136-75a8-4a20-9054-37b0bffd3b8b'
 BIN_SIZE = 0.2
-SMOOTHING = 0.2
+SMOOTHING = 0.4
 
 # Paths
 f_path, save_path = paths()
@@ -59,7 +59,7 @@ raster_clusters = region_clusters[(region_spikes >= region_spikes[-1] - 603)
                               & (region_spikes <= region_spikes[-1] - 590)]
 raster_spikes = region_spikes[(region_spikes >= region_spikes[-1] - 603)
                               & (region_spikes <= region_spikes[-1] - 590)]
-R, times, depths = bincount2D(raster_spikes, raster_clusters, xbin=0.01, ybin=4, weights=None)
+R, times, depths = bincount2D(raster_spikes, raster_clusters, xbin=0.05, ybin=5, weights=None)
    
         
 # %% Plot
@@ -73,7 +73,7 @@ ax1.text(times[0]+1.5, depths[0]-30, '3s', ha='center', va='center')
 ax1.plot([times[0]-.5, times[0]-.5], [1300, 1400], color='k', lw=0.75)
 ax1.text(times[0]-1.2, 1350, '0.1 mm', rotation=90, ha='center', va='center')
 ax2 = ax1.twinx()
-ax2.plot(tscale + region_spikes[-1]-603, np.mean(pop_act, axis=1), color=colors['grey'], lw=0.75)
+ax2.plot(tscale + region_spikes[-1]-603, np.mean(pop_act, axis=1), color=colors['up-state'], lw=0.75)
 ax2.set(ylim=[-0.3, 4])
 ax1.axis('off')
 ax2.axis('off')
