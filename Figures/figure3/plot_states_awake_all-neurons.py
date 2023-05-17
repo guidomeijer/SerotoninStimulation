@@ -158,11 +158,14 @@ sns.lineplot(data=state_trans_null_df, x='time', y='p_trans_bl',
              color=colors['grey'], errorbar='se', ax=ax, err_kws={'lw': 0})
 sns.lineplot(data=state_trans_df, x='time', y='p_trans_bl',
              color=colors['stim'], errorbar='se', ax=ax, err_kws={'lw': 0})
-ax.set(xlabel='Time from stimulation start (s)', ylim=[-0.03, 0.03], yticks=[-0.03, 0, 0.03],
-       yticklabels=[-3, 0, 3], xticks=[-1, 0, 1, 2, 3, 4], ylabel='State transition probability (%)')
+ax.set(xlabel='Time from stimulation start (s)', ylim=[-0.02, 0.032],
+       yticks=[-0.02, -0.01, 0, 0.01, 0.02, 0.03],
+       yticklabels=[-2, -1, 0, 1, 2, 3], xticks=[-1, 0, 1, 2, 3, 4],
+       ylabel='State transition probability (%)')
 
 plt.tight_layout()
 sns.despine(trim=True)
+plt.savefig(join(fig_path, 'p_state_change_all-neurons.pdf'))
 
 # %%
 f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi, sharey=True, sharex=True)
@@ -218,8 +221,29 @@ ax.text(4.4, -0.85, '6', ha='center', va='center', fontsize=10,
 
 plt.subplots_adjust(left=0.8)
 plt.tight_layout()
-plt.savefig(join(fig_path, 'p_state_all-neurons_awake.pdf'))
+plt.savefig(join(fig_path, 'p_state_all-neurons_awake_vertical.pdf'))
 
-
+# %%
+f, axs = plt.subplots(1, 6, figsize=(5.25, 1.75), dpi=dpi, sharey=True, sharex=True)
+for i in np.unique(p_plot_df['main_state']):
+    axs[i].add_patch(Rectangle((0, -0.12), 1, 0.24, color='royalblue', alpha=0.25, lw=0))
+    sns.lineplot(data=p_state_null_df[p_state_null_df['main_state'] == i], x='time', y='p_state_bl',
+                 color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
+    sns.lineplot(data=p_state_df[p_state_df['main_state'] == i], x='time', y='p_state_bl',
+                 color=colors['main_states'][i], errorbar='se', ax=axs[i], err_kws={'lw': 0})
+    axs[i].set(ylim=[-0.12, 0.12], yticks=[-0.12, 0, 0.12], yticklabels=[-12, 0, 12])
+    if i == 0:
+        axs[i].set(ylabel='State transition probability (%)', xticks=[0, 2])
+        axs[i].get_xaxis().set_visible(False)
+        sns.despine(trim=True, bottom=True, ax=axs[i])
+        axs[i].text(1, -0.125, '2s', ha='center', va='top')
+    else:
+        axs[i].get_yaxis().set_visible(False)
+        axs[i].axis('off')
+            
+plt.subplots_adjust(left=0.08, bottom=0.15, right=1, top=0.85, wspace=0, hspace=0.4)
+#plt.tight_layout(rect=(0.05, 0.05, 1, 1))
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'p_state_all-neurons_awake_horizontal.pdf'))
 
 

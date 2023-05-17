@@ -115,6 +115,7 @@ def figure_style():
               'WS2': sns.color_palette('Set2')[2],
               'states': 'Dark2',
               'states_light': 'Set2',
+              'main_states': sns.diverging_palette(20, 210, l=55, center='dark'),
               'OFC': sns.color_palette('Dark2')[0],
               'mPFC': sns.color_palette('Dark2')[1],
               'M2': sns.color_palette('Dark2')[2],
