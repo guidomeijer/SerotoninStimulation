@@ -13,11 +13,10 @@ from brainbox.task.closed_loop import roc_single_event
 from sklearn.metrics import roc_curve
 from brainbox.population.decode import get_spike_counts_in_bins
 from matplotlib.patches import Rectangle
-from serotonin_functions import figure_style
 from brainbox.io.one import SpikeSortingLoader
 from zetapy import getZeta
 from brainbox.plot import peri_event_time_histogram
-from serotonin_functions import paths, remap, load_passive_opto_times
+from stim_functions import paths, remap, load_passive_opto_times, figure_style
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -25,36 +24,6 @@ one = ONE()
 
 # Settings
 """
-SUBJECT = 'ZFM-01802'
-DATE = '2021-03-11'
-PROBE = 'probe00'
-NEURON = 235
-SUBJECT = 'ZFM-01802'
-DATE = '2021-03-09'
-PROBE = 'probe00'
-NEURON = 349
-# frontal cortex complex modulation
-SUBJECT = 'ZFM-02600'
-DATE = '2021-08-25'
-PROBE = 'probe00'
-NEURON = 442
-
-SUBJECT = 'ZFM-01802'
-DATE = '2021-03-11'
-PROBE = 'probe00'
-NEURON = 181
-# good example complex modulation
-SUBJECT = 'ZFM-01802'
-DATE = '2021-03-11'
-PROBE = 'probe00'
-NEURON = 207
-# Good example thalamus
-SUBJECT = 'ZFM-01802'
-DATE = '2021-03-09'
-PROBE = 'probe00'
-NEURON = 47
-"""
-
 # frontal cortex enhancement
 SUBJECT = 'ZFM-03330'
 DATE = '2022-02-15'
@@ -63,11 +32,11 @@ NEURON = 323
 
 """
 # Good example CA1
-SUBJECT = 'ZFM-01802'
-DATE = '2021-03-09'
+SUBJECT = 'ZFM-04820'
+DATE = '2022-09-15'
 PROBE = 'probe00'
-NEURON = 550
-"""
+NEURON = 1039
+
 
 T_BEFORE = 1  # for plotting
 T_AFTER = 2
@@ -152,7 +121,7 @@ peri_event_time_histogram(spikes.times, spikes.clusters, opto_train_times,
                           eventline_kwargs={'lw': 0})
 ax.set(ylim=[ax.get_ylim()[0], ax.get_ylim()[1] + ax.get_ylim()[1] * 0.2])
 #ax.plot([0, 1], [0, 0], lw=2, color='royalblue')
-ax.set(ylabel='Firing rate (spks/s)', xlabel='Time (s)',
+ax.set(ylabel='Firing rate (spks/s)', xlabel='Time from stimulation start (s)',
        yticks=np.linspace(0, np.round(ax.get_ylim()[1]), 3),
        ylim=[ax.get_ylim()[0], np.round(ax.get_ylim()[1])])
 ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))

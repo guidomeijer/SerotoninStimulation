@@ -43,8 +43,9 @@ for i in range(all_peth.shape[0]):
 # Plot per region
 colors, dpi = figure_style()
 f, ((ax_pag, ax_mpfc, ax_orb, ax_str, ax_mrn),
-    (ax_sc, ax_rsp, ax_am, ax_m2, ax_vis),
-    (ax_th, ax_pir, ax_hc, ax_olf, ax_cb)) = plt.subplots(3, 5, figsize=(7, 3.5), sharex=True, dpi=dpi)
+    (ax_sc, ax_rsp, ax_am, ax_off1, ax_off2),
+    (ax_m2, ax_vis, ax_th, ax_off3, ax_off4),
+    (ax_pir, ax_hc, ax_olf, ax_cb, ax_off5)) = plt.subplots(4, 5, figsize=(7, 4.5), sharex=True, dpi=dpi)
 title_font = 7
 cmap = sns.diverging_palette(240, 20, as_cmap=True)
 
@@ -79,7 +80,7 @@ ax_vis.plot([0, 0], [-1, 1], ls='--', color='k')
 these_peths = norm_peth[peths_df['region'] == 'Hippocampus']
 img = ax_hc.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
-ax_hc.set(yticks=[1], yticklabels=[these_peths.shape[0]], xlabel='Time (s)')
+ax_hc.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_hc.set_title('Hippocampus', fontsize=title_font)
 ax_hc.xaxis.set_tick_params(which='both', labelbottom=True)
 ax_hc.plot([0, 0], [-1, 1], ls='--', color='k')
@@ -87,7 +88,7 @@ ax_hc.plot([0, 0], [-1, 1], ls='--', color='k')
 these_peths = norm_peth[peths_df['region'] == 'Olfactory areas']
 img = ax_olf.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
-ax_olf.set(yticks=[1], yticklabels=[these_peths.shape[0]], xlabel='Time (s)')
+ax_olf.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_olf.set_title('Olfactory areas', fontsize=title_font)
 ax_olf.xaxis.set_tick_params(which='both', labelbottom=True)
 ax_olf.plot([0, 0], [-1, 1], ls='--', color='k')
@@ -95,7 +96,7 @@ ax_olf.plot([0, 0], [-1, 1], ls='--', color='k')
 these_peths = norm_peth[peths_df['region'] == 'Piriform']
 img = ax_pir.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
-ax_pir.set(yticks=[1], yticklabels=[these_peths.shape[0]], xlabel='Time (s)')
+ax_pir.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_pir.set_title('Piriform', fontsize=title_font)
 ax_pir.plot([0, 0], [-1, 1], ls='--', color='k')
 ax_pir.xaxis.set_tick_params(which='both', labelbottom=True)
@@ -103,7 +104,7 @@ ax_pir.xaxis.set_tick_params(which='both', labelbottom=True)
 these_peths = norm_peth[peths_df['region'] == 'Thalamus']
 img = ax_th.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
-ax_th.set(yticks=[1], yticklabels=[these_peths.shape[0]], ylabel='Mod. neurons', xlabel= 'Time (s)')
+ax_th.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_th.set_title('Thalamus', fontsize=title_font)
 ax_th.plot([0, 0], [-1, 1], ls='--', color='k')
 
@@ -126,14 +127,14 @@ ax_bc.plot([0, 0], [-1, 1], ls='--', color='k')
 these_peths = norm_peth[peths_df['region'] == 'Periaqueductal gray']
 img = ax_pag.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
-ax_pag.set(yticks=[1], yticklabels=[these_peths.shape[0]], ylabel='Mod. neurons')
+ax_pag.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_pag.set_title('Periaqueductal gray', fontsize=title_font)
 ax_pag.plot([0, 0], [-1, 1], ls='--', color='k')
 
 these_peths = norm_peth[peths_df['region'] == 'Superior colliculus']
 img = ax_sc.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
-ax_sc.set(yticks=[1], yticklabels=[these_peths.shape[0]], ylabel='Mod. neurons')
+ax_sc.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_sc.set_title('Superior colliculus', fontsize=title_font)
 ax_sc.plot([0, 0], [-1, 1], ls='--', color='k')
 
@@ -153,12 +154,13 @@ ax_rsp.set_title('Retrosplenial cortex', fontsize=title_font)
 ax_rsp.plot([0, 0], [-1, 1], ls='--', color='k')
 
 
-these_peths = norm_peth[peths_df['region'] == 'Tail of the striatum']
+these_peths = norm_peth[peths_df['region'] == 'Striatum']
 img = ax_str.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
 ax_str.set(yticks=[1], yticklabels=[these_peths.shape[0]])
-ax_str.set_title('Tail of the striatum', fontsize=title_font)
+ax_str.set_title('Striatum', fontsize=title_font)
 ax_str.plot([0, 0], [-1, 1], ls='--', color='k')
+
 """
 these_peths = peths_df[peths_df['region'] == 'Substantia nigra']
 img = ax_snr.imshow(np.array(these_peths['peth_ratio'].tolist()), cmap=sns.diverging_palette(220, 20, as_cmap=True),
@@ -167,18 +169,26 @@ ax_snr.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_snr.set_title('Substantia nigra', fontsize=title_font)
 ax_snr.plot([0, 0], [-1, 1], ls='--', color='k')
 """
+
+ax_off1.axis('off')
+ax_off2.axis('off')
+ax_off3.axis('off')
+ax_off4.axis('off')
+ax_off5.axis('off')
 ax_cb.axis('off')
 
-#plt.tight_layout()
-plt.subplots_adjust(left=0.06, bottom=0.1, right=0.98, top=0.9, wspace=0.4, hspace=0)
+f.text(0.01, 0.5, 'Number of significantly modulated neurons', va='center', rotation='vertical')
+f.text(0.3, 0.02, 'Time from stimulation start (s)', ha='center')
 
-cb_ax = f.add_axes([0.84, 0.13, 0.01, 0.2])
+
+#plt.tight_layout()
+plt.subplots_adjust(left=0.06, bottom=0.05, right=0.98, top=0.95, wspace=0.3, hspace=0)
+
+cb_ax = f.add_axes([0.62, 0.055, 0.01, 0.2])
 cbar = f.colorbar(mappable=ax_mpfc.images[0], cax=cb_ax)
 cbar.ax.set_ylabel('FR / baseline', rotation=270, labelpad=10)
 cbar.ax.set_yticks([0, 1, 2])
 
-
-#plt.tight_layout(pad=3)
 plt.savefig(join(fig_path, 'heatmap_per_region.pdf'), bbox_inches='tight')
 
 

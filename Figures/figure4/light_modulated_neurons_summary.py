@@ -5,6 +5,7 @@ Created on Mon Jun 14 15:19:58 2021
 By: Guido Meijer
 """
 
+import json
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -12,7 +13,7 @@ import seaborn.objects as so
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import pearsonr
-from serotonin_functions import paths, figure_style, load_subjects
+from stim_functions import paths, figure_style, load_subjects
 
 # Settings
 N_BINS = 30
@@ -32,6 +33,10 @@ subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     all_neurons.loc[all_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
     all_neurons.loc[all_neurons['subject'] == nickname, 'subject_nr'] = subjects.loc[subjects['subject'] == nickname].index[0]
+
+# Load in subject colors
+with open(join(save_path, 'subject_colors.json')) as json_file:
+    subject_colors = json.load(json_file)
 
 # Only sert-cre mice
 sert_neurons = all_neurons[all_neurons['sert-cre'] == 1]
