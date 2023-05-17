@@ -167,17 +167,16 @@ for i, region in enumerate(np.unique(p_state_null_df['region'])):
 
 
 # %%
-f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(1, 7, figsize=(5.5, 1.75), dpi=dpi, sharey=True, sharex=True)
 for i, region in enumerate(REGION_ORDER):
     axs[i].add_patch(Rectangle((0, -0.05), 1, 0.1, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time', y='p_trans_bl',
                  color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans_bl',
                  color=colors['stim'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
-    axs[i].set(xlabel='Time from stimulation start (s)', title=region, ylim=[-0.052, 0.055],
-               yticks=[-0.05, 0, 0.05])
+    axs[i].set(title=region, ylim=[-0.052, 0.055], yticks=[-0.05, 0, 0.05], yticklabels=[-5, 0, 5])
     if i == 0:
-        axs[i].set(ylabel='P(state change)', xticks=[0, 2])
+        axs[i].set(ylabel='State transition probability (%)', xticks=[0, 2])
         axs[i].get_xaxis().set_visible(False)
         sns.despine(trim=True, bottom=True, ax=axs[i])
         axs[i].text(1, -0.055, '2s', ha='center', va='top')
@@ -186,9 +185,9 @@ for i, region in enumerate(REGION_ORDER):
         axs[i].axis('off')
             
 plt.subplots_adjust(left=0.08, bottom=0.15, right=1, top=0.85, wspace=0, hspace=0.4)
-plt.tight_layout(rect=(0.05, 0.05, 1, 1))
+#plt.tight_layout(rect=(0.05, 0.05, 1, 1))
 sns.despine(trim=True)
-plt.savefig(join(fig_path, 'state_change_rate_baseline.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'state_change_rate_baseline.pdf'))
 
 # %%
 p_plot_df = p_state_df.copy()
@@ -197,7 +196,7 @@ for i in np.unique(p_plot_df['main_state']):
     p_plot_df.loc[p_plot_df['main_state'] == i, 'p_state_bl'] -= i/6
     p_plot_null_df.loc[p_plot_null_df['main_state'] == i, 'p_state_bl'] -= i/6
 
-f, axs = plt.subplots(1, 7, figsize=(7, 3.5), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(1, 7, figsize=(5.25, 3.5), dpi=dpi, sharey=True, sharex=True)
 
 for i, region in enumerate(REGION_ORDER):
     n_states = np.unique(p_plot_df.loc[p_plot_df['region'] == region, 'main_state']).shape[0]
@@ -216,6 +215,8 @@ axs[0].text(-1.6, 0.05, '10%', ha='right', va='center')
 axs[0].plot([0, 2], [-0.97, -0.97], color='k')
 axs[0].text(1, -0.99, '2s', ha='center', va='top')
 axs[0].text(-2.5, -0.5, 'State probability', rotation=90, ha='left', va='center')
+
+plt.subplots_adjust(left=0.05, right=0.98)
 plt.savefig(join(fig_path, 'p_state_awake.pdf'))
     
 
