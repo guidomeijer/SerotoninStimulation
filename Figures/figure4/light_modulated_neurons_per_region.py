@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
-from serotonin_functions import paths, figure_style, combine_regions, load_subjects
+from stim_functions import paths, figure_style, combine_regions, load_subjects
 
 # Settings
 MIN_NEURONS_POOLED = 5
@@ -99,29 +99,17 @@ colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(3, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df, order=ordered_regions_pm['full_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
-
 sns.swarmplot(x='perc_mod', y='full_region', data=per_mouse_df, order=ordered_regions_pm['full_region'],
               palette='tab20', hue='subject_nr', ax=ax1, size=2)
 ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 100], xticks=np.arange(0, 101, 20))
-
-#handles, labels = ax1.get_legend_handles_labels()
-#new_labels = [label[:-3] for label in labels]
-#ax1.legend(handles, new_labels, title = 'hr')
-
-
-ax1.legend(frameon=False, bbox_to_anchor=(1, 0.85), prop={'size': 5}, title='Mice')
-#ax1.plot([-1, ax1.get_xlim()[1]], [5, 5], ls='--', color='grey')
-#plt.xticks(rotation=90)
-#ax1.margins(x=0)
+ax1.legend(frameon=False, bbox_to_anchor=(0.85, 1), prop={'size': 5}, title='Mouse',
+           handletextpad=0.1)
 
 plt.tight_layout()
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
-
-
 # %%
-colors, dpi = figure_style()
 
 PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'none'},
          'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
@@ -139,20 +127,3 @@ ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticklabels=[-
 plt.tight_layout()
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'light_modulation_per_neuron_per_region.pdf'))
-
-# %%
-
-f, ax1 = plt.subplots(1, 1, figsize=(2.9, 2.5), dpi=dpi)
-sns.stripplot(x='mod_index_late', y='full_region', ax=ax1, data=per_mouse_df, order=ORDER,
-              size=2, color='grey', zorder=1)
-sns.boxplot(x='mod_index_late', y='full_region', ax=ax1, data=per_mouse_df, showmeans=True,
-            order=ORDER, meanprops={"marker": "|", "markeredgecolor": "red", "markersize": "8"},
-            fliersize=0, zorder=2, **PROPS)
-ax1.plot([0, 0], ax1.get_ylim(), ls='--', color='black', zorder=0)
-ax1.set(ylabel='', xlabel='Modulation index', xlim=[-0.3, 0.1])
-#ax1.spines['bottom'].set_position(('data', np.floor(ax1.get_ylim()[0]) - 0.4))
-plt.tight_layout()
-sns.despine(trim=True)
-plt.savefig(join(fig_path, 'light_modulation_per_mouse_per_region.pdf'))
-
-

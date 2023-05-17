@@ -108,7 +108,7 @@ for i in rec.index.values:
             continue
 
         # Initialize HMM
-        simple_hmm = ssm.HMM(N_STATES[region], clusters_in_region.shape[0], observations='poisson')
+        simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
 
         # Get binned spikes centered at stimulation onset
         peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, opto_times,
@@ -130,7 +130,7 @@ for i in rec.index.values:
         # Loop over trials
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES[region]))
+        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
@@ -153,8 +153,8 @@ for i in rec.index.values:
         prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
         # Get P(state)
-        p_state_mat = np.empty((N_STATES[region], time_ax.shape[0]))
-        for ii in range(N_STATES[region]):
+        p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
+        for ii in range(N_STATES):
 
             # Get P state, first smooth, then crop timewindow
             this_p_state = np.mean(state_mat == ii, axis=0)
@@ -180,7 +180,7 @@ for i in rec.index.values:
         if PLOT:
             # Plot example trial
             trial = 0
-            cmap = sns.color_palette(CMAP, N_STATES[region])
+            cmap = sns.color_palette(CMAP, N_STATES)
             colors, dpi = figure_style()
             f, ax = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
             
@@ -197,7 +197,7 @@ for i in rec.index.values:
                 ax.vlines(neuron_spks - opto_times[trial], tickedges[k + 1], tickedges[k], color='black',
                           lw=0.4, zorder=1)
             ax2 = ax.twinx()
-            for k in range(N_STATES[region]):
+            for k in range(N_STATES):
                 ax2.plot(time_ax, prob_mat[trial, :, k], color=cmap[k])
             ax.set(xlabel='Time (s)', yticks=[0, len(clusters_in_region)],
                    yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
@@ -214,13 +214,13 @@ for i in rec.index.values:
             # Plot session
             f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
             ax1.imshow(state_mat, aspect='auto', cmap=ListedColormap(cmap),
-                       vmin=0, vmax=N_STATES[region]-1,
+                       vmin=0, vmax=N_STATES-1,
                       extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
             ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
             ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
                    title=f'{region}')
     
-            for ii in range(N_STATES[region]):
+            for ii in range(N_STATES):
                 ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
             ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
     
@@ -242,7 +242,7 @@ for i in rec.index.values:
         random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10, size=100))
         
         # Initialize HMM
-        simple_hmm = ssm.HMM(N_STATES[region], clusters_in_region.shape[0], observations='poisson')
+        simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
 
         # Get binned spikes centered at stimulation onset
         peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, random_times,
@@ -264,7 +264,7 @@ for i in rec.index.values:
         # Loop over trials
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES[region]))
+        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
@@ -287,8 +287,8 @@ for i in rec.index.values:
         prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
         # Get P(state)
-        p_state_mat = np.empty((N_STATES[region], time_ax.shape[0]))
-        for ii in range(N_STATES[region]):
+        p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
+        for ii in range(N_STATES):
 
             # Get P state, first smooth, then crop timewindow
             this_p_state = np.mean(state_mat == ii, axis=0)

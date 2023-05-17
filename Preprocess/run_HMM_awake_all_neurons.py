@@ -5,8 +5,9 @@ Created on Wed Jan 18 11:20:14 2023
 By: Guido Meijer
 """
 
-import ssm
 import numpy as np
+np.random.seed(42)
+import ssm
 from os.path import join
 import pandas as pd
 import seaborn as sns

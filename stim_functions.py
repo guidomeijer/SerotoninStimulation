@@ -35,9 +35,7 @@ def load_subjects(anesthesia='all', behavior=None):
     assert anesthesia in ['no', 'yes', 'both', 'all', 'no&both', 'yes&both']
     subjects = pd.read_csv(join(pathlib.Path(__file__).parent.resolve(), 'subjects.csv'),
                            delimiter=';|,', engine='python')
-    subjects = subjects[~((subjects['expression'] == 0) & (subjects['sert-cre'] == 1))]
-    if behavior:
-        subjects = subjects[subjects['include_behavior'] == 1]
+    subjects = subjects[subjects['include'] == 1]
     if anesthesia == 'yes':
         subjects = subjects[subjects['anesthesia'] == 2]
     elif anesthesia == 'no':
@@ -111,13 +109,28 @@ def figure_style():
               'down-state': sns.color_palette('colorblind')[0],
               'up-state': sns.color_palette('colorblind')[3],
               'no-stim': sns.color_palette('colorblind')[7],
-              'FS': sns.color_palette('Set2')[0],
               'NS': sns.color_palette('Set2')[0],
-              'RS': sns.color_palette('Set2')[1],
-              'RS1': sns.color_palette('Set2')[1],
-              'RS2': sns.color_palette('Set2')[2],
+              'WS': sns.color_palette('Set2')[1],
+              'WS1': sns.color_palette('Set2')[1],
+              'WS2': sns.color_palette('Set2')[2],
               'states': 'Dark2',
-              'states_light': 'Set2'}
+              'states_light': 'Set2',
+              'OFC': sns.color_palette('Dark2')[0],
+              'mPFC': sns.color_palette('Dark2')[1],
+              'M2': sns.color_palette('Dark2')[2],
+              'Amyg': sns.color_palette('Dark2')[3],
+              'Hipp': sns.color_palette('Dark2')[4],
+              'VIS': sns.color_palette('Dark2')[5],
+              'Pir': sns.color_palette('Dark2')[6],
+              'SC': sns.color_palette('Dark2')[7],
+              'Thal': sns.color_palette('tab10')[9],
+              'PAG': sns.color_palette('Set1')[7],
+              'BC': sns.color_palette('Accent')[0],
+              'Str': sns.color_palette('Accent')[1],
+              'MRN': sns.color_palette('Accent')[2],
+              'OLF': sns.color_palette('tab10')[8],
+              'RSP': 'r',
+              'SNr': [0.75, 0.75, 0.75]}
     screen_width = tk.Tk().winfo_screenwidth()
     dpi = screen_width / 10
     return colors, dpi
@@ -254,7 +267,7 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
         #regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'Substantia nigra'
         regions[np.in1d(acronyms, ['VISa', 'VISam', 'VISp', 'VISpm'])] = 'Visual cortex'
         regions[np.in1d(acronyms, ['MEA', 'CEA', 'BLA', 'COAa'])] = 'Amygdala'
-        regions[np.in1d(acronyms, ['CP', 'STR', 'STRd', 'STRv'])] = 'Tail of the striatum'
+        regions[np.in1d(acronyms, ['CP', 'STR', 'STRd', 'STRv'])] = 'Striatum'
         regions[np.in1d(acronyms, ['CA1', 'CA3', 'DG'])] = 'Hippocampus'
     return regions
 

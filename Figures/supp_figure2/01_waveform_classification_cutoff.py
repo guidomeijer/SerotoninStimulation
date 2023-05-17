@@ -59,9 +59,9 @@ waveforms_df = waveforms_df[(waveforms_df['high_level_region'] != 'Amygdala')
 
 # Cutoff
 waveforms_df.loc[waveforms_df['spike_width'] < SW_CUTOFF, 'type'] = 'NS'
-waveforms_df.loc[waveforms_df['spike_width'] >= SW_CUTOFF, 'type'] = 'RS'
+waveforms_df.loc[waveforms_df['spike_width'] >= SW_CUTOFF, 'type'] = 'WS'
 
-perc_reg = (np.sum(waveforms_df["type"] == "RS") / waveforms_df.shape[0]) * 100
+perc_reg = (np.sum(waveforms_df["type"] == "WS") / waveforms_df.shape[0]) * 100
 perc_fast = (np.sum(waveforms_df["type"] == "NS") / waveforms_df.shape[0]) * 100
 print(f'{perc_fast:.2f}% fast spiking')
 print(f'{perc_reg:.2f}% regural spiking')
@@ -73,7 +73,7 @@ neuron_type = neuron_type.drop(['waveform', 'spike_width', 'rp_slope', 'spike_am
                                 'waveform_2D'], axis=1)
 neuron_type.to_csv(join(save_path, 'neuron_type.csv'), index=False)
 
-_, p_value = kstest(waveforms_df.loc[waveforms_df['type'] == 'RS', 'firing_rate'],
+_, p_value = kstest(waveforms_df.loc[waveforms_df['type'] == 'WS', 'firing_rate'],
                     waveforms_df.loc[waveforms_df['type'] == 'NS', 'firing_rate'])
 print(f'KS-test p-value: {p_value}')
 
@@ -82,8 +82,8 @@ time_ax = np.linspace(0, (waveforms_df.loc[waveforms_df.index[0], 'waveform'].sh
                       waveforms_df.loc[waveforms_df.index[0], 'waveform'].shape[0])
 
 f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
-ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'RS', 'waveform'].to_numpy().mean(),
-         color=colors['RS'], label='RS')
+ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'WS', 'waveform'].to_numpy().mean(),
+         color=colors['WS'], label='WS')
 ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'NS', 'waveform'].to_numpy().mean(),
          color=colors['NS'], label='NS')
 #ax.plot([0.1, 0.1], [-0.18, -0.08], color='k', lw=0.5)
@@ -99,10 +99,10 @@ plt.savefig(join(fig_path, 'mean_waveforms.pdf'), bbox_inches='tight')
 
 # %% Plot waveform clustering
 f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-ax.scatter(waveforms_df.loc[waveforms_df['type'] == 'RS', 'spike_width'],
-            waveforms_df.loc[waveforms_df['type'] == 'RS', 'pt_ratio'],
-            label='Regular spiking (RS)',
-            color=colors['RS'], s=1)
+ax.scatter(waveforms_df.loc[waveforms_df['type'] == 'WS', 'spike_width'],
+            waveforms_df.loc[waveforms_df['type'] == 'WS', 'pt_ratio'],
+            label='Regular spiking (WS)',
+            color=colors['WS'], s=1)
 ax.scatter(waveforms_df.loc[waveforms_df['type'] == 'NS', 'spike_width'],
             waveforms_df.loc[waveforms_df['type'] == 'NS', 'pt_ratio'],
             label='Narrow spiking (NS)',
@@ -118,8 +118,8 @@ plt.savefig(join(fig_path, 'waveform_clustering.pdf'))
 
 # %% Plot waveform histogram
 f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
-hst = sns.histplot(data=waveforms_df, x='spike_width', hue='type', hue_order=['NS', 'RS'],
-                   palette=[colors['NS'], colors['RS']], legend='brief', multiple='stack', bins=70)
+hst = sns.histplot(data=waveforms_df, x='spike_width', hue='type', hue_order=['NS', 'WS'],
+                   palette=[colors['NS'], colors['WS']], legend='brief', multiple='stack', bins=70)
 ax.set(xlim=[0, 1.2], xticks=[0, 0.6, 1.2], xlabel='Spike width (ms)', ylabel='Neuron count',
        ylim=[0, 600], yticks=[0, 600])
 ax.yaxis.labelpad = -7
@@ -144,17 +144,17 @@ plt.tight_layout()
 plt.savefig(join(fig_path, 'waveform_histogram_black.pdf'))
 plt.savefig(join(fig_path, 'waveform_histogram_black.jpg'), dpi=600)
 
-# %% Plot firing rate distribution of clusters
+# %% Plot firing rate distribution of clusteWS
 
 f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
 ax.hist(waveforms_df.loc[waveforms_df['type'] == 'NS', 'firing_rate'], histtype='step',
          color=colors['NS'], density=True, bins=100, cumulative=True, label='Narrow spiking (NS)')
-ax.hist(waveforms_df.loc[waveforms_df['type'] == 'RS', 'firing_rate'], histtype='step',
-         color=colors['RS'], density=True, bins=100, cumulative=True, label='Regular spiking (RS)')
+ax.hist(waveforms_df.loc[waveforms_df['type'] == 'WS', 'firing_rate'], histtype='step',
+         color=colors['WS'], density=True, bins=100, cumulative=True, label='Regular spiking (WS)')
 ax.set(xlabel='Firing rate (spks/s)', ylabel='Density')
 custom_lines = [Line2D([0], [0], color=colors['NS'], lw=1),
-                Line2D([0], [0], color=colors['RS'], lw=1)]
-ax.legend(custom_lines, ['NS', 'RS'], frameon=False, prop={'size':5}, loc='right')
+                Line2D([0], [0], color=colors['WS'], lw=1)]
+ax.legend(custom_lines, ['NS', 'WS'], frameon=False, prop={'size':5}, loc='right')
 fix_hist_step_vertical_line_at_end(ax)
 
 plt.tight_layout()
