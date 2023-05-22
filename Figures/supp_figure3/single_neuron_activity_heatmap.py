@@ -47,7 +47,7 @@ f, ((ax_pag, ax_mpfc, ax_orb, ax_str, ax_mrn),
     (ax_m2, ax_vis, ax_th, ax_off3, ax_off4),
     (ax_pir, ax_hc, ax_olf, ax_cb, ax_off5)) = plt.subplots(4, 5, figsize=(7, 4.5), sharex=True, dpi=dpi)
 title_font = 7
-cmap = 'PuOr_r'
+cmap = sns.diverging_palette(240, 20, as_cmap=True)
 
 these_peths = norm_peth[peths_df['region'] == 'Medial prefrontal cortex']
 img = ax_mpfc.imshow(these_peths, cmap=cmap,
