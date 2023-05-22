@@ -12,7 +12,8 @@ import seaborn as sns
 import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.singlecell import calculate_peths
-from stim_functions import paths, load_passive_opto_times, combine_regions, load_subjects
+from stim_functions import (paths, load_passive_opto_times, combine_regions, load_subjects,
+                            high_level_regions)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -30,6 +31,7 @@ _, save_path = paths()
 # Load in light modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 light_neurons['full_region'] = combine_regions(light_neurons['region'], split_thalamus=False)
+light_neurons['high_level_region'] = high_level_regions(light_neurons['region'], input_atlas='Beryl')
 light_neurons = light_neurons[light_neurons['full_region'] != 'root']
 
 # Only select neurons from sert-cre mice
@@ -75,10 +77,15 @@ for i, pid in enumerate(np.unique(light_neurons['pid'])):
 
             # Add to dataframe
             peths_df = pd.concat((peths_df, pd.DataFrame(index=[peths_df.shape[0]], data={
-                'peth': [peths['means'][n, :]],  'time': [tscale], 'region': these_neurons.loc[index, 'full_region'],
-                'modulation': these_neurons.loc[index, 'mod_index_late'], 'firing_rate': np.mean(peths['means'][n, :]),
-                'neuron_id': these_neurons.loc[index, 'neuron_id'], 'subject': these_neurons.loc[index, 'subject'],
-                'eid': these_neurons.loc[index, 'eid'], 'acronym': these_neurons.loc[index, 'region'],
+                'peth': [peths['means'][n, :]],  'time': [tscale],
+                'region': these_neurons.loc[index, 'full_region'],
+                'high_level_region': these_neurons.loc[index, 'high_level_region'],
+                'modulation': these_neurons.loc[index, 'mod_index_late'],
+                'firing_rate': np.mean(peths['means'][n, :]),
+                'neuron_id': these_neurons.loc[index, 'neuron_id'],
+                'subject': these_neurons.loc[index, 'subject'],
+                'eid': these_neurons.loc[index, 'eid'],
+                'acronym': these_neurons.loc[index, 'region'],
                 'probe': probe, 'date': date, 'pid': pid})))
 
 # Save output
