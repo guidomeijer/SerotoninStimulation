@@ -45,38 +45,45 @@ p_state_null_df = p_state_null_df[p_state_null_df['sert-cre'] == 1]
 
 # %% Plot
 colors, dpi = figure_style()
-f, axs = plt.subplots(1, 7, figsize=(3.5, 1.75), dpi=dpi, sharey=True)
+f, axs = plt.subplots(1, 7, figsize=(4.5, 1.75), dpi=dpi, sharey=True)
 #axs = np.concatenate(axs)
 regions = ['Frontal cortex', 'Amygdala', 'Striatum', 'Sensory cortex', 'Hippocampus',
            'Thalamus', 'Midbrain']
-titles = ['Frontal', 'Amygdala', 'Striatum', 'Sensory', 'Hipp.',
+titles = ['Frontal c.', 'Amygdala', 'Striatum', 'Sensory c.', 'Hippocampus',
            'Thalamus', 'Midbrain']
 for i, region in enumerate(regions):
 
-    axs[i].add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
-    axs[i].plot([-1, 4], [0.5, 0.5], ls='--', color='grey')
-    sns.lineplot(data=p_state_null_df[p_state_null_df['region'] == region], x='time', y='p_down',
-                 color=colors['grey'], errorbar='se', err_kws={'lw': 0}, ax=axs[i])
-    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_down',
-                 color=colors['down-state'], errorbar='se', err_kws={'lw': 0}, ax=axs[i])
-    axs[i].set(xlabel='Time (s)', title=titles[i], ylim=[0.3, 1],
-               yticks=[0.25, 0.5, 0.75, 1], yticklabels=[25, 50, 75, 100])
+    axs[i].add_patch(Rectangle((0, -0.25), 1, 0.75, color='royalblue', alpha=0.25, lw=0))
+    sns.lineplot(data=p_state_null_df[p_state_null_df['region'] == region], x='time', y='p_down_bl',
+                 color=colors['no-stim'], errorbar='se', err_kws={'lw': 0}, ax=axs[i], label='No stim.')
+    sns.lineplot(data=p_state_df[p_state_df['region'] == region], x='time', y='p_down_bl',
+                 color=colors['stim'], errorbar='se', err_kws={'lw': 0}, ax=axs[i], label='Stim.')
+    axs[i].set(xlabel='Time (s)', title=titles[i], ylim=[-0.265, 0.5],
+               yticks=[-0.25, 0, 0.25, 0.5], yticklabels=[-25, 0, 25, 50])
     if i == 0:
-        axs[i].set_ylabel('Down state probability (%)', labelpad=0)
+        axs[i].set_ylabel(u'Δ down state probability (%)', labelpad=0)
         axs[i].get_xaxis().set_visible(False)
         sns.despine(trim=True, bottom=True, ax=axs[i])
-        axs[i].plot([0, 2], [-0.01, -0.01], color='k', lw=0.5)
-        axs[i].text(1, -0.03, '2s', ha='center', va='top')
+        axs[i].plot([0, 2], [-0.26, -0.26], color='k', lw=0.5)
+        axs[i].text(1, -0.275, '2s', ha='center', va='top')
+        axs[i].get_legend().set_visible(False)
+    elif i == len(regions)-1:
+        axs[i].get_yaxis().set_visible(False)
+        axs[i].axis('off')
+        leg = axs[i].legend(prop={'size': 6}, frameon=True)
+        leg.get_frame().set_linewidth(0.0)
     else:
         axs[i].get_yaxis().set_visible(False)
         axs[i].axis('off')
+        axs[i].get_legend().set_visible(False)
     
 plt.subplots_adjust(left=0.11, bottom=0.15, right=1, top=0.85, wspace=0, hspace=0.4)
 #plt.tight_layout(h_pad=-10, w_pad=1.08)
 plt.savefig(join(fig_path, 'p_down_state_anesthesia.pdf'))
 
+"""
 # %%
-f, axs = plt.subplots(1, 7, figsize=(3.5, 1.75), dpi=dpi)
+f, axs = plt.subplots(1, 7, figsize=(5, 1.75), dpi=dpi)
 for i, region in enumerate(regions):
     axs[i].add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_down_state_change',
@@ -104,3 +111,4 @@ for i, region in enumerate(regions):
 
 plt.subplots_adjust(left=0.1, bottom=0.15, right=1, top=0.85, wspace=0, hspace=0.4)
 plt.savefig(join(fig_path, 'p_updown_state_change_anesthesia.pdf'))
+"""

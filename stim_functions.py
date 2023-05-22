@@ -105,10 +105,10 @@ def figure_style():
               'anesthesia': sns.color_palette('Dark2')[3],
               'enhanced': sns.color_palette('colorblind')[3],
               'suppressed': sns.color_palette('colorblind')[0],
-              'stim': sns.color_palette('colorblind')[0],
               'down-state': sns.color_palette('colorblind')[3],
-              'up-state': sns.color_palette('colorblind')[2],
-              'no-stim': sns.color_palette('colorblind')[7],
+              'up-state': [1, 1, 1],
+              'stim': [0, 0, 0],
+              'no-stim': [0.7, 0.7, 0.7],
               'NS': sns.color_palette('Set2')[0],
               'WS': sns.color_palette('Set2')[1],
               'WS1': sns.color_palette('Set2')[1],
@@ -273,11 +273,12 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
     return regions
 
 
-def high_level_regions(acronyms, merge_cortex=False):
+def high_level_regions(acronyms, merge_cortex=False, input_atlas='Allen'):
     """
-    Input Allen atlas acronyms
     """
-    first_level_regions = combine_regions(remap(acronyms), abbreviate=True)
+    if input_atlas == 'Allen':
+        acronyms = remap(acronyms)
+    first_level_regions = combine_regions(acronyms, abbreviate=True)
     cosmos_regions = remap(acronyms, dest='Cosmos')
     regions = np.array(['root'] * len(first_level_regions), dtype=object)
     if merge_cortex:

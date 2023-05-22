@@ -5,8 +5,9 @@ Created on Wed Jan 18 11:20:14 2023
 By: Guido Meijer
 """
 
-import ssm
 import numpy as np
+np.random.seed(0)
+import ssm
 from os.path import join, realpath, dirname, split
 import pandas as pd
 import seaborn as sns
@@ -149,15 +150,12 @@ for ii in range(N_STATES):
 state_mat = state_mat[:, use_timepoints]
 
 # %% Plot example trial
-trial = 22
+trial = 18
 
 colors, dpi = figure_style()
 cmap = sns.color_palette(colors['states_light'], N_STATES)
 f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 
-for kk, time_bin in enumerate(time_ax):
-    ax1.add_patch(Rectangle((time_bin-BIN_SIZE/2, -1), BIN_SIZE, binned_spikes.shape[1]+1,
-                           color=cmap[state_mat[trial, kk]], alpha=0.25, lw=0)) 
 tickedges = np.arange(0, binned_spikes.shape[1]+1)
 for pp, probe in enumerate(np.sort(probes)):
     for k, n in enumerate(np.unique(spikes[probe].clusters)):
