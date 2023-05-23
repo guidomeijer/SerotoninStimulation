@@ -7,7 +7,6 @@ Created on Wed Oct 14 14:40:01 2020
 """
 
 import numpy as np
-import json
 from mayavi import mlab
 from os.path import join, realpath, dirname, split
 import ibllib.atlas as atlas
@@ -19,7 +18,7 @@ from one.api import ONE
 ba = atlas.AllenAtlas(25)
 one = ONE()
 
-RENDER_VIDEO = True
+RENDER_VIDEO = False
 
 # Paths
 f_path, save_path = paths()
@@ -28,12 +27,8 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 # Load in recordings and subjects
 rec = query_ephys_sessions(anesthesia='all')
 subjects = load_subjects()
-subjects = subjects['subject'].values
 
-# Load in subject colors
-with open(join(save_path, 'subject_colors.json')) as json_file:
-    subject_colors = json.load(json_file)
-
+plot_colors, dpi = figure_style()
 fig = rendering.figure(grid=False, size=(1024, 768))
 for i, pid in enumerate(rec['pid']):
     ins_q = one.alyx.rest('trajectories', 'list', provenance='Ephys aligned histology track',
@@ -42,10 +37,11 @@ for i, pid in enumerate(rec['pid']):
                           z=ins_q[0]['z'] / 1000000, phi=ins_q[0]['phi'],
                           theta=ins_q[0]['theta'], depth=ins_q[0]['depth'] / 1000000)
     mlapdv = ba.xyz2ccf(ins.xyz)
+    sub_nr = subjects.loc[subjects['subject'] == rec.loc[rec['pid'] == pid, 'subject'].values[0], 'subject_nr'].values[0]
     mlab.plot3d(mlapdv[:, 1], mlapdv[:, 2], mlapdv[:, 0],
                 line_width=1, tube_radius=40,
-                color=tuple(subject_colors[rec.loc[rec['pid'] == pid, 'subject'].values[0]]))
-
+                color=tuple(plot_colors['subject_palette'][sub_nr]))
+    
 # Add fiber to plot
 fiber = atlas.Insertion(x=0, y=-0.00664, z=-0.0005, phi=270, theta=32, depth=0.004)
 mlapdv = ba.xyz2ccf(fiber.xyz)
@@ -109,12 +105,9 @@ def rainbow_text(x, y, strings, colors, orientation='horizontal',
                 offset_copy(Affine2D(), fig=fig, x=0, y=ex.height)
 
 
-plot_colors, dpi = figure_style()
 f, ax = plt.subplots(1, 1, figsize=(2.48, 0.11), dpi=dpi)
 sub_str = str(np.arange(len(subjects))+1)[1:-1].split()
-sub_clr = [subject_colors[i] for i in subjects]
-
-rainbow_text(0, 0.1, sub_str, sub_clr, ax=ax, size=7)
+rainbow_text(0, 0.1, sub_str, plot_colors['subject_palette'], ax=ax, size=7)
 ax.axis('off')
 
 plt.subplots_adjust(left=0)

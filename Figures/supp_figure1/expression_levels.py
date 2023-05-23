@@ -9,39 +9,38 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from os.path import join, isfile
+from os.path import join, realpath, dirname, split, isfile
 from matplotlib.patches import Rectangle
-from serotonin_functions import paths, query_ephys_sessions, load_subjects, figure_style
+from stim_functions import paths, query_ephys_sessions, load_subjects, figure_style
 from atlaselectrophysiology.load_histology import download_histology_data
 from pathlib import Path
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
 
 # Settings
-RAW_DATA_PATH = 'E:\\Flatiron\\mainenlab\\Subjects'
-#RAW_DATA_PATH = 'D:\\Flatiron\\mainenlab\\Subjects'
+#RAW_DATA_PATH = 'E:\\Flatiron\\mainenlab\\Subjects'
+RAW_DATA_PATH = 'D:\\Flatiron\\mainenlab\\Subjects'
 AP_EXT = [-4400, -4600]
 EXP_WIN_XY = [190, 130]  # top left point
 CTRL_WIN_XY = [190, 85]
 WIN_WIDTH = 80
 WIN_HEIGHT = 30
-fig_path, save_path = paths(dropbox=True)
-fig_path = join(fig_path, 'PaperPassive', 'supp_figure_expression')
+f_path, save_path = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Query subjects
 rec = query_ephys_sessions(anesthesia='all')
-subjects = rec['subject'].unique()
-subject_info = load_subjects()
-subject_info = subject_info[subject_info['subject'].isin(subjects)]
-subject_info = subject_info.sort_values(by='sert-cre', ascending=False)
+subjects = load_subjects()
+subjects = subjects.sort_values(by='sert-cre', ascending=False)
 
 colors, dpi = figure_style()
-f, axs = plt.subplots(3, 6, figsize=(7, 4), dpi=dpi)
+f, axs = plt.subplots(4, 6, figsize=(7, 4), dpi=dpi)
 axs = np.concatenate(axs)
 expr_df = pd.DataFrame()
-for i, subject in enumerate(subject_info['subject']):
-    print(f'Processing {subject} ({i+1} of {len(subjects)})')
-    sert_cre = subject_info.loc[subject_info['subject'] == subject, 'sert-cre'].values[0]
+for i, subject in enumerate(subjects['subject']):
+    print(f'Processing {subject} ({i+1} of {subjects.shape[0]})')
+    sert_cre = subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0]
+    subject_nr = subjects.loc[subjects['subject'] == subject, 'subject_nr'].values[0]
 
     # Get paths to green and red channel of the histology data
     gr_path = Path(join(RAW_DATA_PATH, subject, 'histology', f'STD_ds_{subject}_GR.nrrd'))
@@ -78,9 +77,9 @@ for i, subject in enumerate(subject_info['subject']):
     axs[i].axis('off')
     axs[i].set(ylim=[200, 40], xlim=[150, 300])
     if sert_cre == 1:
-        axs[i].set(title=f'{subject}, SERT')
+        axs[i].set_title(f'{subject}, SERT', color=colors['subject_palette'][subject_nr])
     else:
-        axs[i].set(title=f'{subject}, WT')
+        axs[i].set_title(f'{subject}, WT', color=colors['subject_palette'][subject_nr])
 
     # Add to dataframe
     expr_df = pd.concat((expr_df, pd.DataFrame(index=[expr_df.shape[0]+1], data={

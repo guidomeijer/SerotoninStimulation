@@ -1,8 +1,8 @@
-1# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Wed Jan 22 16:22:01 2020
 
-@author: guido
+By: Guido Meijer
 """
 
 import numpy as np
@@ -17,6 +17,7 @@ import pathlib
 from brainbox import singlecell
 from os.path import join, realpath, dirname, isfile
 from glob import glob
+from matplotlib import colors as matplotlib_colors
 from scipy.interpolate import interp1d
 import json
 from brainbox.io.spikeglx import spikeglx
@@ -46,6 +47,7 @@ def load_subjects(anesthesia='all', behavior=None):
         subjects = subjects[(subjects['anesthesia'] == 1) | (subjects['anesthesia'] == 0)]
     elif anesthesia == 'yes&both':
         subjects = subjects[(subjects['anesthesia'] == 1) | (subjects['anesthesia'] == 2)]
+    subjects['subject_nr'] = subjects['subject_nr'].astype(int)
     subjects = subjects.reset_index(drop=True)
     return subjects
 
@@ -97,7 +99,10 @@ def figure_style():
                  })
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
-    colors = {'general': 'orange',
+    subject_pal = sns.color_palette(
+        np.concatenate((sns.color_palette('tab20'),
+                        [matplotlib_colors.to_rgb('maroon'), np.array([0, 0, 0])])))
+    colors = {'subject_palette': subject_pal,
               'grey': [0.7, 0.7, 0.7],
               'sert': sns.color_palette('Dark2')[0],
               'wt': [0.7, 0.7, 0.7],

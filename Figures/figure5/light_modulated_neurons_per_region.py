@@ -83,10 +83,8 @@ per_mouse_df = per_mouse_df.groupby('high_level_region').filter(lambda x: len(x)
 per_mouse_df = per_mouse_df.reset_index()
 
 # Add mouse number
-subjects = load_subjects()
-for i, nickname in enumerate(np.unique(subjects['subject'])):
-    per_mouse_df.loc[per_mouse_df['subject'] == nickname, 'subject_nr'] = int(subjects.loc[subjects['subject'] == nickname].index[0])
-per_mouse_df['subject_nr'] = per_mouse_df['subject_nr'].astype(int)
+per_mouse_df['subject_nr'] = [subjects.loc[subjects['subject'] == i, 'subject_nr'].values[0]
+                              for i in per_mouse_df['subject']]
 
 # Get ordered regions per mouse
 ordered_regions_pm = per_mouse_df.groupby('high_level_region').mean(numeric_only=True).sort_values('perc_mod', ascending=False).reset_index()
@@ -94,11 +92,15 @@ ordered_regions_pm = per_mouse_df.groupby('high_level_region').mean(numeric_only
 # %% Plot percentage modulated neurons per region
 
 colors, dpi = figure_style()
+this_cmap = [colors['subject_palette'][i] for i in np.unique(per_mouse_df['subject_nr'])]
+
 f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
-sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df, order=ordered_regions_pm['high_level_region'],
+sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
+            order=ordered_regions_pm['high_level_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
-sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df, order=ordered_regions_pm['high_level_region'],
-              palette='tab20', hue='subject_nr', ax=ax1, size=2, legend=None)
+sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
+              order=ordered_regions_pm['high_level_region'],
+              hue='subject_nr', palette=this_cmap, ax=ax1, size=2, legend=None)
 ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arange(0, 81, 20))
 #ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
 #           handletextpad=0.1)
