@@ -63,9 +63,9 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1), dpi=dpi)
 f.subplots_adjust(bottom=0.2, left=0.35, right=0.85, top=0.9)
 #sns.stripplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=3,
 #              palette=[colors['sert'], colors['wt']], ax=ax1, jitter=0.2)
-
-sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=2.5,
-              palette=[colors['sert'], colors['wt']], ax=ax1)
+this_cmap = [subject_colors[i] for i in all_mice['subject']]
+sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=2.5, hue='subject',
+              palette=this_cmap, legend=None, ax=ax1)
 ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 50], xlabel='',
         yticks=[0, 25, 50])
 
