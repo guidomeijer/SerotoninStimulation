@@ -128,7 +128,7 @@ ax.set_ylabel('Neurons', labelpad=-5)
 
 ax2 = ax.twinx()
 ax2.plot(time_ax, p_down_mat[trial, :], color=colors['down-state'], lw=0.75)
-ax2.set(ylim=[-0.01, 1.01], title='Frontal cortex')            
+ax2.set(ylim=[-0.01, 1.01])            
 ax2.set_ylabel('P(down state)', rotation=270, labelpad=10)
 ax2.yaxis.label.set_color(colors['down-state'])
 ax2.tick_params(axis='y', colors=colors['down-state'])            
@@ -145,7 +145,7 @@ ax.imshow(np.flipud(state_mat), aspect='auto', cmap=cmap, vmin=0, vmax=1,
           extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)))
 ax.add_patch(Rectangle((0, 0), 1, len(opto_times), color='royalblue', alpha=0.25, lw=0))
 ax.set(xlabel='Time from stimulation start (s)', yticks=[1, 50],
-       xticks=[-1, 0, 1, 2, 3, 4], title='Frontal cortex')
+       xticks=[-1, 0, 1, 2, 3, 4])
 ax.set_ylabel('Trials', labelpad=-8)
 sns.despine(trim=True)
 plt.tight_layout()

@@ -94,17 +94,17 @@ ordered_regions_pm = per_mouse_df.groupby('high_level_region').mean(numeric_only
 # %% Plot percentage modulated neurons per region
 
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(2.5, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df, order=ordered_regions_pm['high_level_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
 sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df, order=ordered_regions_pm['high_level_region'],
-              palette='tab20', hue='subject_nr', ax=ax1, size=2)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 100], xticks=np.arange(0, 101, 20))
-ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
-           handletextpad=0.1)
+              palette='tab20', hue='subject_nr', ax=ax1, size=2, legend=None)
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arange(0, 81, 20))
+#ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
+#           handletextpad=0.1)
 
 #plt.tight_layout()
-plt.subplots_adjust(left=0.3, bottom=0.2, right=0.9)
+plt.subplots_adjust(left=0.4, bottom=0.2, right=0.9)
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
@@ -114,7 +114,7 @@ PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'co
          'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
 ORDER = mod_neurons.groupby('high_level_region').mean()['mod_index_late'].sort_values(ascending=False).reset_index()['high_level_region']
 
-f, ax1 = plt.subplots(1, 1, figsize=(3, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 sns.stripplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
 sns.boxplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, showmeans=True,

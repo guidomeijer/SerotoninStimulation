@@ -12,7 +12,7 @@ import seaborn.objects as so
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import wilcoxon, ttest_rel
-from stim_functions import paths, figure_style, combine_regions, load_subjects
+from stim_functions import paths, figure_style, combine_regions, load_subjects, high_level_regions
 
 # Settings
 MIN_MOD_NEURONS = 3

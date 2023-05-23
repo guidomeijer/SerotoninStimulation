@@ -41,10 +41,11 @@ print(f'p = {p:.2f}')
 
 colors, dpi = figure_style()
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
 sns.violinplot(data=merged_df, x='type', y='mod_index_late', ax=ax1, palette=[colors['NS'], colors['WS']])
 ax1.set(ylabel='Modulation index', xticklabels=['Narrow\nspiking', 'Wide\nspiking'],
         xlabel='', yticks=[-1, -0.5, 0, 0.5, 1])
 ax1.text(0.5, 1, 'n.s.', ha='center', va='center', fontsize=7)
 sns.despine(trim=True)
 plt.tight_layout()
+plt.savefig(join(fig_path, 'neuron_type_modulation.pdf'))
