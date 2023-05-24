@@ -106,7 +106,7 @@ ax_hc.xaxis.set_tick_params(which='both', labelbottom=True)
 ax_cb.axis('off')
 
 f.text(0.01, 0.5, 'Number of significantly modulated neurons', va='center', rotation='vertical')
-f.text(0.4, 0.03, 'Time from stimulation start (s)', ha='center', va='center')
+f.text(0.4, 0.04, 'Time from stimulation start (s)', ha='center', va='center')
 
 #plt.tight_layout()
 plt.subplots_adjust(left=0.06, bottom=0.08, right=0.98, top=0.95, wspace=0.3, hspace=0)
