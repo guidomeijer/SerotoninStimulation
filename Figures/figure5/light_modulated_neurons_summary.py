@@ -18,7 +18,7 @@ from stim_functions import paths, figure_style, load_subjects
 
 # Settings
 N_BINS = 30
-MIN_NEURONS = 10
+MIN_NEURONS = 0
 AP = [2, -1.5, -3.5]
 
 # Get paths
@@ -51,7 +51,7 @@ all_mice = all_mice.rename({0: 'perc_mod'}, axis=1)
 all_mice['subject_nr'] = all_mice['subject_nr'].astype(int)
 
 # Merge dataframes
-merged_df = pd.merge(all_mice, expression_df, on=['subject', 'sert-cre'])
+merged_df = pd.merge(all_mice, expression_df, on=['subject', 'subject_nr', 'sert-cre'])
 merged_df = merged_df[merged_df['sert-cre'] == 1]
 merged_df['subject_nr'] = merged_df['subject_nr'].astype(int)
 
@@ -92,7 +92,7 @@ ax1.set_ylabel('Rel. expression (%)', rotation=90, labelpad=2)
 ax1.set_xlabel('Mod. neurons (%)', rotation=0, labelpad=2)
 r, p = pearsonr(merged_df['rel_fluo'], merged_df['perc_mod'])
 print(f'correlation p-value: {p:.3f}')
-ax1.text(25, 300, '**', fontsize=10)
+ax1.text(25, 300, '**', fontsize=10, ha='center')
 
 
 f.subplots_adjust(bottom=0.3, left=0.32, right=0.88, top=0.9)

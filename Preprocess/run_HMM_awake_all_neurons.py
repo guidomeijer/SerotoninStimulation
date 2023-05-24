@@ -6,7 +6,7 @@ By: Guido Meijer
 """
 
 import numpy as np
-np.random.seed(42)
+np.random.seed(0)
 import ssm
 from os.path import join
 import pandas as pd

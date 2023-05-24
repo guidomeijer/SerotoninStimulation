@@ -43,8 +43,8 @@ for i in range(all_peth.shape[0]):
 # %%
 # Plot per region
 colors, dpi = figure_style()
-f, ((ax_mb, ax_fc, ax_str, ax_th, ax_am),
-    (ax_sc, ax_hc, ax_cb, ax_off1, ax_off2)) = plt.subplots(2, 5, figsize=(7, 3), sharex=True, dpi=dpi)
+f, ((ax_mb, ax_fc, ax_str, ax_th),
+    (ax_am, ax_sc, ax_hc, ax_cb)) = plt.subplots(2, 4, figsize=(7, 3), sharex=True, dpi=dpi)
 title_font = 7
 cmap = 'PRGn'
 
@@ -98,9 +98,8 @@ ax_hc.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_hc.set_title('Hippocampus', fontsize=title_font)
 ax_hc.xaxis.set_tick_params(which='both', labelbottom=True)
 
-
-ax_off1.axis('off')
-ax_off2.axis('off')
+#ax_off1.axis('off')
+#ax_off2.axis('off')
 #ax_off3.axis('off')
 #ax_off4.axis('off')
 ax_cb.axis('off')
@@ -111,7 +110,7 @@ f.text(0.25, 0.02, 'Time from stimulation start (s)', ha='center')
 #plt.tight_layout()
 plt.subplots_adjust(left=0.06, bottom=0.05, right=0.98, top=0.95, wspace=0.3, hspace=0)
 
-cb_ax = f.add_axes([0.41, 0.15, 0.01, 0.25])
+cb_ax = f.add_axes([0.8, 0.1, 0.01, 0.35])
 cbar = f.colorbar(mappable=ax_mb.images[0], cax=cb_ax)
 cbar.ax.set_ylabel('FR / baseline', rotation=270, labelpad=10)
 cbar.ax.set_yticks([0, 1, 2])
