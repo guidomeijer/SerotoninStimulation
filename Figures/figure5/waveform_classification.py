@@ -80,7 +80,7 @@ print(f'KS-test p-value: {p_value}')
 time_ax = np.linspace(0, (waveforms_df.loc[waveforms_df.index[0], 'waveform'].shape[0]/30000)*1000,
                       waveforms_df.loc[waveforms_df.index[0], 'waveform'].shape[0])
 
-f, ax = plt.subplots(1, 1, figsize=(0.5, 0.5), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(0.5, 0.75), dpi=dpi)
 ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'WS', 'waveform'].to_numpy().mean(),
          color=colors['WS'], label='WS')
 ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'NS', 'waveform'].to_numpy().mean(),
@@ -97,10 +97,10 @@ ax.axis('off')
 plt.savefig(join(fig_path, 'mean_waveforms.pdf'), bbox_inches='tight')
 
 # %% Plot waveform histogram
-f, ax = plt.subplots(1, 1, figsize=(1, 1), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(1.2, 1.5), dpi=dpi)
 hst = sns.histplot(data=waveforms_df, x='spike_width', hue='type', hue_order=['NS', 'WS'],
                    palette=[colors['NS'], colors['WS']], legend=None, multiple='stack', bins=70)
-ax.plot([0.4, 0.4], [0, 600], lw=0.5, ls='--', color='k')
+#ax.plot([0.4, 0.4], [0, 600], lw=0.5, ls='--', color='k')
 ax.set(xlim=[0, 1.2], xticks=[0, 0.4, 0.8, 1.2], xlabel='Spike width (ms)', yticks=[], ylabel='')
 
 #ax.yaxis.labelpad = -7
@@ -115,7 +115,7 @@ plt.savefig(join(fig_path, 'waveform_histogram.pdf'))
 
 # %% Plot firing rate distribution of clusteWS
 
-f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(1, 1), dpi=dpi)
 ax.hist(waveforms_df.loc[waveforms_df['type'] == 'NS', 'firing_rate'], histtype='step',
          color=colors['NS'], density=True, bins=100, cumulative=True, label='Narrow spiking (NS)')
 ax.hist(waveforms_df.loc[waveforms_df['type'] == 'WS', 'firing_rate'], histtype='step',
