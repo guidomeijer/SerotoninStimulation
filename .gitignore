@@ -4,3 +4,5 @@
 paths.json
 
 __pycache__/
+
+cache/

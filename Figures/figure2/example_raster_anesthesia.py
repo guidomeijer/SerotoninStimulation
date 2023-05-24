@@ -23,15 +23,15 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # EID
-eid = '0d24afce-9d3c-449e-ac9f-577eefefbd7e'
-pid_00 = 'ff02e36b-95e9-4985-a6e3-ba2977063496'
-pid_01 = 'cc8dd669-7938-4594-868d-b8ca0663b69a'
+eid = '5531e71f-8ab9-4c4e-8d5b-d92da838ee16'
+pid_00 = 'cf08dda8-478f-4292-a06f-4c4dae9f8755'
+pid_01 = '9a9ee022-80b3-4a88-903f-12f838111818'
 
 # Load in artifact neurons
 artifact_neurons = get_artifact_neurons()
 
 # Load in opto times
-opto_times, _ = load_passive_opto_times(eid, one=one)
+opto_times, _ = load_passive_opto_times(eid, anesthesia=True, one=one)
 
 # Load in spikes
 print('Loading in spikes for probe 00')
@@ -71,26 +71,23 @@ R_01, times_01, depths_01 = bincount2D(spikes.times[iok], spikes.depths[iok], 0.
 
 # %% Plot figure
 colors, dpi = figure_style()
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(4.5, 2.5), dpi=dpi)
-ax1.imshow(R_00, aspect='auto', cmap='binary', vmin=0, vmax=np.std(R_00) * 2,
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), dpi=dpi)
+ax1.imshow(R_00, aspect='auto', cmap='binary', vmin=0, vmax=np.std(R_00),
           extent=np.r_[times_00[[0, -1]], depths_00[[0, -1]]], origin='lower')
-ax1.set(xlim=[opto_times[0] - 4, opto_times[0] + 5.5], ylim=[0, 4000],
-       xticks=[])
 ax1.plot([opto_times[0], opto_times[0]+1], [0, 0], color='b')
 ax1.plot([opto_times[1], opto_times[1]+1], [0, 0], color='b')
 ax1.plot([opto_times[2], opto_times[2]+1], [0, 0], color='b')
+ax1.set(xlim=[opto_times[0] - 6, opto_times[0] + 25], ylim=[0, 4000], xticks=[])
 
-ax2.imshow(R_01, aspect='auto', cmap='binary', vmin=0, vmax=np.std(R_01) * 2,
+ax2.imshow(R_01, aspect='auto', cmap='binary', vmin=0, vmax=np.std(R_01),
           extent=np.r_[times_01[[0, -1]], depths_01[[0, -1]]], origin='lower')
-ax2.set(xlim=[opto_times[0] - 4, opto_times[0] + 5.5], ylim=[0,4000],
-       xticks=[])
 ax2.plot([opto_times[0], opto_times[0]+1], [0, 0], color='b')
 ax2.plot([opto_times[1], opto_times[1]+1], [0, 0], color='b')
 ax2.plot([opto_times[2], opto_times[2]+1], [0, 0], color='b')
+ax2.set(xlim=[opto_times[0] - 6, opto_times[0] + 25], ylim=[0,4000], xticks=[])
 
 f.suptitle(f'{eid}')
 
 plt.tight_layout()
-sns.despine(trim=True, offset=4)
-plt.savefig(join(fig_path, 'example_raster.pdf'))
-plt.savefig(join(fig_path, 'example_raster.jpg'), dpi=2000)
+sns.despine(trim=True, bottom=True, offset=4)
+plt.savefig(join(fig_path, 'example_raster_anesthesia.jpg'), dpi=2000)
