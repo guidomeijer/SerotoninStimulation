@@ -118,7 +118,7 @@ PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'co
 ORDER = mod_neurons.groupby('high_level_region').mean(numeric_only=True)['mod_index_late'].sort_values(
     ascending=False).reset_index()['high_level_region']
 
-f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2.5, 1.75), dpi=dpi)
 sns.stripplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
 sns.boxplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, showmeans=True,

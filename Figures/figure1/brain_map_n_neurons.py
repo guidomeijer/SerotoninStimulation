@@ -17,7 +17,7 @@ ba = AllenAtlas(res_um=10)
 # Settings
 HISTOLOGY = True
 N_BINS = 30
-MIN_NEURONS = 0
+MIN_NEURONS = 10
 AP = [2, -1.5, -3.5]
 
 # Paths
