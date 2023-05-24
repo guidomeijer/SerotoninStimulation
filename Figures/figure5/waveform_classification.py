@@ -80,7 +80,7 @@ print(f'KS-test p-value: {p_value}')
 time_ax = np.linspace(0, (waveforms_df.loc[waveforms_df.index[0], 'waveform'].shape[0]/30000)*1000,
                       waveforms_df.loc[waveforms_df.index[0], 'waveform'].shape[0])
 
-f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(0.5, 0.5), dpi=dpi)
 ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'WS', 'waveform'].to_numpy().mean(),
          color=colors['WS'], label='WS')
 ax.plot(time_ax, waveforms_df.loc[waveforms_df['type'] == 'NS', 'waveform'].to_numpy().mean(),
@@ -97,17 +97,18 @@ ax.axis('off')
 plt.savefig(join(fig_path, 'mean_waveforms.pdf'), bbox_inches='tight')
 
 # %% Plot waveform histogram
-f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(1, 1), dpi=dpi)
 hst = sns.histplot(data=waveforms_df, x='spike_width', hue='type', hue_order=['NS', 'WS'],
-                   palette=[colors['NS'], colors['WS']], legend='brief', multiple='stack', bins=70)
-ax.set(xlim=[0, 1.2], xticks=[0, 0.6, 1.2], xlabel='Spike width (ms)', ylabel='Neuron count',
-       ylim=[0, 600], yticks=[0, 600])
-ax.yaxis.labelpad = -7
-hst.get_legend().set_frame_on(False)
-hst.get_legend().set_title('')
-hst.get_legend().set_bbox_to_anchor((0.55, 0.6))
+                   palette=[colors['NS'], colors['WS']], legend=None, multiple='stack', bins=70)
+ax.plot([0.4, 0.4], [0, 600], lw=0.5, ls='--', color='k')
+ax.set(xlim=[0, 1.2], xticks=[0, 0.4, 0.8, 1.2], xlabel='Spike width (ms)', yticks=[], ylabel='')
 
-sns.despine(trim=True)
+#ax.yaxis.labelpad = -7
+#hst.get_legend().set_frame_on(False)
+#hst.get_legend().set_title('')
+#hst.get_legend().set_bbox_to_anchor((0.55, 0.6))
+
+sns.despine(trim=True, left=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'waveform_histogram.pdf'))
 
