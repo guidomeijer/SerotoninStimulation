@@ -13,6 +13,7 @@ from os.path import join, realpath, dirname, split, isfile
 from matplotlib.patches import Rectangle
 from stim_functions import paths, query_ephys_sessions, load_subjects, figure_style
 from atlaselectrophysiology.load_histology import download_histology_data
+from matplotlib.colors import ListedColormap
 from pathlib import Path
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -34,7 +35,7 @@ subjects = load_subjects()
 subjects = subjects.sort_values(by='sert-cre', ascending=False)
 
 colors, dpi = figure_style()
-f, axs = plt.subplots(4, 6, figsize=(7, 4), dpi=dpi)
+f, axs = plt.subplots(4, 6, figsize=(7, 4.5), dpi=dpi)
 axs = np.concatenate(axs)
 expr_df = pd.DataFrame()
 for i, subject in enumerate(subjects['subject']):
@@ -83,7 +84,7 @@ for i, subject in enumerate(subjects['subject']):
 
     # Add to dataframe
     expr_df = pd.concat((expr_df, pd.DataFrame(index=[expr_df.shape[0]+1], data={
-        'subject': subject, 'sert-cre': sert_cre, 'rel_fluo': rel_fluo})))
+        'subject': subject, 'subject_nr': subject_nr, 'sert-cre': sert_cre, 'rel_fluo': rel_fluo})))
 
 for i in range(i+1, len(axs)-1):
     axs[i].axis('off')
@@ -92,13 +93,12 @@ for i in range(i+1, len(axs)-1):
 expr_df.to_csv(join(save_path, 'expression_levels.csv'))
 
 # Plot overview plot
-
-f.subplots_adjust(bottom=0.3, left=0.32, right=0.88, top=0.9)
-sns.swarmplot(x='sert-cre', y='rel_fluo', data=expr_df, order=[1, 0], size=3,
-              palette=[colors['sert'], colors['wt']], ax=axs[-1])
+this_cmap = ListedColormap([colors['subject_palette'][i] for i in np.sort(expr_df['subject_nr'])])
+f.subplots_adjust(bottom=0.05, left=0.05, right=0.95, top=0.95)
+sns.swarmplot(x='sert-cre', y='rel_fluo', data=expr_df, order=[1, 0], size=2, hue='subject_nr',
+              palette=this_cmap, ax=axs[-1], legend=None)
 axs[-1].set(xticklabels=['SERT', 'WT'], ylabel='Relative fluoresence (%)', xlabel='',
             yticks=[0, 100, 200, 300, 400])
 
-plt.tight_layout()
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'supp_fig_expression_levels.pdf'))

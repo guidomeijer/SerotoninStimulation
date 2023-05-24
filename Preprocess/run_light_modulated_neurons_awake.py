@@ -13,9 +13,8 @@ from zetapy import getZeta
 from brainbox.io.one import SpikeSortingLoader
 from scipy.signal import find_peaks
 from scipy.stats import zscore
-from dlc_functions import smooth_interpolate_signal_sg
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                            remove_artifact_neurons, get_neuron_qc)
+                            remove_artifact_neurons, get_neuron_qc, smooth_interpolate_signal_sg)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -29,8 +28,7 @@ POST_TIME_EARLY = [0, 0.5]
 POST_TIME_LATE = [0.5, 1]
 BIN_SIZE = 0.05
 MIN_FR = 0.1
-fig_path, save_path = paths()
-fig_path = join(fig_path, 'Ephys', 'SingleNeurons', 'LightModNeurons')
+_, save_path = paths()
 
 # Query sessions
 rec = query_ephys_sessions(anesthesia='no&both', one=one)

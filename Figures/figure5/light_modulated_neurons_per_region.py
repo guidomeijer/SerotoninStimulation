@@ -51,7 +51,8 @@ light_neurons['suppressed_early'] = light_neurons['modulated'] & (light_neurons[
 # Calculate summary statistics
 summary_df = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region']).sum()
 summary_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region']).size()
-summary_df['modulation_index'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region']).mean()['mod_index_late']
+summary_df['modulation_index'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(
+    ['high_level_region']).mean(numeric_only=True)['mod_index_late']
 summary_df = summary_df.reset_index()
 summary_df['perc_enh_late'] =  (summary_df['enhanced_late'] / summary_df['n_neurons']) * 100
 summary_df['perc_supp_late'] =  (summary_df['suppressed_late'] / summary_df['n_neurons']) * 100
@@ -114,7 +115,8 @@ plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
 PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'none'},
          'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
-ORDER = mod_neurons.groupby('high_level_region').mean()['mod_index_late'].sort_values(ascending=False).reset_index()['high_level_region']
+ORDER = mod_neurons.groupby('high_level_region').mean(numeric_only=True)['mod_index_late'].sort_values(
+    ascending=False).reset_index()['high_level_region']
 
 f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 sns.stripplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
