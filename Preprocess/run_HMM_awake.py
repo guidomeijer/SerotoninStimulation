@@ -32,11 +32,11 @@ POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 MIN_NEURONS = 5
-CMAP = 'colorblind'
+CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = False
+PLOT = True
 
 # Get paths
 f_path, save_path = paths()
@@ -50,6 +50,7 @@ light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 
 if OVERWRITE:
     state_trans_df, p_state_df = pd.DataFrame(), pd.DataFrame()
+    all_state_trans_df, all_state_trans_null_df= pd.DataFrame(), pd.DataFrame()
     state_trans_null_df, p_state_null_df = pd.DataFrame(), pd.DataFrame()
 else:
     state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
@@ -132,6 +133,7 @@ for i in rec.index.values:
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
+        
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
@@ -143,6 +145,11 @@ for i in rec.index.values:
 
             # Add state to state matrix
             state_mat[t, :] = zhat
+            
+            # Add state transisions to dataframe
+            all_state_trans_df = pd.concat((all_state_trans_df, pd.DataFrame(data={
+                'state_change': np.concatenate((np.diff(zhat) > 0, [False])).astype(int)[use_timepoints],
+                'time': time_ax, 'trial': t, 'eid': eid, 'pid': pid, 'subject': subject, 'date': date})))
         
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
@@ -277,6 +284,11 @@ for i in rec.index.values:
 
             # Add state to state matrix
             state_mat[t, :] = zhat
+            
+            # Add state transisions to dataframe
+            all_state_trans_null_df = pd.concat((all_state_trans_null_df, pd.DataFrame(data={
+                'state_change': np.concatenate((np.diff(zhat) > 0, [False])).astype(int)[use_timepoints],
+                'time': time_ax, 'trial': t, 'eid': eid, 'pid': pid, 'subject': subject, 'date': date})))
 
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
@@ -311,10 +323,12 @@ for i in rec.index.values:
         
 
     # Save output
-    state_trans_df.to_csv(join(save_path, f'all_state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
+    state_trans_df.to_csv(join(save_path, f'state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     p_state_df.to_csv(join(save_path, f'p_state_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
-    state_trans_null_df.to_csv(join(save_path, f'all_state_trans_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
+    state_trans_null_df.to_csv(join(save_path, f'state_trans_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     p_state_null_df.to_csv(join(save_path, f'p_state_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
+    all_state_trans_df.to_csv(join(save_path, f'all_state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
+    all_state_trans_null_df.to_csv(join(save_path, f'all_state_trans_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
 
 
 

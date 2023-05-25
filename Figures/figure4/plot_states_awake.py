@@ -26,9 +26,9 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
-state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_{BIN_SIZE}msbins_{NEURONS}.csv'))
+state_trans_df = pd.read_csv(join(save_path, f'state_trans_{BIN_SIZE}msbins_{NEURONS}.csv'))
 p_state_df = pd.read_csv(join(save_path, f'p_state_{BIN_SIZE}msbins_{NEURONS}.csv'))
-state_trans_null_df = pd.read_csv(join(save_path, f'all_state_trans_null_{BIN_SIZE}msbins_{NEURONS}.csv'))
+state_trans_null_df = pd.read_csv(join(save_path, f'state_trans_null_{BIN_SIZE}msbins_{NEURONS}.csv'))
 p_state_null_df = pd.read_csv(join(save_path, f'p_state_null_{BIN_SIZE}msbins_{NEURONS}.csv'))
 
 # Only select sert-cre mice

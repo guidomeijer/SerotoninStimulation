@@ -21,13 +21,18 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-PID = '542aa93b-4876-439c-93f7-dd77263e55e8'
+AREA = 'Frontal cortex'  # Frontal cortex or Amygdala
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 N_STATES = 2
 BIN_SIZE = 0.2
+
+if AREA == 'Frontal cortex':
+    PID = '542aa93b-4876-439c-93f7-dd77263e55e8'
+elif AREA == 'Amygdala':
+    PID = '79f881cb-8140-47ed-8d1a-7cca7e66fb12'
 
 # Paths
 f_path, save_path = paths()
@@ -37,7 +42,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 artifact_neurons = get_artifact_neurons()
 
 # Load opto times
-opto_times, _ = load_passive_opto_times(one.pid2eid(PID)[0], one=one)
+opto_times, _ = load_passive_opto_times(one.pid2eid(PID)[0], anesthesia=True, one=one)
 
 # Load in spikes
 sl = SpikeSortingLoader(pid=PID, one=one, atlas=ba)
@@ -63,7 +68,7 @@ clusters['high_level_region'] = high_level_regions(clusters['acronym'])
 clusters_regions = clusters['high_level_region'][clusters_pass]
 
 # Select spikes and clusters in this brain region
-clusters_in_region = clusters_pass[clusters_regions == 'Frontal cortex']
+clusters_in_region = clusters_pass[clusters_regions == AREA]
 
 # Get binned spikes centered at stimulation onset
 peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, opto_times,
@@ -121,10 +126,13 @@ for i, n in enumerate(clusters_in_region):
     ax.vlines(neuron_spks - opto_times[trial], tickedges[i + 1], tickedges[i], color='black',
               lw=0.5)
 
-ax.set(xlabel='Time from stimulation start (s)', yticks=[0, len(clusters_in_region)],
-       yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
-       ylim=[0, len(clusters_in_region)])
+ax.set(yticks=[0, len(clusters_in_region)], ylim=[0, len(clusters_in_region)], xticks=[])
 ax.set_ylabel('Neurons', labelpad=-5)
+ax.plot([0, 2], [-.5, -.5], clip_on=False, color='k', lw=0.75)
+if AREA == 'Frontal cortex':
+    ax.text(1, -4, '2s', ha='center', va='center')
+elif AREA == 'Amygdala':
+    ax.text(1, -1.75, '2s', ha='center', va='center')
 
 ax2 = ax.twinx()
 ax2.plot(time_ax, p_down_mat[trial, :], color=colors['down-state'], lw=0.75)
@@ -134,20 +142,27 @@ ax2.yaxis.label.set_color(colors['down-state'])
 ax2.tick_params(axis='y', colors=colors['down-state'])            
 ax2.spines['right'].set_color(colors['down-state'])
 
-sns.despine(trim=True, right=False)
+sns.despine(trim=True, right=False, bottom=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, 'example_updown_trial.pdf'))
+plt.savefig(join(fig_path, f'example_updown_trial_{AREA}.pdf'))
 
 # %% Plot example session
  
-f, ax = plt.subplots(1, 1, figsize=(1.7, 1.75), dpi=dpi)
+f, ax = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
 ax.imshow(np.flipud(state_mat), aspect='auto', cmap=cmap, vmin=0, vmax=1,
           extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)))
 ax.add_patch(Rectangle((0, 0), 1, len(opto_times), color='royalblue', alpha=0.25, lw=0))
-ax.set(xlabel='Time from stimulation start (s)', yticks=[1, 50],
-       xticks=[-1, 0, 1, 2, 3, 4])
+ax.plot([0, 2], [0, 0], clip_on=False, color='k', lw=0.75)
+ax.text(1, -2, '2s', ha='center', va='center')
+ax.set(yticks=[1, 50], xticks=[], ylim=[1, 50])
 ax.set_ylabel('Trials', labelpad=-8)
-sns.despine(trim=True)
+
+ax2 = ax.twinx()
+ax2.plot(time_ax, 1-np.mean(state_mat, axis=0), color='k')
+ax2.set(ylim=[0, 1], yticks=[0, 1], yticklabels=[0, 100])
+ax2.set_ylabel('Down state probability', rotation=270, labelpad=0)
+
+sns.despine(trim=True, bottom=True, right=False)
 plt.tight_layout()
-plt.savefig(join(fig_path, 'example_updown_session.pdf'))
+plt.savefig(join(fig_path, f'example_updown_session_{AREA}.pdf'))
 
