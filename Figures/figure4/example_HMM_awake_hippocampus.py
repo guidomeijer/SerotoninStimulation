@@ -25,7 +25,8 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-PID = 'fb97e357-0c74-43a4-9556-1f18d6d63f9d'
+PID = '5d2acdf4-b7f6-4545-b72c-ee88a64b81c5'
+#PID = '7a82c06b-0e33-454b-a98f-786a4024c1d0'
 REGION = 'Hippocampus'
 BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
@@ -101,15 +102,15 @@ time_ax = full_time_ax[use_timepoints]
 trial_data = []
 for j in range(binned_spikes.shape[0]):
     trial_data.append(np.transpose(binned_spikes[j, :, :]))
-            
-# Fit HMM
-simple_hmm = ssm.HMM(N_STATES, binned_spikes.shape[1], observations='poisson')
+
+# Initialize HMM
 lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
 # Loop over trials
 trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
 state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
 prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
+
 for t in range(len(trial_data)):
 
     # Get most likely states for this trial
@@ -122,30 +123,9 @@ for t in range(len(trial_data)):
     # Add state to state matrix
     state_mat[t, :] = zhat
 
-# Smooth P(state change) over entire period
-p_trans = np.mean(trans_mat, axis=0)
-smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
-
-# Select time period to use
-trans_mat = trans_mat[:, use_timepoints]
-smooth_p_trans = smooth_p_trans[use_timepoints]
-prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
-
-# Get P(state)
-p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
-for ii in range(N_STATES):
-
-    # Get P state, first smooth, then crop timewindow
-    this_p_state = np.mean(state_mat == ii, axis=0)
-    smooth_p_state = gaussian_filter(this_p_state, PSTATE_SMOOTH / BIN_SIZE)
-    smooth_p_state = smooth_p_state[use_timepoints]
-    p_state_bl = smooth_p_state - np.mean(smooth_p_state[time_ax < 0])
-
-    # Add to dataframe and matrix
-    p_state_mat[ii, :] = smooth_p_state
-
 # Crop timewindow for plotting
 state_mat = state_mat[:, use_timepoints]
+prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
 # %% Plot example trial
 trial = 11
@@ -188,8 +168,8 @@ ax1.add_patch(Rectangle((0, 1), 1, len(opto_times), color='royalblue', alpha=0.2
 ax1.imshow(np.flipud(state_mat), aspect='auto', cmap=ListedColormap(cmap),
            vmin=0, vmax=N_STATES-1,
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
-ax1.plot([-1, 4], [trial+1, trial+1], color='k', lw=0.5)
-ax1.plot([-1, 4], [trial+2.1, trial+2.1], color='k', lw=0.5)
+#ax1.plot([-1, 4], [trial+1, trial+1], color='k', lw=0.5)
+#ax1.plot([-1, 4], [trial+2.1, trial+2.1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
 ax1.plot([0, 2], [0, 0], lw=0.75, color='k', clip_on=False)
