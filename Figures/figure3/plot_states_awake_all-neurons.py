@@ -24,9 +24,9 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
-state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_all-neurons_{BIN_SIZE}msbins_{NEURONS}.csv'))
+state_trans_df = pd.read_csv(join(save_path, f'state_trans_all-neurons_{BIN_SIZE}msbins_{NEURONS}.csv'))
 p_state_df = pd.read_csv(join(save_path, f'p_state_all-neurons_{BIN_SIZE}msbins_{NEURONS}.csv'))
-state_trans_null_df = pd.read_csv(join(save_path, f'all_state_trans_null_all-neurons_{BIN_SIZE}msbins_{NEURONS}.csv'))
+state_trans_null_df = pd.read_csv(join(save_path, f'state_trans_null_all-neurons_{BIN_SIZE}msbins_{NEURONS}.csv'))
 p_state_null_df = pd.read_csv(join(save_path, f'p_state_null_all-neurons_{BIN_SIZE}msbins_{NEURONS}.csv'))
 
 # Only select sert-cre mice
@@ -161,6 +161,21 @@ sns.lineplot(data=state_trans_df, x='time', y='p_trans_bl',
 ax.set(xlabel='Time from stimulation start (s)', ylim=[-0.02, 0.032],
        yticks=[-0.02, -0.01, 0, 0.01, 0.02, 0.03],
        yticklabels=[-2, -1, 0, 1, 2, 3], xticks=[-1, 0, 1, 2, 3, 4],
+       ylabel='State transition probability (%)')
+
+plt.tight_layout()
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'p_state_change_baseline_all-neurons.pdf'))
+
+# %%
+f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi, sharey=True, sharex=True)
+ax.add_patch(Rectangle((0, -0.05), 1, 0.1, color='royalblue', alpha=0.25, lw=0))
+sns.lineplot(data=state_trans_null_df, x='time', y='p_trans',
+             color=colors['grey'], errorbar='se', ax=ax, err_kws={'lw': 0})
+sns.lineplot(data=state_trans_df, x='time', y='p_trans',
+             color=colors['stim'], errorbar='se', ax=ax, err_kws={'lw': 0})
+ax.set(xlabel='Time from stimulation start (s)', ylim=[-0.02, 0.032],
+       xticks=[-1, 0, 1, 2, 3, 4],
        ylabel='State transition probability (%)')
 
 plt.tight_layout()
