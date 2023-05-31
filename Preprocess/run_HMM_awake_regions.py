@@ -18,7 +18,7 @@ from brainbox.io.one import SpikeSortingLoader
 from scipy.ndimage import gaussian_filter
 from brainbox.singlecell import calculate_peths
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                            high_level_regions, figure_style, N_STATES)
+                            high_level_regions, figure_style, N_STATES_REGIONS)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -34,7 +34,6 @@ HMM_POST_TIME = 5
 MIN_NEURONS = 5
 CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
-PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
 PLOT = True
 
@@ -50,13 +49,12 @@ light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 
 if OVERWRITE:
     state_trans_df, p_state_df = pd.DataFrame(), pd.DataFrame()
-    all_state_trans_df, all_state_trans_null_df= pd.DataFrame(), pd.DataFrame()
     state_trans_null_df, p_state_null_df = pd.DataFrame(), pd.DataFrame()
 else:
-    state_trans_df = pd.read_csv(join(save_path, f'all_state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
+    state_trans_df = pd.read_csv(join(save_path, f'state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     p_state_df = pd.read_csv(join(save_path, f'p_state_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     p_state_null_df = pd.read_csv(join(save_path, f'p_state_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
-    state_trans_null_df = pd.read_csv(join(save_path, f'all_state_trans_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
+    state_trans_null_df = pd.read_csv(join(save_path, f'state_trans_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     rec = rec[~rec['pid'].isin(state_trans_df['pid'])]
 
 for i in rec.index.values:
@@ -110,7 +108,7 @@ for i in rec.index.values:
             continue
 
         # Initialize HMM
-        simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
+        simple_hmm = ssm.HMM(N_STATES_REGIONS[region], clusters_in_region.shape[0], observations='poisson')
 
         # Get binned spikes centered at stimulation onset
         peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, opto_times,
@@ -132,7 +130,7 @@ for i in rec.index.values:
         # Loop over trials
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
+        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES_REGIONS[region]))
         
         for t in range(len(trial_data)):
 
@@ -145,11 +143,6 @@ for i in rec.index.values:
 
             # Add state to state matrix
             state_mat[t, :] = zhat
-            
-            # Add state transisions to dataframe
-            all_state_trans_df = pd.concat((all_state_trans_df, pd.DataFrame(data={
-                'state_change': np.concatenate((np.diff(zhat) > 0, [False])).astype(int)[use_timepoints],
-                'time': time_ax, 'trial': t, 'eid': eid, 'pid': pid, 'subject': subject, 'date': date})))
         
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
@@ -161,24 +154,23 @@ for i in rec.index.values:
         prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
         # Get P(state)
-        p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
-        for ii in range(N_STATES):
+        p_state_mat = np.empty((N_STATES_REGIONS[region], time_ax.shape[0]))
+        for ii in range(N_STATES_REGIONS[region]):
 
             # Get P state, first smooth, then crop timewindow
-            this_p_state = np.mean(state_mat == ii, axis=0)
-            smooth_p_state = gaussian_filter(this_p_state, PSTATE_SMOOTH / BIN_SIZE)
-            smooth_p_state = smooth_p_state[use_timepoints]
-            p_state_bl = smooth_p_state - np.mean(smooth_p_state[time_ax < 0])
+            this_p_state = np.mean(prob_mat[:, :, ii], axis=0)
+            p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
 
             # Add to dataframe and matrix
-            p_state_mat[ii, :] = smooth_p_state
+            p_state_mat[ii, :] = this_p_state
             p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
-                'p_state': smooth_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
+                'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
                 'subject': subject, 'pid': pid, 'region': region})))
 
         # Add state change PSTH to dataframe
         state_trans_df = pd.concat((state_trans_df, pd.DataFrame(data={
             'time': time_ax, 'p_trans': smooth_p_trans,
+            'cumsum_trans': np.cumsum(np.sum(trans_mat, axis=0)),
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
         
@@ -188,7 +180,7 @@ for i in rec.index.values:
         if PLOT:
             # Plot example trial
             trial = 0
-            cmap = sns.color_palette(CMAP, N_STATES)
+            cmap = sns.color_palette(CMAP, N_STATES_REGIONS[region])
             colors, dpi = figure_style()
             f, ax = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
             
@@ -205,7 +197,7 @@ for i in rec.index.values:
                 ax.vlines(neuron_spks - opto_times[trial], tickedges[k + 1], tickedges[k], color='black',
                           lw=0.4, zorder=1)
             ax2 = ax.twinx()
-            for k in range(N_STATES):
+            for k in range(N_STATES_REGIONS[region]):
                 ax2.plot(time_ax, prob_mat[trial, :, k], color=cmap[k])
             ax.set(xlabel='Time (s)', yticks=[0, len(clusters_in_region)],
                    yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
@@ -222,13 +214,13 @@ for i in rec.index.values:
             # Plot session
             f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
             ax1.imshow(state_mat, aspect='auto', cmap=ListedColormap(cmap),
-                       vmin=0, vmax=N_STATES-1,
+                       vmin=0, vmax=N_STATES_REGIONS[region]-1,
                       extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
             ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
             ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
                    title=f'{region}')
     
-            for ii in range(N_STATES):
+            for ii in range(N_STATES_REGIONS[region]):
                 ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
             ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
     
@@ -250,7 +242,7 @@ for i in rec.index.values:
         random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10, size=100))
         
         # Initialize HMM
-        simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
+        simple_hmm = ssm.HMM(N_STATES_REGIONS[region], clusters_in_region.shape[0], observations='poisson')
 
         # Get binned spikes centered at stimulation onset
         peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, random_times,
@@ -272,7 +264,7 @@ for i in rec.index.values:
         # Loop over trials
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
+        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES_REGIONS[region]))
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
@@ -285,11 +277,6 @@ for i in rec.index.values:
             # Add state to state matrix
             state_mat[t, :] = zhat
             
-            # Add state transisions to dataframe
-            all_state_trans_null_df = pd.concat((all_state_trans_null_df, pd.DataFrame(data={
-                'state_change': np.concatenate((np.diff(zhat) > 0, [False])).astype(int)[use_timepoints],
-                'time': time_ax, 'trial': t, 'eid': eid, 'pid': pid, 'subject': subject, 'date': date})))
-
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
         smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
@@ -300,19 +287,17 @@ for i in rec.index.values:
         prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
         # Get P(state)
-        p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
-        for ii in range(N_STATES):
+        p_state_mat = np.empty((N_STATES_REGIONS[region], time_ax.shape[0]))
+        for ii in range(N_STATES_REGIONS[region]):
 
             # Get P state, first smooth, then crop timewindow
-            this_p_state = np.mean(state_mat == ii, axis=0)
-            smooth_p_state = gaussian_filter(this_p_state, PSTATE_SMOOTH / BIN_SIZE)
-            smooth_p_state = smooth_p_state[use_timepoints]
-            p_state_bl = smooth_p_state - np.mean(smooth_p_state[time_ax < 0])
+            this_p_state = np.mean(prob_mat[:, :, ii], axis=0)
+            p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
 
             # Add to dataframe and matrix
-            p_state_mat[ii, :] = smooth_p_state
+            p_state_mat[ii, :] = this_p_state
             p_state_null_df = pd.concat((p_state_null_df, pd.DataFrame(data={
-                'p_state': smooth_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
+                'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
                 'subject': subject, 'pid': pid, 'region': region})))
 
         # Add state change PSTH to dataframe
@@ -321,15 +306,11 @@ for i in rec.index.values:
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
         
-
     # Save output
     state_trans_df.to_csv(join(save_path, f'state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     p_state_df.to_csv(join(save_path, f'p_state_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     state_trans_null_df.to_csv(join(save_path, f'state_trans_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
     p_state_null_df.to_csv(join(save_path, f'p_state_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
-    all_state_trans_df.to_csv(join(save_path, f'all_state_trans_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
-    all_state_trans_null_df.to_csv(join(save_path, f'all_state_trans_null_{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}.csv'))
-
 
 
 

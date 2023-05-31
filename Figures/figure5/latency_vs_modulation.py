@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import pearsonr
 import seaborn.objects as so
-from serotonin_functions import (paths, figure_style, load_subjects,
-                                 combine_regions, high_level_regions)
+from stim_functions import (paths, figure_style, load_subjects,
+                            combine_regions, high_level_regions)
 
 # Settings
 MIN_NEURONS = 10
@@ -42,9 +42,9 @@ sert_neurons = all_neurons[(all_neurons['sert-cre'] == 1) & (all_neurons['modula
 sert_neurons['latency'] = sert_neurons['latency_peak_onset']
 
 # Get percentage modulated per region
-reg_neurons = sert_neurons.groupby('full_region').median()['latency'].to_frame()
+reg_neurons = sert_neurons.groupby('full_region').median(numeric_only=True)['latency'].to_frame()
 reg_neurons['n_neurons'] = sert_neurons.groupby(['full_region']).size()
-reg_neurons['perc_mod'] = (sert_neurons.groupby(['full_region']).sum()['modulated']
+reg_neurons['perc_mod'] = (sert_neurons.groupby(['full_region']).sum(numeric_only=True)['modulated']
                            / sert_neurons.groupby(['full_region']).size()) * 100
 reg_neurons = reg_neurons.loc[reg_neurons['n_neurons'] >= MIN_NEURONS]
 reg_neurons = reg_neurons.reset_index()
@@ -57,7 +57,8 @@ sert_neurons = sert_neurons[sert_neurons['full_region'].isin(reg_neurons['full_r
 sert_neurons.loc[sert_neurons['latency'] == 0, 'latency'] = np.nan
 
 # Order regions
-ordered_regions = sert_neurons.groupby('full_region').median().sort_values('latency', ascending=True).reset_index()
+ordered_regions = sert_neurons.groupby('full_region').median(numeric_only=True).sort_values(
+    'latency', ascending=True).reset_index()
 
 # Convert to log scale
 sert_neurons['log_latency'] = np.log10(sert_neurons['latency'])
@@ -109,7 +110,7 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
      so.Plot(df_slice, x='mod_index_late', y='latency')
      .add(so.Dot(pointsize=2), color='type')
      .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
-     .scale(color=[colors['RS'], colors['FS']])
+     .scale(color=[colors['WS'], colors['NS']])
      .limit(x=[-1, 1], y=[-15, 1000])
      .label(x='Modulation index', y='Modulation latency (ms)')
      .on(ax1)
@@ -117,8 +118,8 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 )
 ax1.text(0, 1000, '***', fontsize=10, ha='center')
 legend = f.legends.pop(0)
-ax1.legend(legend.legendHandles, ['RS', 'NS'], frameon=False,
-           prop={'size': 6}, handletextpad=0, bbox_to_anchor=[0.3, 1])
+ax1.legend(legend.legendHandles, ['WS', 'NS'], frameon=False,
+           prop={'size': 6}, handletextpad=0, bbox_to_anchor=[0.35, 1])
 
 plt.tight_layout()
 sns.despine(trim=True, offset=2)
@@ -136,7 +137,7 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
      so.Plot(df_slice, x='mod_index_late', y='latency')
      .add(so.Dot(pointsize=2), color='type')
      .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
-     .scale(color=[colors['RS'], colors['FS']])
+     .scale(color=[colors['WS'], colors['NS']])
      .limit(x=[-0.6, 0.6], y=[-15, 1000])
      .label(x='Modulation index', y='Modulation latency (ms)')
      .on(ax1)
@@ -144,8 +145,8 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 )
 ax1.text(0, 1000, '***', fontsize=10, ha='center')
 legend = f.legends.pop(0)
-ax1.legend(legend.legendHandles, ['RS', 'NS'], frameon=False,
-           prop={'size': 6}, handletextpad=0, bbox_to_anchor=[0.3, 1])
+ax1.legend(legend.legendHandles, ['WS', 'NS'], frameon=False,
+           prop={'size': 6}, handletextpad=0, bbox_to_anchor=[0.4, 1])
 
 plt.tight_layout()
 sns.despine(trim=True, offset=2)

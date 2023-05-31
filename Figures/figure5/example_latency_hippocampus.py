@@ -11,35 +11,22 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 from matplotlib.patches import Rectangle
-from serotonin_functions import figure_style
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.singlecell import calculate_peths
 from brainbox.plot import peri_event_time_histogram
-from serotonin_functions import paths, load_passive_opto_times
+from stim_functions import paths, load_passive_opto_times, figure_style
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
 # Settings
-SUBJECT = 'ZFM-03330'
-DATE = '2022-02-16'
-PROBE = 'probe00'
-NEURON = 209
-TITLE = 'Ex. thalamus neuron'
-"""
-SUBJECT = 'ZFM-03330'
-DATE = '2022-02-15'
-PROBE = 'probe00'
-NEURON = 323
-TITLE = 'Ex. frontal cortex neuron'
 
-SUBJECT = 'ZFM-04122'
-DATE = '2022-05-12'
+SUBJECT = 'ZFM-03330'
+DATE = '2022-02-17'
 PROBE = 'probe00'
-NEURON = 265
-TITLE = 'Ex. superior colliculus neuron'
-"""
+NEURON = 138
+TITLE = 'Hippocampus (DG)'
 
 T_BEFORE = 1  # for plotting
 T_AFTER = 2
@@ -74,7 +61,7 @@ clusters = sl.merge_clusters(spikes, clusters, channels)
 
 # %% Plot PSTH
 colors, dpi = figure_style()
-p, ax = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
+p, ax = plt.subplots(1, 1, figsize=(1.5, 2), dpi=dpi)
 ax.add_patch(Rectangle((0, 0), 1, 100, color='royalblue', alpha=0.25, lw=0))
 ax.add_patch(Rectangle((0, 0), 1, -100, color='royalblue', alpha=0.25, lw=0))
 
@@ -85,11 +72,12 @@ peri_event_time_histogram(spikes.times, spikes.clusters, opto_train_times,
                           errbar_kwargs={'color': 'black', 'alpha': 0.3, 'lw': 0},
                           raster_kwargs={'color': 'black', 'lw': 0.3},
                           eventline_kwargs={'lw': 0})
-ax.set(ylabel='Firing rate (spks/s)', xlabel='Time (s)', title=TITLE,
-       yticks=[np.round(ax.get_ylim()[1])],
-       ylim=[ax.get_ylim()[0], np.round(ax.get_ylim()[1])])
-# ax.plot([0, 1], [0, 0], lw=2.5, color='royalblue')
-ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+ax.plot([-1.05, -1.05], [0, 10], color='k', lw=0.75, clip_on=False)
+ax.text(-1.05, 5, '10 sp s$^{-1}$', ha='right', va='center', rotation=90)
+ax.plot([0, 1], [ax.get_ylim()[0]-0.5, ax.get_ylim()[0]-0.5], color='k', lw=0.75, clip_on=False)
+ax.text(0.5, ax.get_ylim()[0]-1, '1s', ha='center', va='top')
+ax.axis('off')
+ax.set(title=TITLE)
 
 peths, _ = calculate_peths(spikes.times, spikes.clusters, [NEURON],
                            opto_train_times, T_BEFORE, T_AFTER, BIN_SIZE, SMOOTHING)
@@ -97,7 +85,7 @@ peak_ind = np.argmin(np.abs(peths['tscale'] - latency))
 peak_act = peths['means'][0][peak_ind]
 ax.plot([latency, latency], [peak_act, peak_act], 'x', color='red', lw=2)
 #ax.plot([latency, latency], [peak_act, 14], ls='--', color='red', lw=0.5)
-ax.text(latency-0.7, 6.2, f'{latency*1000:.0f} ms', color='red', va='center', ha='left', fontsize=5)
+ax.text(latency+0.15, 12, f'{latency*1000:.0f} ms', color='red', va='center', ha='left', fontsize=5)
 
 plt.tight_layout()
 

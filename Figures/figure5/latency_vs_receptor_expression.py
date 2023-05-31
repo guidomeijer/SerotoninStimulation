@@ -13,7 +13,7 @@ import seaborn.objects as so
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import pearsonr
-from serotonin_functions import paths, figure_style, load_subjects, combine_regions
+from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Get paths
 f_path, save_path = paths()

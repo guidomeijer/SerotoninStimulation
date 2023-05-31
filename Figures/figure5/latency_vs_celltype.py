@@ -11,8 +11,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import mannwhitneyu
-from serotonin_functions import (paths, figure_style, load_subjects,
-                                 combine_regions, high_level_regions)
+from stim_functions import (paths, figure_style, load_subjects,
+                            combine_regions, high_level_regions)
 
 # Settings
 MIN_NEURONS = 10
@@ -50,8 +50,8 @@ colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1.75), dpi=dpi)
 
 sns.boxplot(x='type', y='latency', data=sert_neurons[sert_neurons['type'] != 'Und.'], ax=ax1,
-            palette=[colors['RS'], colors['NS']], width=0.7)
-_, p = mannwhitneyu(sert_neurons.loc[sert_neurons['type'] == 'RS', 'latency'],
+            palette=[colors['WS'], colors['NS']], width=0.7)
+_, p = mannwhitneyu(sert_neurons.loc[sert_neurons['type'] == 'WS', 'latency'],
                     sert_neurons.loc[sert_neurons['type'] == 'NS', 'latency'])
 ax1.set(xlabel='', ylabel='Modulation latency (ms)', xticklabels=['RS', 'NS'],
         yticks=[0, 250, 500, 750, 1000])
@@ -67,8 +67,8 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1.75), dpi=dpi)
 
 sns.boxplot(x='type', y='latency', data=sert_neurons[(sert_neurons['type'] != 'Und.')
                                                      & (sert_neurons['full_region'] == 'Visual cortex')], ax=ax1,
-            palette=[colors['RS'], colors['NS']], width=0.7)
-_, p = mannwhitneyu(sert_neurons.loc[sert_neurons['type'] == 'RS', 'latency'],
+            palette=[colors['WS'], colors['NS']], width=0.7)
+_, p = mannwhitneyu(sert_neurons.loc[sert_neurons['type'] == 'WS', 'latency'],
                     sert_neurons.loc[sert_neurons['type'] == 'NS', 'latency'])
 ax1.set(xlabel='', ylabel='Modulation latency (ms)', xticklabels=['RS', 'NS'],
         yticks=[0, 250, 500, 750, 1000])

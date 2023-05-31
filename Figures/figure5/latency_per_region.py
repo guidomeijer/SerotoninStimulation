@@ -13,7 +13,7 @@ from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from matplotlib.colors import ListedColormap
-from serotonin_functions import paths, figure_style, load_subjects, combine_regions
+from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
 MIN_NEURONS = 10
@@ -37,9 +37,9 @@ sert_neurons = all_neurons[(all_neurons['sert-cre'] == 1) & (all_neurons['modula
 sert_neurons['latency'] = sert_neurons['latency_peak_onset']
 
 # Get percentage modulated per region
-reg_neurons = sert_neurons.groupby('full_region').median()['latency'].to_frame()
+reg_neurons = sert_neurons.groupby('full_region').median(numeric_only=True)['latency'].to_frame()
 reg_neurons['n_neurons'] = sert_neurons.groupby(['full_region']).size()
-reg_neurons['perc_mod'] = (sert_neurons.groupby(['full_region']).sum()['modulated']
+reg_neurons['perc_mod'] = (sert_neurons.groupby(['full_region']).sum(numeric_only=True)['modulated']
                            / sert_neurons.groupby(['full_region']).size()) * 100
 reg_neurons = reg_neurons.loc[reg_neurons['n_neurons'] >= MIN_NEURONS]
 reg_neurons = reg_neurons.reset_index()
@@ -52,7 +52,8 @@ sert_neurons = sert_neurons[sert_neurons['full_region'].isin(reg_neurons['full_r
 sert_neurons.loc[sert_neurons['latency'] == 0, 'latency'] = np.nan
 
 # Order regions
-ordered_regions = sert_neurons.groupby('full_region').median().sort_values('latency', ascending=True).reset_index()
+ordered_regions = sert_neurons.groupby('full_region').median(numeric_only=True).sort_values(
+    'latency', ascending=True).reset_index()
 
 # Convert to log scale
 sert_neurons['log_latency'] = np.log10(sert_neurons['latency'])
@@ -73,21 +74,27 @@ sert_neurons['latency'] = sert_neurons['latency'] * 1000
 
 # %%
 
+PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'red'},
+         'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
+
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(3, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2.7, 2), dpi=dpi)
 #sns.pointplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
 #              join=False, ci=68, color=colors['general'], ax=ax1)
 #sns.boxplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
 #            color=colors['general'], fliersize=0, linewidth=0.75, ax=ax1)
 sns.violinplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
                color=colors['grey'], linewidth=0, ax=ax1)
+sns.boxplot(x='latency', y='full_region', ax=ax1, data=sert_neurons, 
+            order=ordered_regions['full_region'], 
+            fliersize=0, zorder=2, **PROPS)
 sns.stripplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
                color='k', size=1, ax=ax1)
-ax1.set(xlabel='Modulation onset latency (ms)', ylabel='', xticks=[0, 500, 1000], xlim=[-150, 1150])
+ax1.set(xlabel='Modulation onset latency (ms)', ylabel='', xticks=np.arange(0, 1001, 200), xlim=[-150, 1150])
 #plt.xticks(rotation=90)
-for i, region in enumerate(ordered_regions['full_region']):
-    this_lat = ordered_regions.loc[ordered_regions['full_region'] == region, 'latency'].values[0] * 1000
-    ax1.text(1200, i+0.25, f'{this_lat:.0f} ms', fontsize=5)
+#for i, region in enumerate(ordered_regions['full_region']):
+#    this_lat = ordered_regions.loc[ordered_regions['full_region'] == region, 'latency'].values[0] * 1000
+#    ax1.text(1200, i+0.25, f'{this_lat:.0f} ms', fontsize=5)
 plt.tight_layout()
 sns.despine(trim=True, offset=3)
 plt.savefig(join(fig_path, 'modulation_latency_per_region.pdf'))
