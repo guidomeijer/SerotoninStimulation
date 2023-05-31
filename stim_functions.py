@@ -29,7 +29,9 @@ from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
 # Number of states of HMM
-N_STATES = 6
+N_STATES = 7
+N_STATES_REGIONS = {'Frontal cortex': 8, 'Amygdala': 6, 'Hippocampus': 7, 'Midbrain': 7,
+                    'Sensory cortex': 8, 'Striatum': 7, 'Thalamus': 5}
 
 
 def load_subjects(anesthesia='all', behavior=None):
@@ -135,8 +137,27 @@ def figure_style():
               'Str': sns.color_palette('Accent')[1],
               'MRN': sns.color_palette('Accent')[2],
               'OLF': sns.color_palette('tab10')[8],
+              'Orbitofrontal cortex': sns.color_palette('Dark2')[0],
+              'Medial prefrontal cortex': sns.color_palette('Dark2')[1],
+              'Secondary motor cortex': sns.color_palette('Dark2')[2],
+              'Amygdala': sns.color_palette('Dark2')[3],
+              'Hippocampus': sns.color_palette('Dark2')[4],
+              'Visual cortex': sns.color_palette('Dark2')[5],
+              'Piriform': sns.color_palette('Dark2')[6],
+              'Superior colliculus': sns.color_palette('Dark2')[7],
+              'Periaqueductal gray': sns.color_palette('Set1')[7],
+              'Barrel cortex': sns.color_palette('Set2')[0],
+              'Thalamus': sns.color_palette('tab10')[9],
+              'Tail of the striatum': sns.color_palette('Set2')[1],
+              'Midbrain reticular nucleus': sns.color_palette('Accent')[2],
+              'Olfactory areas': sns.color_palette('tab10')[8],
+              'Substantia nigra': [0.75, 0.75, 0.75],
+              'Striatum': sns.color_palette('Accent')[1],
+              'Retrosplenial cortex': 'r',
               'RSP': 'r',
-              'SNr': [0.75, 0.75, 0.75]}
+              'SNr': [0.75, 0.75, 0.75],
+              'left': 'royalblue',
+              'right': 'indianred'}
     screen_width = tk.Tk().winfo_screenwidth()
     dpi = screen_width / 10
     return colors, dpi
@@ -1235,4 +1256,140 @@ def SNR(diam0, diam_sm1):
            np.var(diam_sm1[good_idxs] - diam0[good_idxs]))
 
     return snr
+
+
+def query_opto_sessions(subject, include_ephys=False, one=None):
+    one = one or ONE()
+    if include_ephys:
+        sessions = one.alyx.rest('sessions', 'list', subject=subject,
+                                 task_protocol='_iblrig_tasks_opto_')
+    else:
+        sessions = one.alyx.rest('sessions', 'list', subject=subject,
+                                 task_protocol='_iblrig_tasks_opto_biasedChoiceWorld')
+    return [sess['url'][-36:] for sess in sessions]
+
+
+def behavioral_criterion(eids, min_perf=0.75, min_trials=100, return_excluded=False,
+                         verbose=True, one=None):
+    if one is None:
+        one = ONE()
+    use_eids, excl_eids = [], []
+    for j, eid in enumerate(eids):
+        try:
+            trials = load_trials(eid, one=one)
+            perf = (np.sum(trials.loc[np.abs(trials['signed_contrast']) == 1, 'feedbackType'] == 1)
+                    / trials[np.abs(trials['signed_contrast']) == 1].shape[0])
+            details = one.get_details(eid)
+            if (perf > min_perf) & (trials.shape[0] > min_trials):
+                use_eids.append(eid)
+            else:
+                if verbose:
+                    print('%s %s excluded (perf: %.2f, n_trials: %d)'
+                          % (details['subject'], details['start_time'][:10], perf, trials.shape[0]))
+                excl_eids.append(eid)
+        except Exception:
+            if verbose:
+                print('Could not load session %s' % eid)
+    if return_excluded:
+        return use_eids, excl_eids
+    else:
+        return use_eids
+
+
+def fit_psychfunc(stim_levels, n_trials, proportion):
+    # Fit a psychometric function with two lapse rates
+    #
+    # Returns vector pars with [bias, threshold, lapselow, lapsehigh]
+    import psychofit as psy
+    assert(stim_levels.shape == n_trials.shape == proportion.shape)
+    if stim_levels.max() <= 1:
+        stim_levels = stim_levels * 100
+
+    pars, _ = psy.mle_fit_psycho(np.vstack((stim_levels, n_trials, proportion)),
+                                 P_model='erf_psycho_2gammas',
+                                 parstart=np.array([0, 20, 0.05, 0.05]),
+                                 parmin=np.array([-100, 5, 0, 0]),
+                                 parmax=np.array([100, 100, 1, 1]))
+    return pars
+
+
+def plot_psychometric(trials, ax, color='b', linestyle='solid'):
+    import psychofit as psy
+    if trials['signed_contrast'].max() <= 1:
+        trials['signed_contrast'] = trials['signed_contrast'] * 100
+
+    stim_levels = np.sort(trials['signed_contrast'].unique())
+    pars = fit_psychfunc(stim_levels, trials.groupby('signed_contrast').size(),
+                         trials.groupby('signed_contrast').mean()['right_choice'])
+
+    # plot psychfunc
+    sns.lineplot(x=np.arange(-27, 27), y=psy.erf_psycho_2gammas(pars, np.arange(-27, 27)),
+                 ax=ax, color=color, linestyle=linestyle)
+
+    # plot psychfunc: -100, +100
+    sns.lineplot(x=np.arange(-36, -31), y=psy.erf_psycho_2gammas(pars, np.arange(-103, -98)),
+                 ax=ax, color=color, linestyle=linestyle)
+    sns.lineplot(x=np.arange(31, 36), y=psy.erf_psycho_2gammas(pars, np.arange(98, 103)),
+                 ax=ax, color=color, linestyle=linestyle)
+
+    # now break the x-axis
+    trials['signed_contrast'].replace(-100, -35)
+    trials['signed_contrast'].replace(100, 35)
+
+    # plot datapoints with errorbars on top
+    sns.lineplot(x=trials['signed_contrast'], y=trials['right_choice'], ax=ax,
+                     **{**{'err_style':"bars",
+                     'linewidth':0, 'linestyle':'None', 'mew':0.5,
+                     'marker':'o', 'errorbar':'se'}}, color=color)
+
+    ax.set(xticks=[-35, -25, -12.5, 0, 12.5, 25, 35], xlim=[-40, 40], ylim=[0, 1.02],
+           yticks=[0, 0.25, 0.5, 0.75, 1], yticklabels=['0', '25', '50', '75', '100'],
+           ylabel='Right choices', xlabel='Contrast (%)')
+    ax.set_xticklabels(['-100', '-25', '-12.5', '0', '12.5', '25', '100'])
+    #break_xaxis()
+
+
+def break_xaxis(y=-0.004, **kwargs):
+
+    # axisgate: show axis discontinuities with a quick hack
+    # https://twitter.com/StevenDakin/status/1313744930246811653?s=19
+    # first, white square for discontinuous axis
+    plt.text(-30, y, '-', fontsize=14, fontweight='bold',
+             horizontalalignment='center', verticalalignment='center',
+             color='w')
+    plt.text(30, y, '-', fontsize=14, fontweight='bold',
+             horizontalalignment='center', verticalalignment='center',
+             color='w')
+
+    # put little dashes to cut axes
+    plt.text(-30, y, '/ /', horizontalalignment='center',
+             verticalalignment='center', fontsize=12, fontweight='bold')
+    plt.text(30, y, '/ /', horizontalalignment='center',
+             verticalalignment='center', fontsize=12, fontweight='bold')
+
+
+def get_bias(trials):
+    import psychofit as psy
+    """
+    Calculate bias by fitting psychometric curves to the 80/20 and 20/80 blocks, finding the
+    point on the y-axis when contrast = 0% and getting the difference.
+    """
+    if len(trials) == 0:
+        return np.nan
+
+    # 20/80 blocks
+    these_trials = trials[trials['probabilityLeft'] == 0.2]
+    stim_levels = np.sort(these_trials['signed_contrast'].unique())
+    pars_right = fit_psychfunc(stim_levels, these_trials.groupby('signed_contrast').size(),
+                               these_trials.groupby('signed_contrast').mean()['right_choice'])
+    bias_right = psy.erf_psycho_2gammas(pars_right, 0)
+
+    # 80/20 blocks
+    these_trials = trials[trials['probabilityLeft'] == 0.8]
+    stim_levels = np.sort(these_trials['signed_contrast'].unique())
+    pars_left = fit_psychfunc(stim_levels, these_trials.groupby('signed_contrast').size(),
+                              these_trials.groupby('signed_contrast').mean()['right_choice'])
+    bias_left = psy.erf_psycho_2gammas(pars_left, 0)
+
+    return bias_right - bias_left
 
