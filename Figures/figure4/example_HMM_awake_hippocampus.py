@@ -179,6 +179,19 @@ sns.despine(trim=True, bottom=True)
 plt.subplots_adjust(left=0.2, top=0.97, bottom=0.05)
 plt.savefig(join(fig_path, f'hmm_example_session_{REGION}.pdf'))
 
+# %%
+
+f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+for i in range(N_STATES):
+    mean_state = np.mean(prob_mat[:,:,i], axis=0)
+    sem_state = np.std(prob_mat[:,:,i], axis=0) / np.sqrt(prob_mat.shape[0])
+    ax1.plot(time_ax, mean_state, color=cmap[i])
+    ax1.fill_between(time_ax, mean_state + sem_state, mean_state - sem_state, alpha=0.25,
+                     color=cmap[i], lw=0)
+ax1.set(ylabel='P(state)', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4])
+plt.tight_layout()
+sns.despine(trim=True)
+plt.savefig(join(fig_path, f'hmm_example_p_states_{REGION}.pdf'))
 
 
  
