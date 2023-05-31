@@ -41,9 +41,25 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
     hmm_ll_df.loc[hmm_ll_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 hmm_ll_df = hmm_ll_df[hmm_ll_df['sert-cre'] == 1]
 
-# Plot anesthesia
+# %% Plot 
+
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+#sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm', estimator=None, units='subject', ax=ax1, marker='o')
+sns.lineplot(data=hmm_ll_df, x='n_states', y='ll_norm', errorbar='se', ax=ax1, marker='o',
+             err_kws={'lw': 0}, zorder=1)
+state_y = hmm_ll_df.groupby('n_states').mean(numeric_only=True)['ll_norm'][N_STATES]
+ax1.scatter(N_STATES, state_y, color='tab:red', zorder=2, s=3)
+ax1.set(ylabel='Normalized log likelihood', xlabel='Number of states',
+        xlim=[1.5, MAX_STATES+0.5], xticks=np.arange(2, MAX_STATES+1))
+
+plt.tight_layout()
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'hmm_n_states.pdf'))
+
+# %%
+asd
+f, ax1 = plt.subplots(1, 1, figsize=(7, 1.75), dpi=dpi)
 #sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm', estimator=None, units='subject', ax=ax1, marker='o')
 sns.lineplot(data=hmm_ll_df, x='n_states', y='ll_norm', errorbar='se', ax=ax1, marker='o',
              err_kws={'lw': 0}, zorder=1)
