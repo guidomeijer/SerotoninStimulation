@@ -190,6 +190,29 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate_baseline.pdf'))
 
 # %%
+f, axs = plt.subplots(1, 7, figsize=(5.5, 1.75), dpi=dpi, sharey=True, sharex=True)
+for i, region in enumerate(REGION_ORDER):
+    axs[i].add_patch(Rectangle((0, 0), 1, 0.3, color='royalblue', alpha=0.25, lw=0))
+    sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time', y='p_trans',
+                 color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
+    sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans',
+                 color=colors['stim'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
+    axs[i].set(title=region)
+    if i == 0:
+        axs[i].set(ylabel='State transition probability (%)', xticks=[0, 2])
+        axs[i].get_xaxis().set_visible(False)
+        sns.despine(trim=True, bottom=True, ax=axs[i])
+        axs[i].text(1, -0.02, '2s', ha='center', va='top')
+    else:
+        axs[i].get_yaxis().set_visible(False)
+        axs[i].axis('off')
+            
+plt.subplots_adjust(left=0.08, bottom=0.15, right=1, top=0.85, wspace=0, hspace=0.4)
+#plt.tight_layout(rect=(0.05, 0.05, 1, 1))
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'state_change_rate.pdf'))
+
+# %%
 p_plot_df = p_state_df.copy()
 p_plot_null_df = p_state_null_df.copy()
 for i in np.unique(p_plot_df['main_state']):
