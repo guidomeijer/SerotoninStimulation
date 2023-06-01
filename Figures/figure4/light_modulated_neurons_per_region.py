@@ -42,23 +42,14 @@ light_neurons = light_neurons.drop(index=[i for i, j in enumerate(light_neurons[
 mod_neurons = light_neurons[(light_neurons['sert-cre'] == 1) & (light_neurons['modulated'] == 1)]
 mod_neurons = mod_neurons.groupby('high_level_region').filter(lambda x: len(x) >= MIN_MOD_NEURONS)
 
-# Add enhanced and suppressed
-light_neurons['enhanced_late'] = light_neurons['modulated'] & (light_neurons['mod_index_late'] > 0)
-light_neurons['suppressed_late'] = light_neurons['modulated'] & (light_neurons['mod_index_late'] < 0)
-light_neurons['enhanced_early'] = light_neurons['modulated'] & (light_neurons['mod_index_early'] > 0)
-light_neurons['suppressed_early'] = light_neurons['modulated'] & (light_neurons['mod_index_early'] < 0)
-
 # Calculate summary statistics
 summary_df = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region']).sum()
 summary_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region']).size()
 summary_df['modulation_index'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(
     ['high_level_region']).mean(numeric_only=True)['mod_index_late']
 summary_df = summary_df.reset_index()
-summary_df['perc_enh_late'] =  (summary_df['enhanced_late'] / summary_df['n_neurons']) * 100
-summary_df['perc_supp_late'] =  (summary_df['suppressed_late'] / summary_df['n_neurons']) * 100
 summary_df['perc_mod'] =  (summary_df['modulated'] / summary_df['n_neurons']) * 100
 summary_df = summary_df[summary_df['modulated'] >= MIN_MOD_NEURONS]
-summary_df['perc_supp_late'] = -summary_df['perc_supp_late']
 
 summary_no_df = light_neurons[light_neurons['sert-cre'] == 0].groupby(['high_level_region']).sum()
 summary_no_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 0].groupby(['high_level_region']).size()
@@ -102,7 +93,7 @@ sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
 sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
               order=ordered_regions_pm['high_level_region'],
               hue='subject_nr', palette=this_cmap, ax=ax1, size=2, legend=None)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arange(0, 81, 20))
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 100], xticks=np.arange(0, 101, 20))
 #ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
 #           handletextpad=0.1)
 
