@@ -104,6 +104,14 @@ def figure_style():
     subject_pal = sns.color_palette(
         np.concatenate((sns.color_palette('tab20'),
                         [matplotlib_colors.to_rgb('maroon'), np.array([0, 0, 0])])))
+    frontal = sns.color_palette('Dark2')[1]
+    sensory = sns.color_palette('Dark2')[5]
+    hipp = sns.color_palette('Dark2')[4]
+    amygdala = sns.color_palette('Dark2')[2]
+    thalamus = sns.color_palette('Dark2')[0]
+    striatum = sns.color_palette('Set1')[7]
+    midbrain = sns.color_palette('Dark2')[3]
+    
     colors = {'subject_palette': subject_pal,
               'grey': [0.7, 0.7, 0.7],
               'sert': sns.color_palette('Dark2')[0],
@@ -123,6 +131,13 @@ def figure_style():
               'states': 'Dark2',
               'states_light': 'Set2',
               'main_states': sns.diverging_palette(20, 210, l=55, center='dark'),
+              'Frontal cortex': frontal,
+              'Sensory cortex': sensory,
+              'Midbrain': midbrain,
+              'Amygadala': amygdala,
+              'Thalamus': thalamus,
+              'Hippocampus': hipp,
+              'Striatum': striatum,
               'OFC': sns.color_palette('Dark2')[0],
               'mPFC': sns.color_palette('Dark2')[1],
               'M2': sns.color_palette('Dark2')[2],
@@ -161,6 +176,44 @@ def figure_style():
     screen_width = tk.Tk().winfo_screenwidth()
     dpi = screen_width / 10
     return colors, dpi
+
+
+"""
+ 'OFC': sns.color_palette('Dark2')[0],
+ 'mPFC': sns.color_palette('Dark2')[1],
+ 'M2': sns.color_palette('Dark2')[2],
+ 'Amyg': sns.color_palette('Dark2')[3],
+ 'Hipp': sns.color_palette('Dark2')[4],
+ 'VIS': sns.color_palette('Dark2')[5],
+ 'Pir': sns.color_palette('Dark2')[6],
+ 'SC': sns.color_palette('Dark2')[7],
+ 'Thal': sns.color_palette('tab10')[9],
+ 'PAG': sns.color_palette('Set1')[7],
+ 'BC': sns.color_palette('Accent')[0],
+ 'Str': sns.color_palette('Accent')[1],
+ 'MRN': sns.color_palette('Accent')[2],
+ 'OLF': sns.color_palette('tab10')[8],
+ 'Orbitofrontal cortex': sns.color_palette('Dark2')[0],
+ 'Medial prefrontal cortex': sns.color_palette('Dark2')[1],
+ 'Secondary motor cortex': sns.color_palette('Dark2')[2],
+ 'Amygdala': sns.color_palette('Dark2')[3],
+ 'Hippocampus': sns.color_palette('Dark2')[4],
+ 'Visual cortex': sns.color_palette('Dark2')[5],
+ 'Piriform': sns.color_palette('Dark2')[6],
+ 'Superior colliculus': sns.color_palette('Dark2')[7],
+ 'Periaqueductal gray': sns.color_palette('Set1')[7],
+ 'Barrel cortex': sns.color_palette('Set2')[0],
+ 'Thalamus': sns.color_palette('tab10')[9],
+ 'Tail of the striatum': sns.color_palette('Set2')[1],
+ 'Midbrain reticular nucleus': sns.color_palette('Accent')[2],
+ 'Olfactory areas': sns.color_palette('tab10')[8],
+ 'Substantia nigra': [0.75, 0.75, 0.75],
+ 'Striatum': sns.color_palette('Accent')[1],
+ 'Retrosplenial cortex': 'r',
+ 'RSP': 'r',
+ 'SNr': [0.75, 0.75, 0.75],
+ """
+
 
 
 def get_artifact_neurons():
