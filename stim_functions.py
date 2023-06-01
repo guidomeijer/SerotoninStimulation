@@ -171,8 +171,10 @@ def figure_style():
               'Retrosplenial cortex': 'r',
               'RSP': 'r',
               'SNr': [0.75, 0.75, 0.75],
-              'left': 'royalblue',
-              'right': 'indianred'}
+              'left-stim': sns.color_palette('Paired')[7],
+              'left-no-stim': sns.color_palette('Paired')[6],
+              'right-stim': sns.color_palette('Paired')[9],
+              'right-no-stim': sns.color_palette('Paired')[8]}
     screen_width = tk.Tk().winfo_screenwidth()
     dpi = screen_width / 10
     return colors, dpi
