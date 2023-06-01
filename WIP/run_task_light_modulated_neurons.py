@@ -202,7 +202,7 @@ for i in rec.index.values:
                 errbar_kwargs=[{'color': colors['no-stim'], 'alpha': 0.3}, {'color': colors['stim'], 'alpha': 0.3}],
                 raster_kwargs=[{'color': colors['no-stim'], 'lw': 0.5}, {'color': colors['stim'], 'lw': 0.5}],
                 eventline_kwargs={'lw': 0}, include_raster=True)
-            ax.set(ylabel='Firing rate (spikes/s)', xlabel='Time from first lick (s)',
+            ax.set(ylabel='Firing rate (spikes/s)', xlabel='Time from trial start (s)',
                    yticks=np.linspace(0, np.round(ax.get_ylim()[1]), 3), xticks=[-1, 0, 1, 2])
             if np.round(ax.get_ylim()[1]) % 2 == 0:
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
