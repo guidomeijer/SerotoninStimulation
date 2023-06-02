@@ -71,7 +71,8 @@ ntravis = 30  # #trajectories for vis, first 2 real, rest pseudo
 align = {'stim': 'stim on',
          'choice': 'motion on',
          'fback': 'feedback',
-         'block': 'stim on'}
+         'block': 'stim on',
+         'opto': 'stim on'}
 
 one = ONE()
 ba = AllenAtlas()
@@ -95,13 +96,15 @@ def pre_post(split, can=False):
     pre_post0 = {'stim': [0, 0.15],
                  'choice': [0.15, 0],
                  'fback': [0, 0.7],
-                 'block': [0.4, -0.1]}
+                 'block': [0.4, -0.1],
+                 'opto': [0.5, 1]}
 
     # canonical windows
     pre_post_can =  {'stim': [0, 0.1],
                      'choice': [0.1, 0],
                      'fback': [0, 0.2],
-                     'block': [0.4, -0.1]}
+                     'block': [0.4, -0.1],
+                     'opto': [0.5, 1]}
 
     pp = pre_post_can if can else pre_post0
 
@@ -434,7 +437,7 @@ def get_d_vars(split, pid, mapping='Beryl', control=True, get_fr=False,
 
         # nrand times random impostor/pseudo split of trials
         for i in range(nrand):
-            if split == 'block':  # 'block' pseudo sessions
+            if (split == 'block') or (split == 'opto'):  # 'block' and 'opto' pseudo sessions
                 ys = generate_pseudo_blocks(ntr, first5050=0) == 0.8
 
             elif 'stim' in split:
@@ -571,7 +574,7 @@ def get_d_vars(split, pid, mapping='Beryl', control=True, get_fr=False,
 '''
 
 
-def get_all_d_vars(split, eids_plus=None, control=True, restr=False,
+def get_all_d_vars(split, eids_plus, control=True, restr=False,
                    mapping='Beryl', contr=None, get_fr=False, nrand=1000):
     '''
     for all BWM insertions, get the PSTHs and acronyms,
@@ -587,10 +590,6 @@ def get_all_d_vars(split, eids_plus=None, control=True, restr=False,
         print('control: ', control)
         print('contr: ', contr)
         print('restr: ', restr)
-
-    if eids_plus is None:
-        df = loading.bwm_query(one)
-        eids_plus = df[['eid', 'probe_name', 'pid']].values
 
     # save results per insertion (eid_probe) in FlatIron folder
     if (split == 'fback' and contr is not None):

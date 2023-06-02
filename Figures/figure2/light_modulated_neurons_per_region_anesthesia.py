@@ -13,9 +13,9 @@ from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, load_subjects, high_level_regions
 
 # Settings
-MIN_NEURONS_POOLED = 5
-MIN_NEURONS_PER_MOUSE = 5
-MIN_MOD_NEURONS = 10
+MIN_NEURONS_POOLED = 2
+MIN_NEURONS_PER_MOUSE = 2
+MIN_MOD_NEURONS = 2
 MIN_REC = 2
 
 # Get paths
@@ -41,36 +41,6 @@ light_neurons = light_neurons.drop(index=[i for i, j in enumerate(light_neurons[
 mod_neurons = light_neurons[(light_neurons['sert-cre'] == 1) & (light_neurons['modulated'] == 1)]
 mod_neurons = mod_neurons.groupby('high_level_region').filter(lambda x: len(x) >= MIN_MOD_NEURONS)
 
-# Add enhanced and suppressed
-light_neurons['enhanced_late'] = light_neurons['modulated'] & (light_neurons['mod_index_late'] > 0)
-light_neurons['suppressed_late'] = light_neurons['modulated'] & (light_neurons['mod_index_late'] < 0)
-light_neurons['enhanced_early'] = light_neurons['modulated'] & (light_neurons['mod_index_early'] > 0)
-light_neurons['suppressed_early'] = light_neurons['modulated'] & (light_neurons['mod_index_early'] < 0)
-
-# Calculate summary statistics
-summary_df = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region']).sum()
-summary_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region']).size()
-summary_df['modulation_index'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(
-    ['high_level_region']).mean(numeric_only=True)['mod_index_late']
-summary_df = summary_df.reset_index()
-summary_df['perc_enh_late'] =  (summary_df['enhanced_late'] / summary_df['n_neurons']) * 100
-summary_df['perc_supp_late'] =  (summary_df['suppressed_late'] / summary_df['n_neurons']) * 100
-summary_df['perc_mod'] =  (summary_df['modulated'] / summary_df['n_neurons']) * 100
-summary_df = summary_df[summary_df['modulated'] >= MIN_MOD_NEURONS]
-summary_df['perc_supp_late'] = -summary_df['perc_supp_late']
-
-summary_no_df = light_neurons[light_neurons['sert-cre'] == 0].groupby(['high_level_region']).sum()
-summary_no_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 0].groupby(['high_level_region']).size()
-summary_no_df = summary_no_df.reset_index()
-summary_no_df['perc_mod'] =  (summary_no_df['modulated'] / summary_no_df['n_neurons']) * 100
-summary_no_df = summary_no_df[summary_no_df['modulated'] >= MIN_MOD_NEURONS]
-summary_no_df = pd.concat((summary_no_df, pd.DataFrame(data={
-    'high_level_region': summary_df.loc[~summary_df['high_level_region'].isin(summary_no_df['high_level_region']), 'high_level_region'],
-    'perc_mod': np.zeros(np.sum(~summary_df['high_level_region'].isin(summary_no_df['high_level_region'])))})))
-
-# Get ordered regions
-ordered_regions = summary_df.sort_values('perc_mod', ascending=False).reset_index()
-
 # Summary statistics per mouse
 per_mouse_df = light_neurons[light_neurons['sert-cre'] == 1].groupby(
     ['high_level_region', 'subject']).sum(numeric_only=True)
@@ -94,19 +64,19 @@ ordered_regions_pm = per_mouse_df.groupby('high_level_region').mean(numeric_only
 colors, dpi = figure_style()
 this_cmap = [colors['subject_palette'][i] for i in np.unique(per_mouse_df['subject_nr'])]
 
-f, ax1 = plt.subplots(1, 1, figsize=(2.3, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
             order=ordered_regions_pm['high_level_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
 sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
               order=ordered_regions_pm['high_level_region'],
               hue='subject_nr', palette=this_cmap, ax=ax1, size=2, legend=None)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 100], xticks=np.arange(0, 101, 20))
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 102], xticks=np.arange(0, 101, 20))
 #ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
 #           handletextpad=0.1)
 
-#plt.tight_layout()
-plt.subplots_adjust(left=0.35, bottom=0.2, right=0.95)
+plt.tight_layout()
+#plt.subplots_adjust(left=0.35, bottom=0.2, right=0.95)
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
@@ -117,14 +87,14 @@ PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'co
 ORDER = mod_neurons.groupby('high_level_region').mean(numeric_only=True)['mod_index_late'].sort_values(
     ascending=False).reset_index()['high_level_region']
 
-f, ax1 = plt.subplots(1, 1, figsize=(2.5, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 sns.stripplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
 sns.boxplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, showmeans=True,
             order=ORDER, meanprops={"marker": "|", "markeredgecolor": "red", "markersize": "8"},
             fliersize=0, zorder=2, **PROPS)
 ax1.plot([0, 0], ax1.get_ylim(), ls='--', color='black', zorder=0)
-ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticklabels=[-1, -0.5, 0, 0.5, 1])
+ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticks=[-1, 0, 1])
 #ax1.spines['bottom'].set_position(('data', np.floor(ax1.get_ylim()[0]) - 0.4))
 plt.tight_layout()
 sns.despine(trim=True)

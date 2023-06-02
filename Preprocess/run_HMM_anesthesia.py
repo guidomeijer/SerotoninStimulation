@@ -26,14 +26,13 @@ one = ONE()
 # Settings
 N_STATES = 2
 BIN_SIZE = 0.2
-MIN_NEURONS = 5
+MIN_NEURONS = 2
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 OVERWRITE = True
 PLOT = True
-MIN_NEURONS = 5
 
 # Get path
 fig_path, save_path = paths()

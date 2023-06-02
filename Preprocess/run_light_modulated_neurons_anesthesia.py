@@ -16,8 +16,6 @@ from scipy.stats import zscore
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
                             remove_artifact_neurons, get_neuron_qc, smooth_interpolate_signal_sg)
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
-ba = AllenAtlas()
 one = ONE()
 
 # Settings
@@ -65,7 +63,7 @@ for i in rec.index.values:
 
     # Load in spikes
     try:
-        sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
+        sl = SpikeSortingLoader(pid=pid, one=one)
         spikes, clusters, channels = sl.load_spike_sorting()
         clusters = sl.merge_clusters(spikes, clusters, channels)
     except Exception as err:
@@ -78,7 +76,7 @@ for i in rec.index.values:
 
     # Filter neurons that pass QC
     if NEURON_QC:
-        qc_metrics = get_neuron_qc(pid, one=one, ba=ba)
+        qc_metrics = get_neuron_qc(pid, one=one)
         clusters_pass = np.where(qc_metrics['label'] == 1)[0]
     else:
         clusters_pass = np.unique(spikes.clusters)

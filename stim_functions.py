@@ -389,11 +389,11 @@ def get_full_region_name(acronyms):
         return full_region_names
 
 
-def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
+def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, freq=25):
     """
     Load in the time stamps of the optogenetic stimulation at the end of the recording, after the
     taks and the spontaneous activity. Or when it's a long stimulation session with different
-    frequencies, only return those stimulation bouts of 25 Hz.
+    frequencies, only return those stimulation bouts of the specified Hz (default is 25 Hz).
 
     Returns
     opto_train_times : 1D array
@@ -419,12 +419,12 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
     _, save_path = paths()
     save_path = join(save_path, 'OptoTimes')
     if isfile(join(save_path, f'{subject}_{date}_pulse_trains.npy')) & ~force_rerun & ~anesthesia:
-        opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains.npy'))
-        opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses.npy'))
+        opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'))
+        opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'))
         return opto_train_times, opto_on_times
     elif isfile(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia.npy')) & ~force_rerun & anesthesia:
-        opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia.npy'))
-        opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia.npy'))
+        opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'))
+        opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'))
         return opto_train_times, opto_on_times
     else:
         # Load in laser pulses
@@ -471,7 +471,7 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
 
         # If there are different stimulation frequencies than 25 Hz it's a long stim session
         if np.any(np.isin([1, 5, 10], opto_freqs)):
-            print('Long opto stim session detected, extracting 25 Hz pulse trains..')
+            print('Long opto stim session detected')
 
             # Load in the trace in chunks and only extract the 25Hz trains
             opto_train_times = []
@@ -490,22 +490,28 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
                 # Get the times of the onset of each pulse train
                 these_train_times = these_on_times[np.concatenate(([True], np.diff(these_on_times) > 1))]
 
-                # Get the stimulation frequencies and amplitudes
+                # Get the stimulation frequencies
                 these_freqs = np.empty(these_train_times.shape)
-                these_amps = np.empty(these_train_times.shape)
                 for ii, t_time in enumerate(these_train_times):
                     these_freqs[ii] = these_on_times[(these_on_times >= t_time) & (these_on_times <= t_time + 1)].shape[0]
-                    this_amp = np.max(analog_chunk[(times_chunk >= t_time) & (times_chunk <= t_time + 1)])
-                    if this_amp > 0.6:
-                        these_amps[ii] = 1
-                    else:
-                        these_amps[ii] = 0.5
                 these_freqs = these_freqs - these_freqs % 5  # round to 5
                 these_freqs[these_freqs == 0] = 1
+                
+                # Get stimulation amplitudes
+                if sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1])).shape[1] > 3:
+                    these_amps = np.empty(these_train_times.shape)
+                    for ii, t_time in enumerate(these_train_times):
+                        this_amp = np.max(analog_chunk[(times_chunk >= t_time) & (times_chunk <= t_time + 1)])
+                        if this_amp > 0.6:
+                            these_amps[ii] = 1
+                        else:
+                            these_amps[ii] = 0.5
+                else:
+                    these_amps = np.ones(these_train_times.shape)
 
                 # Add the pulse trains of 25 Hz full power to the array
-                opto_train_times.append(these_train_times[(these_freqs == 25) & (these_amps == 1)])
-                for kk, this_train_time in enumerate(these_train_times[(these_freqs == 25) & (these_amps == 1)]):
+                opto_train_times.append(these_train_times[(these_freqs == freq) & (these_amps == 1)])
+                for kk, this_train_time in enumerate(these_train_times[(these_freqs == freq) & (these_amps == 1)]):
                     opto_on_times.append(these_on_times[(these_on_times >= this_train_time)
                                                         & (these_on_times <= this_train_time + 1)])
 
@@ -515,11 +521,11 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
 
             # Save extracted pulses to disk
             if anesthesia:
-                np.save(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia.npy'), opto_train_times)
-                np.save(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia.npy'), opto_on_times)
+                np.save(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
+                np.save(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
             else:
-                np.save(join(save_path, f'{subject}_{date}_pulse_trains.npy'), opto_train_times)
-                np.save(join(save_path, f'{subject}_{date}_ind_pulses.npy'), opto_on_times)
+                np.save(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
+                np.save(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'), opto_on_times)
 
             return opto_train_times, opto_on_times
 
@@ -536,11 +542,11 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False):
 
         # Save extracted pulses to disk
         if anesthesia:
-            np.save(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia.npy'), opto_train_times)
-            np.save(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia.npy'), opto_on_times)
+            np.save(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
+            np.save(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
         else:
-            np.save(join(save_path, f'{subject}_{date}_pulse_trains.npy'), opto_train_times)
-            np.save(join(save_path, f'{subject}_{date}_ind_pulses.npy'), opto_on_times)
+            np.save(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
+            np.save(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'), opto_on_times)
 
         return opto_train_times, opto_on_times
 
