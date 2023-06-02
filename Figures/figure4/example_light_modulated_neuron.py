@@ -8,7 +8,6 @@ By: Guido Meijer
 import numpy as np
 from os.path import join, realpath, dirname, split
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 from brainbox.task.closed_loop import roc_single_event
 from sklearn.metrics import roc_curve
 from brainbox.population.decode import get_spike_counts_in_bins
@@ -16,11 +15,8 @@ from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
 from zetapy import getZeta
 from brainbox.plot import peri_event_time_histogram
-from stim_functions import paths, remap, load_passive_opto_times, figure_style
-from one.api import ONE
-from ibllib.atlas import AllenAtlas
-ba = AllenAtlas()
-one = ONE()
+from stim_functions import paths, remap, load_passive_opto_times, figure_style, init_one
+one = init_one()
 
 # Settings
 """
@@ -62,7 +58,7 @@ eid = ins[0]['session']
 opto_train_times, _ = load_passive_opto_times(eid, one=one)
 
 # Load in spikes
-sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
+sl = SpikeSortingLoader(pid=pid, one=one)
 spikes, clusters, channels = sl.load_spike_sorting()
 clusters = sl.merge_clusters(spikes, clusters, channels)
 

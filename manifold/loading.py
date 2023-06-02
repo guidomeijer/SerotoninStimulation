@@ -7,7 +7,9 @@ from iblutil.numerical import ismember
 from brainbox.io.one import SpikeSortingLoader, SessionLoader
 from ibllib.atlas.regions import BrainRegions
 from one.remote import aws
-from stim_functions import get_neuron_qc
+from stim_functions import get_neuron_qc, get_artifact_neurons
+from ibllib.atlas import AllenAtlas
+ba = AllenAtlas()
 
 
 def load_good_units(one, pid, compute_metrics=False, **kwargs):
@@ -35,13 +37,18 @@ def load_good_units(one, pid, compute_metrics=False, **kwargs):
     """
     eid = kwargs.pop('eid', '')
     pname = kwargs.pop('pname', '')
-    spike_loader = SpikeSortingLoader(pid=pid, one=one, eid=eid, pname=pname)
+    spike_loader = SpikeSortingLoader(pid=pid, one=one, eid=eid, pname=pname, atlas=ba)
     spikes, clusters, channels = spike_loader.load_spike_sorting()
     clusters = spike_loader.merge_clusters(spikes, clusters, channels)
-    clusters_labeled = get_neuron_qc(pid, one=one)
+    
+    # Select IBL good neurons and exclude artifact neurons
+    clusters_labeled = get_neuron_qc(pid, one=one, ba=ba)
     clusters_labeled['atlas_id'] = clusters['atlas_id']
     iok = clusters_labeled['label'] == 1
     good_clusters = clusters_labeled[iok]
+    artifact_neurons = get_artifact_neurons()
+    good_clusters = good_clusters[~good_clusters['cluster_id'].isin(
+        artifact_neurons.loc[artifact_neurons['pid'] == pid, 'neuron_id'])]
 
     spike_idx, ib = ismember(spikes['clusters'], good_clusters.index)
     good_clusters.reset_index(drop=True, inplace=True)
