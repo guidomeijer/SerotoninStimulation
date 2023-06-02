@@ -37,7 +37,9 @@ def load_good_units(one, pid, compute_metrics=False, **kwargs):
     pname = kwargs.pop('pname', '')
     spike_loader = SpikeSortingLoader(pid=pid, one=one, eid=eid, pname=pname)
     spikes, clusters, channels = spike_loader.load_spike_sorting()
+    clusters = spike_loader.merge_clusters(spikes, clusters, channels)
     clusters_labeled = get_neuron_qc(pid, one=one)
+    clusters_labeled['atlas_id'] = clusters['atlas_id']
     iok = clusters_labeled['label'] == 1
     good_clusters = clusters_labeled[iok]
 

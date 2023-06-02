@@ -18,7 +18,7 @@ from stim_functions import paths, figure_style, load_subjects
 
 # Settings
 N_BINS = 30
-MIN_NEURONS = 0
+MIN_NEURONS = 2
 AP = [2, -1.5, -3.5]
 
 # Get paths
