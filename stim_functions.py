@@ -592,7 +592,6 @@ def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimsi
 
 def get_neuron_qc(pid, one=None, ba=None, force_rerun=False):
     one = one or ONE()
-    ba = ba or AllenAtlas()
 
     # Check if QC is already computed
     eid, probe = one.pid2eid(pid)
@@ -603,7 +602,10 @@ def get_neuron_qc(pid, one=None, ba=None, force_rerun=False):
         return qc_metrics
 
     # Load in spikes
-    sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
+    if ba is None:
+        sl = SpikeSortingLoader(pid=pid, one=one)
+    else:
+        sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
     spikes, clusters, channels = sl.load_spike_sorting()
     clusters = sl.merge_clusters(spikes, clusters, channels)
 
