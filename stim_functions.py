@@ -28,10 +28,22 @@ from ibllib.atlas import BrainRegions
 from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
+# Whether to use released open-source data 
+OPEN_ONE = False 
+
 # Number of states of HMM
 N_STATES = 7
 N_STATES_REGIONS = {'Frontal cortex': 8, 'Amygdala': 6, 'Hippocampus': 7, 'Midbrain': 7,
                     'Sensory cortex': 8, 'Striatum': 7, 'Thalamus': 5}
+
+
+def init_one(open_one=OPEN_ONE):
+    if open_one:
+        one = ONE(base_url='https://openalyx.internationalbrainlab.org',
+                  password='international', silent=True)
+    else:
+        one = ONE()
+    return one            
 
 
 def load_subjects(anesthesia='all', behavior=None):

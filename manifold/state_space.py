@@ -30,6 +30,8 @@ from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from matplotlib.gridspec import GridSpec   
 from statsmodels.stats.multitest import multipletests
 
+from stim_functions import high_level_regions, combine_regions, figure_style
+
 
 
 '''
@@ -97,14 +99,14 @@ def pre_post(split, can=False):
                  'choice': [0.15, 0],
                  'fback': [0, 0.7],
                  'block': [0.4, -0.1],
-                 'opto': [0.5, 1]}
+                 'opto': [0, 1]}
 
     # canonical windows
     pre_post_can =  {'stim': [0, 0.1],
                      'choice': [0.1, 0],
                      'fback': [0, 0.2],
                      'block': [0.4, -0.1],
-                     'opto': [0.5, 1]}
+                     'opto': [0, 1]}
 
     pp = pre_post_can if can else pre_post0
 
@@ -393,7 +395,12 @@ def get_d_vars(split, pid, mapping='Beryl', control=True, get_fr=False,
 
     wsc = np.concatenate(b, axis=1)  # all trials, all bins
 
-    acs = br.id2acronym(clusters['atlas_id'], mapping=mapping)
+    if mapping in ['Beryl', 'Allen', 'Cosmos']:
+        acs = br.id2acronym(clusters['atlas_id'], mapping=mapping)
+    elif mapping == 'high_level':
+        acs = high_level_regions(br.id2acronym(clusters['atlas_id'], mapping='Allen'))
+    elif mapping == 'merged':
+        acs = combine_regions(br.id2acronym(clusters['atlas_id'], mapping='Beryl'))
     acs = np.array(acs)
 
     if get_fr:
@@ -643,7 +650,7 @@ def get_all_d_vars(split, eids_plus, control=True, restr=False,
     print(Fs)
 
 
-def d_var_stacked(split, min_reg=20, uperms_=False, 
+def d_var_stacked(split, min_reg=5, uperms_=False, 
                   eids_only=None, get_data=False,
                   fdr=True):
 
@@ -665,7 +672,8 @@ def d_var_stacked(split, min_reg=20, uperms_=False,
         restr_can0 =  {'stim': 48, #[0, 0.1]
                      'choice': 48, #[0.1, 0],
                      'fback': 96, #[0, 0.2],
-                     'block': 144} #[0.4, -0.1]}
+                     'block': 144,
+                     'opto': 60} #[0.4, -0.1]}
 
         if '_' in split:
             return restr_can0[split.split('_')[0]]
@@ -694,6 +702,8 @@ def d_var_stacked(split, min_reg=20, uperms_=False,
         
         D_ = np.load(Path(pth, s),
                      allow_pickle=True).flat[0]
+        if np.sum(np.isnan(D_['ws'])) > 0:
+            continue
 
         acs.append(D_['acs'])
         ws.append(D_['ws'])
@@ -1036,7 +1046,8 @@ def plot_all(splits=None, curve='euc', show_tra=True,
         dsize = 13  # diamond marker size
         lw = 1  # linewidth       
 
-    dfa, palette = get_allen_info()
+    #dfa, palette = get_allen_info()
+    palette, _ = figure_style()
 
     '''
     get significant regions
@@ -1080,6 +1091,7 @@ def plot_all(splits=None, curve='euc', show_tra=True,
         print(split, tops[split + '_s'])
 
     #  get Cosmos parent region for yellow color adjustment
+    """
     regsa = np.unique(np.concatenate(regsa))
     cosregs_ = [
         dfa[dfa['id'] == int(dfa[dfa['acronym'] == reg][
@@ -1087,7 +1099,7 @@ def plot_all(splits=None, curve='euc', show_tra=True,
             'acronym'].values[0] for reg in regsa]
 
     cosregs = dict(zip(regsa, cosregs_))
-
+    """
     '''
     example regions per split for embedded space and line plots
     
@@ -1098,16 +1110,13 @@ def plot_all(splits=None, curve='euc', show_tra=True,
 
                     # 
 
-    exs0 = {'stim': ['LGd','VISp', 'PRNc','VISam','IRN', 'VISl',
-                     'VISpm', 'VM', 'MS','VISli'],
+    exs0 = {'stim': ['Striatum', 'Midbrain', 'Frontal cortex'],
 
+            'choice': ['Midbrain', 'Frontal cortex'],
 
-            'choice': ['PRNc', 'VISal','PRNr', 'LSr', 'SIM', 'APN',
-                       'MRN', 'RT', 'LGd', 'GRN','MV','ORBm'],
-
-            'fback': ['IRN', 'SSp-n', 'PRNr', 'IC', 'MV', 'AUDp',
-                      'CENT3', 'SSp-ul', 'GPe'],
-            'block': ['Eth', 'IC']}
+            'fback': ['COAp', 'CLA', 'SNr', 'CP', 'PAG'],
+            'block': ['Eth', 'IC'],
+            'opto': ['VISa', 'PAG', 'SCs']}
 
     # use same example regions for variant splits
     exs = exs0.copy()
@@ -1178,8 +1187,8 @@ def plot_all(splits=None, curve='euc', show_tra=True,
             axs[k].grid(False)
             axs[k].axis('off')
 
-            if not extra_3d:
-                put_panel_label(axs[k], k)
+            #if not extra_3d:
+            #    put_panel_label(axs[k], k)
 
             k += 1
             row += 1
@@ -1251,8 +1260,8 @@ def plot_all(splits=None, curve='euc', show_tra=True,
         axs[k].set_ylabel('distance [Hz]')
         axs[k].set_xlabel('time [sec]')
         
-        if show_tra:
-            put_panel_label(axs[k], k)
+        #if show_tra:
+        #    put_panel_label(axs[k], k)
 
         row += 1
         k += 1
@@ -1343,9 +1352,9 @@ def plot_all(splits=None, curve='euc', show_tra=True,
         
         
         
-        if show_tra:
-            put_panel_label(axs[k], k)
-            axs[k].set_title(f"{tops[split+'_s']} sig")
+        #if show_tra:
+        #    put_panel_label(axs[k], k)
+        #    axs[k].set_title(f"{tops[split+'_s']} sig")
 
 
         row += 1
@@ -1360,7 +1369,7 @@ def plot_all(splits=None, curve='euc', show_tra=True,
 #              wspace=0.3,hspace=0.09)
 #              
 #    fig = plt.gcf()
-#    fig.tight_layout()
+    fig.tight_layout()
 
 
 def plot_custom_lines(regs=None, curve='euc', split='choice',
@@ -1740,6 +1749,60 @@ def plot_corr(splits=None, curve='euc',
     fig.tight_layout()
 
 
+def plot_grand_traj(split, curve='euc'):
+
+     '''
+     for a given region, plot 3d trajectory and 
+     line plot below
+     '''
+     df, palette = get_allen_info()
+     
+     
+     fig = plt.figure(figsize=(1.75, 1.75))
+     axs = []
+     gs = fig.add_gridspec(4, 1) 
+     k = 0 
+       
+     # 3d trajectory plot
+     dd = np.load(Path(pth_res, f'{split}_grand_averages.npy'),
+                  allow_pickle=True).flat[0]
+    
+    
+     axs.append(fig.add_subplot(gs[:4, 0],
+                                projection='3d'))
+    
+     npcs, allnobs = dd['pcs'].shape
+     nobs = allnobs // ntravis
+    
+     for j in range(ntravis):
+    
+         # 3d trajectory
+         cs = dd['pcs'][:, nobs * j: nobs * (j + 1)].T
+    
+         if j == 0:
+             col = grad('Blues_r', nobs)
+         elif j == 1:
+             col = grad('Reds_r', nobs)
+         else:
+             col = grad('Greys_r', nobs)
+    
+         axs[k].plot(cs[:, 0], cs[:, 1], cs[:, 2],
+                     color=col[len(col) // 2],
+                     linewidth=5 if j in [0, 1] else 1, alpha=0.5)
+    
+         axs[k].scatter(cs[:, 0], cs[:, 1], cs[:, 2],
+                        color=col,
+                        edgecolors=col,
+                        s=20 if j in [0, 1] else 1,
+                        depthshade=False)
+    
+     
+     axs[k].grid(False)
+     axs[k].axis('off')
+    
+     fig.tight_layout() 
+
+
 def plot_traj_and_dist(split, reg, ga_pcs=False, curve='euc'):
 
     '''
@@ -1918,55 +1981,6 @@ def combine_left_right():
  
 
     
-'''
-fback licking example regions:     
-    
-regs = ['MV', 'MRN', 'APN', 'SSp-m',
- 'SIM', 'PRM', 'PoT','MEA', 'ANcr2']     
-    
-    
-eids_only = ['8db36de1-8f17-4446-b527-b5d91909b45a', 
-        'f8d5c8b0-b931-4151-b86c-c471e2e80e5d', 
-        'f8d5c8b0-b931-4151-b86c-c471e2e80e5d', 
-        'ffef0311-8ffa-49e3-a857-b3adf6d86e12', 
-        'c4432264-e1ae-446f-8a07-6280abade813', 
-        '83d85891-bd75-4557-91b4-1cbb5f8bfc9d', 
-        'db4df448-e449-4a6f-a0e7-288711e7a75a', 
-        'e535fb62-e245-4a48-b119-88ce62a6fe67', 
-        '83d85891-bd75-4557-91b4-1cbb5f8bfc9d']    
-    
-    
-{'MV': '8db36de1-8f17-4446-b527-b5d91909b45a',
- 'MRN': 'f8d5c8b0-b931-4151-b86c-c471e2e80e5d',
- 'APN': 'f8d5c8b0-b931-4151-b86c-c471e2e80e5d', #(multi session)
- 'SSp-m': 'ffef0311-8ffa-49e3-a857-b3adf6d86e12',
- 'SIM': 'c4432264-e1ae-446f-8a07-6280abade813',
- 'PRM': '83d85891-bd75-4557-91b4-1cbb5f8bfc9d',
- 'PoT': 'db4df448-e449-4a6f-a0e7-288711e7a75a',
- 'MEA': 'e535fb62-e245-4a48-b119-88ce62a6fe67',
- 'ANcr2': '83d85891-bd75-4557-91b4-1cbb5f8bfc9d'}
-    
-{'8db36de1-8f17-4446-b527-b5d91909b45a': Counter({'CUL4 5': 23, 'MV': 22}),
- 'f8d5c8b0-b931-4151-b86c-c471e2e80e5d': Counter({'APN': 56,
-          'MD': 94,
-          'MRN': 13,
-          'PeF': 13,
-          'VM': 11}),
- 'ffef0311-8ffa-49e3-a857-b3adf6d86e12': Counter({'CP': 36, 'SSp-m': 15}),
- 'c4432264-e1ae-446f-8a07-6280abade813': Counter({'APN': 20, 'SIM': 20}),
- '83d85891-bd75-4557-91b4-1cbb5f8bfc9d': Counter({'ANcr1': 41,
-          'ANcr2': 88,
-          'PRM': 43}),
- 'db4df448-e449-4a6f-a0e7-288711e7a75a': Counter({'CA1': 13,
-          'LP': 17,
-          'PoT': 14,
-          'SGN': 11}),
- 'e535fb62-e245-4a48-b119-88ce62a6fe67': Counter({'APN': 21, 'MEA': 10})}
 
-    
-'APN' (multi)
-        
-'''
-    
     
     

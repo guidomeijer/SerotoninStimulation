@@ -9,6 +9,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style
+from scipy.stats import wilcoxon
 
 # Get paths
 f_path, save_path = paths()
@@ -26,14 +27,17 @@ merged_df = pd.merge(awake_neurons, task_neurons, on=[
 merged_df['mod_index_late_abs'] = merged_df['mod_index_late'].abs()
 merged_df['opto_mod_roc_abs'] = merged_df['opto_mod_roc'].abs()
 
+# Do stats
+_, p = wilcoxon(merged_df['mod_index_late'], merged_df['opto_mod_roc'])
+
 # %% Plot
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
 ax1.plot([-1, 1], [-1, 1], color='grey', ls='--', zorder=0)
 sns.regplot(data=merged_df, x='mod_index_late', y='opto_mod_roc', ax=ax1, ci=None, color='k',
             line_kws={'color': 'tab:red'}, scatter_kws={'lw': 0})
-ax1.set(xlim=[-0.8, 0.6], ylim=[-0.8, 0.6], ylabel='Task modulation',
-        yticks=np.arange(-0.8, 0.61, 0.4), xticks=np.arange(-0.8, 0.61, 0.4),
+ax1.set(xlim=[-1, 1], ylim=[-1, 1], ylabel='Task modulation',
+        yticks=np.arange(-1, 1.1, 0.5), xticks=np.arange(-1, 1.1, 0.5),
         xlabel='Quiet wakefullness\nmodulation')
 plt.tight_layout()
 sns.despine(trim=True)
@@ -41,9 +45,10 @@ plt.savefig(join(fig_path, 'task_vs_passive_modulation.pdf'))
 
 # %%
 f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
-ax1.plot([0, 0.6], [0, 0.6], color='grey', ls='--', zorder=0)
-sns.regplot(data=merged_df, x='mod_index_late_abs', y='opto_mod_roc_abs', ax=ax1, ci=None, color='k',
-            line_kws={'color': 'tab:red'}, scatter_kws={'lw': 0})
+ax1.plot([0, 0.8], [0, 0.8], color='grey', ls='--', zorder=0)
+sns.scatterplot(data=merged_df, x='mod_index_late_abs', y='opto_mod_roc_abs', ax=ax1, color='k',
+                lw=0)
+ax1.text(0.4, 0.75, '*', fontsize=10, ha='center')
 ax1.set(ylabel='Task modulation', xlabel='Quiet wakefullness\nmodulation')
 plt.tight_layout()
 sns.despine(trim=True)
