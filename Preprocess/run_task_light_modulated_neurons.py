@@ -40,14 +40,14 @@ if OVERWRITE:
     task_neurons = pd.DataFrame()
 else:
     task_neurons = pd.read_csv(join(save_path, 'task_modulated_neurons.csv'))
-    rec = rec[~rec['eid'].isin(task_neurons['eid'])]
+    rec = rec[~rec['eid'].isin(task_neurons['eid'])].reset_index()
 
 for i in rec.index.values:
-    print(f'Session {i} of {len(rec)}')
 
     # Get session details
     pid, eid, probe = rec.loc[i, 'pid'], rec.loc[i, 'eid'], rec.loc[i, 'probe']
     subject, date = rec.loc[i, 'subject'], rec.loc[i, 'date']
+    print(f'Session {i} of {rec.shape[0]}: {subject} {date}')
 
     # Get session details
     ses_details = one.get_details(eid)
@@ -145,8 +145,23 @@ for i in rec.index.values:
     stim_mod_p[3, :] = differentiate_units(spikes.times, spikes.clusters, zero_contr_trials['goCue_times'],
                                            zero_contr_trials['laser_stimulation'], pre_time=1.5, post_time=2)[2]
     stim_mod_p = np.min(stim_mod_p, axis=0)
-    stim_mod = stim_mod_p < 0.05
-    print(f'Found {np.sum(stim_mod)} opto modulated neurons')
+    stim_mod = stim_mod_p < 0.05 / 4  # Bonferroni correction for multiple testing
+    print(f'Found {np.sum(stim_mod)} opto modulated neurons (0% contrast)')
+    
+    # Get significantly opto modulated neurons; test 4 different time windows
+    full_contr_trials = trials[(trials['signed_contrast'] == 1) | (trials['signed_contrast'] == -1)]
+    stim_mod_p_full = np.empty((4, len(np.unique(spikes.clusters))))
+    stim_mod_p_full[0, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
+                                                full_contr_trials['laser_stimulation'], pre_time=0, post_time=0.5)[2]
+    stim_mod_p_full[1, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
+                                                full_contr_trials['laser_stimulation'], pre_time=0.5, post_time=1)[2]
+    stim_mod_p_full[2, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
+                                                full_contr_trials['laser_stimulation'], pre_time=1, post_time=1.5)[2]
+    stim_mod_p_full[3, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
+                                                full_contr_trials['laser_stimulation'], pre_time=1.5, post_time=2)[2]
+    stim_mod_p_full = np.min(stim_mod_p_full, axis=0)
+    stim_mod_full = stim_mod_p_full < 0.05 / 4  # Bonferroni correction for multiple testing
+    print(f'Found {np.sum(stim_mod_full)} opto modulated neurons (100% contrast)')
 
     # Add results to df
     cluster_regions = remap(clusters.acronym[neuron_ids])
@@ -156,10 +171,13 @@ for i in rec.index.values:
         'task_roc': roc_task, 'task_no_opto_roc': roc_no_opto_task, 'task_opto_roc': roc_opto_task,
         'choice_no_stim_roc': choice_no_stim_roc, 'choice_stim_roc': choice_stim_roc,
         'choice_stim_p': choice_stim_p, 'choice_no_stim_p': choice_no_stim_p,
-        'opto_modulated': stim_mod, 'opto_mod_roc': roc_stim_mod, 'opto_mod_p': stim_mod_p})))
+        'opto_modulated': stim_mod, 'opto_mod_full': stim_mod_full, 'opto_mod_roc': roc_stim_mod,
+        'opto_mod_p': stim_mod_p})))
+    task_neurons = remove_artifact_neurons(task_neurons)
 
     if PLOT:
-        for n, neuron_id in enumerate(neuron_ids[stim_mod]):
+        for n, neuron_id in enumerate(task_neurons.loc[(task_neurons['pid'] == pid)
+                                                       & task_neurons['opto_modulated'], 'neuron_id']):
             # Plot PSTH
             p, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
             peri_multiple_events_time_histogram(

@@ -59,15 +59,24 @@ merged_df['subject_nr'] = merged_df['subject_nr'].astype(int)
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1), dpi=dpi)
 
-this_cmap = ListedColormap([colors['subject_palette'][i] for i in np.sort(all_mice['subject_nr'])])
-
+# For some reason I don't understand I have to plot it this way to get the subect color right
+this_cmap = [colors['subject_palette'][i] for i in
+             all_mice.loc[all_mice['sert-cre'] == 1, 'subject_nr']]
+sns.swarmplot(x=[1]*np.sum(all_mice['sert-cre'] == 1),
+              y=all_mice.loc[all_mice['sert-cre'] == 1, 'perc_mod'],
+              hue=all_mice.loc[all_mice['sert-cre'] == 1, 'subject_nr'],
+              palette=this_cmap, legend=None, size=2.5, ax=ax1)
+this_cmap = [colors['subject_palette'][i] for i in
+             all_mice.loc[all_mice['sert-cre'] == 0, 'subject_nr']]
+sns.swarmplot(x=[2]*np.sum(all_mice['sert-cre'] == 0),
+              y=all_mice.loc[all_mice['sert-cre'] == 0, 'perc_mod'],
+              hue=all_mice.loc[all_mice['sert-cre'] == 0, 'subject_nr'],
+              palette=this_cmap, legend=None, size=2.5, ax=ax1)
+#sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=2.5, hue='subject_nr',
+#              palette=this_cmap, legend=None, ax=ax1)
 f.subplots_adjust(bottom=0.2, left=0.35, right=0.85, top=0.9)
-#sns.stripplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=3,
-#              palette=[colors['sert'], colors['wt']], ax=ax1, jitter=0.2)
-sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=2.5, hue='subject_nr',
-              palette=this_cmap, legend=None, ax=ax1)
-ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 50], xlabel='',
-        yticks=[0, 25, 50])
+ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 32], xlabel='',
+        yticks=[0, 30])
 
 sns.despine(trim=True)
 #plt.tight_layout()
@@ -85,14 +94,14 @@ sns.regplot(data=merged_df, x='perc_mod', y='rel_fluo', ax=ax1, ci=None,
                          'cmap': this_cmap, 'alpha': 1, 's': 3},
             line_kws={'color': 'k', 'lw': 1})
 
-ax1.set(xlim=[0, 50], xticks=[0, 25, 50],
+ax1.set(xlim=[0, 32], xticks=[0, 30],
         yticks=[0, 175, 350])
 ax1.tick_params(axis='x', which='major', pad=2)
 ax1.set_ylabel('Rel. expression (%)', rotation=90, labelpad=2)
 ax1.set_xlabel('Mod. neurons (%)', rotation=0, labelpad=2)
 r, p = pearsonr(merged_df['rel_fluo'], merged_df['perc_mod'])
 print(f'correlation p-value: {p:.3f}')
-ax1.text(25, 300, '**', fontsize=10, ha='center')
+ax1.text(15, 300, '***', fontsize=10, ha='center')
 
 
 f.subplots_adjust(bottom=0.3, left=0.32, right=0.88, top=0.9)

@@ -1385,7 +1385,7 @@ def fit_psychfunc(stim_levels, n_trials, proportion):
     return pars
 
 
-def plot_psychometric(trials, ax, color='b', linestyle='solid'):
+def plot_psychometric(trials, ax, color='b', linestyle='solid', fraction=True):
     import psychofit as psy
     if trials['signed_contrast'].max() <= 1:
         trials['signed_contrast'] = trials['signed_contrast'] * 100
@@ -1415,9 +1415,14 @@ def plot_psychometric(trials, ax, color='b', linestyle='solid'):
                      'marker':'o', 'errorbar':'se'}}, color=color)
 
     ax.set(xticks=[-35, -25, -12.5, 0, 12.5, 25, 35], xlim=[-40, 40], ylim=[0, 1.02],
-           yticks=[0, 0.25, 0.5, 0.75, 1], yticklabels=['0', '25', '50', '75', '100'],
-           ylabel='Right choices', xlabel='Contrast (%)')
+           xlabel='Contrast (%)')
     ax.set_xticklabels(['-100', '-25', '-12.5', '0', '12.5', '25', '100'])
+    if fraction:
+        ax.set(yticks=[0, 0.25, 0.5, 0.75, 1], yticklabels=['0', '.25', '.5', '.75', '1'])
+        ax.set_ylabel('Fraction of right choices', labelpad=1)
+    else:
+        ax.set(yticks=[0, 0.25, 0.5, 0.75, 1], yticklabels=['0', '25', '50', '75', '100'],
+               ylabel='Right choices (%)')
     #break_xaxis()
 
 
