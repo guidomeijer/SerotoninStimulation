@@ -1,13 +1,14 @@
 from dateutil import parser
 import numpy as np
 import pandas as pd
+from os.path import join
 from pathlib import Path
 
 from iblutil.numerical import ismember
 from brainbox.io.one import SpikeSortingLoader, SessionLoader
 from ibllib.atlas.regions import BrainRegions
 from one.remote import aws
-from stim_functions import get_neuron_qc, get_artifact_neurons
+from stim_functions import get_neuron_qc, get_artifact_neurons, paths
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
 
@@ -37,21 +38,26 @@ def load_good_units(one, pid, compute_metrics=False, **kwargs):
     """
     eid = kwargs.pop('eid', '')
     pname = kwargs.pop('pname', '')
+    
+    # Load in spikes
     spike_loader = SpikeSortingLoader(pid=pid, one=one, eid=eid, pname=pname, atlas=ba)
     spikes, clusters, channels = spike_loader.load_spike_sorting()
     clusters = spike_loader.merge_clusters(spikes, clusters, channels)
+    clusters = pd.DataFrame(data=clusters)
     
-    # Select IBL good neurons and exclude artifact neurons
-    clusters_labeled = get_neuron_qc(pid, one=one, ba=ba)
-    clusters_labeled['atlas_id'] = clusters['atlas_id']
-    iok = clusters_labeled['label'] == 1
-    good_clusters = clusters_labeled[iok]
-    artifact_neurons = get_artifact_neurons()
-    good_clusters = good_clusters[~good_clusters['cluster_id'].isin(
-        artifact_neurons.loc[artifact_neurons['pid'] == pid, 'neuron_id'])]
-
-    spike_idx, ib = ismember(spikes['clusters'], good_clusters.index)
+    # Load in good neurons
+    _, save_path = paths()
+    good_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+    good_neurons = good_neurons[good_neurons['pid'] == pid]
+    if good_neurons.shape[0] == 0:
+        print('Found no neurons')
+    
+    # Filter neurons
+    good_clusters = clusters[np.isin(clusters['cluster_id'], good_neurons['neuron_id'].values)]
+    good_clusters['neuron_id'] = good_clusters['cluster_id'].values
+    spike_idx, ib = ismember(spikes['clusters'], good_clusters['neuron_id'])
     good_clusters.reset_index(drop=True, inplace=True)
+    
     # Filter spike trains for only good clusters
     good_spikes = {k: v[spike_idx] for k, v in spikes.items()}
     good_spikes['clusters'] = good_clusters.index[ib].astype(np.int32)

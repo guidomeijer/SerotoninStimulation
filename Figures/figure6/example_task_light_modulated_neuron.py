@@ -71,7 +71,7 @@ print(f'p value task: {p_task.values[0]}')
 
 # %% Plot PSTH
 colors, dpi = figure_style()
-p, (ax1, ax2) = plt.subplots(1, 2, figsize=(2, 1.75), dpi=dpi)
+p, (ax1, ax2) = plt.subplots(1, 2, figsize=(2, 2), dpi=dpi)
 ax1.add_patch(Rectangle((0, -100), 1, 200, color='royalblue', alpha=0.25, lw=0))
 peri_event_time_histogram(spikes.times, spikes.clusters, opto_train_times,
                           NEURON, t_before=T_BEFORE, t_after=T_AFTER, bin_size=BIN_SIZE,
@@ -108,6 +108,6 @@ ax2.text(0.5, ax2.get_ylim()[0]-2, '1s', ha='center', va='top')
 ax2.axis('off')
 ax2.set(title='Trial start')
 
-plt.tight_layout()
+plt.tight_layout(pad=0.5)
 
 plt.savefig(join(fig_path, f'{region}_{SUBJECT}_{DATE}_{PROBE}_neuron{NEURON}.pdf'))

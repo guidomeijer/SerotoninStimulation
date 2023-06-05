@@ -99,14 +99,14 @@ def pre_post(split, can=False):
                  'choice': [0.15, 0],
                  'fback': [0, 0.7],
                  'block': [0.4, -0.1],
-                 'opto': [0, 1]}
+                 'opto': [0.2, 1]}
 
     # canonical windows
     pre_post_can =  {'stim': [0, 0.1],
                      'choice': [0.1, 0],
                      'fback': [0, 0.2],
                      'block': [0.4, -0.1],
-                     'opto': [0, 1]}
+                     'opto': [0.2, 1]}
 
     pp = pre_post_can if can else pre_post0
 
@@ -1114,9 +1114,9 @@ def plot_all(splits=None, curve='euc', show_tra=True,
 
             'choice': ['Midbrain', 'Frontal cortex'],
 
-            'fback': ['COAp', 'CLA', 'SNr', 'CP', 'PAG'],
+            'fback': ['Amygdala', 'Striatum'],
             'block': ['Eth', 'IC'],
-            'opto': ['VISa', 'PAG', 'SCs']}
+            'opto': ['Midbrain', 'Sensory cortex']}
 
     # use same example regions for variant splits
     exs = exs0.copy()
@@ -1809,14 +1809,8 @@ def plot_traj_and_dist(split, reg, ga_pcs=False, curve='euc'):
     for a given region, plot 3d trajectory and 
     line plot below
     '''
-    df, palette = get_allen_info()
+    palette, _ = figure_style()
     
-    # get cosmos parent regions for Swanson acronyms
-    cosregs = {reg: df[df['id'] == int(df[df['acronym'] == reg
-               ]['structure_id_path']
-               .values[0].split('/')[4])]['acronym']
-               .values[0] for reg in [reg]}
-           
     fig = plt.figure(figsize=(3,3.79))
     axs = []
     gs = fig.add_gridspec(5, 1) 
@@ -1928,7 +1922,6 @@ def plot_traj_and_dist(split, reg, ga_pcs=False, curve='euc'):
     #put_panel_label(axs[k], k)
 
     fig.tight_layout() 
-    fig.tight_layout()
     
 
 def combine_left_right():

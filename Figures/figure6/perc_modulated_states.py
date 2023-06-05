@@ -12,7 +12,8 @@ import seaborn as sns
 import seaborn.objects as so
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, kruskal
+import scikit_posthocs as sp
 from matplotlib.colors import ListedColormap
 from stim_functions import paths, figure_style, load_subjects
 
@@ -60,31 +61,76 @@ awake_mice = awake_mice.rename(columns={0: 'perc_mod'})
 awake_mice['state'] = 'awake'
 anes_mice = anes_mice.rename(columns={0: 'perc_mod'})
 anes_mice['state'] = 'anesthetized'
-all_mice = pd.concat((task_mice, awake_mice, anes_mice))
+all_mice = pd.concat((task_mice, awake_mice, anes_mice)).reset_index()
+
+# Stats
+_, p = kruskal(all_mice.loc[all_mice['state'] == 'task', 'perc_mod'],
+               all_mice.loc[all_mice['state'] == 'awake', 'perc_mod'],
+               all_mice.loc[all_mice['state'] == 'anesthetized', 'perc_mod'])
+print(f'Kruskal-wallis p value: {p}')
+dunn_ph = sp.posthoc_conover(all_mice, val_col='perc_mod', group_col='state', p_adjust='fdr_bh')
+print(dunn_ph)        
 
 # %% Plot percentage mod neurons
 colors, dpi = figure_style()
 PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'none'},
          'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
 ORDER = ['anesthetized', 'awake', 'task']
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.4, 1.75), dpi=dpi)
 
-this_cmap = ListedColormap([colors['subject_palette'][i] for i in np.sort(all_mice['subject_nr']).astype(int)])
+this_cmap = ListedColormap([colors['subject_palette'][i] for i in all_mice['subject_nr'].astype(int)])
 
 f.subplots_adjust(bottom=0.2, left=0.35, right=0.85, top=0.9)
 #sns.stripplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=3,
 #              palette=[colors['sert'], colors['wt']], ax=ax1, jitter=0.2)
 sns.swarmplot(x='state', y='perc_mod', data=all_mice, order=ORDER,
-              size=2.5, color='k', legend=None, zorder=2, ax=ax1)
+              size=2.5, hue='subject_nr', palette=this_cmap, legend=None, zorder=2, ax=ax1)
 sns.boxplot(x='state', y='perc_mod', ax=ax1, data=all_mice, showmeans=True,
             order=ORDER, meanprops={"marker": "_", "markeredgecolor": "red", "markersize": "8"},
             fliersize=0, zorder=1, **PROPS)
-ax1.set(xticklabels=['Anesthetized', 'Quiet wakefullness', 'Task performing'],
-        ylabel='Modulated neurons (%)', xlabel='', yticks=np.arange(0, 101, 20))
-ax1.set_xticklabels(['Anesthetized', 'Quiet\nwakefullness', 'Task\nperforming'], rotation=45,
-                    ha='right')
+ax1.set(ylabel='Modulated neurons (%)', xlabel='', yticks=np.arange(0, 101, 20))
+ax1.set_xticklabels(['Anesthetized', 'Wakefullness', 'Behaving'], rotation=45, ha='right')
+ax1.tick_params(axis='both', which='major', pad=0)
 
 sns.despine(trim=True)
 plt.tight_layout()
 
+plt.savefig(join(fig_path, 'light_mod_summary_states_swarm.pdf'))
+
+# %%
+f, ax1 = plt.subplots(figsize=(1.4, 1.75), dpi=dpi)
+for i in all_mice[all_mice['state'] == 'anesthetized'].index:
+    if all_mice.loc[i, 'subject'] == 'ZFM-05169':
+        jitter = 0.05
+    elif all_mice.loc[i, 'subject'] == 'ZFM-05492':
+        jitter = -0.05
+    else:
+        jitter = 0
+    ax1.plot(1+jitter, all_mice.loc[i, 'perc_mod'],
+             color='k', marker='o', ms=3,
+             markeredgewidth=0.4, markeredgecolor='w')
+for i in all_mice[all_mice['state'] == 'awake'].index:
+    task_mod = all_mice.loc[(all_mice['subject'] == all_mice.loc[i, 'subject'])
+                            & (all_mice['state'] == 'task'), 'perc_mod']
+    if len(task_mod) > 0:
+        ax1.plot([2, 3],
+                 [all_mice.loc[i, 'perc_mod'], task_mod],
+                 marker='o', ms=3, markeredgewidth=0.4, lw=0.75, color='grey',
+                 markeredgecolor='w', markerfacecolor='k')
+    else:
+        ax1.plot(2, all_mice.loc[i, 'perc_mod'],
+                 color='k', marker='o', ms=3, markeredgewidth=0.4,
+                 markeredgecolor='w')
+ax1.plot([1, 2, 3], all_mice.groupby('state').mean(numeric_only=True)['perc_mod'], marker='_',
+         color='tab:red', lw=0, ms=7)
+ax1.plot([1, 3], [92, 92], color='k', lw=0.75)
+ax1.plot([1, 1.95], [90, 90], color='k', lw=0.75)
+ax1.plot([2.05, 3], [90, 90], color='k', lw=0.75)
+ax1.text(2, 90, '**', fontsize=10, ha='center')
+ax1.set(ylabel='Modulated neurons (%)', xlabel='', yticks=np.arange(0, 101, 20), xlim=[0.75, 3.25])
+ax1.set_xticklabels(['Anesthetized', 'Wakefullness', 'Behaving'], rotation=45, ha='right')
+ax1.tick_params(axis='x', which='major', pad=0)
+
+sns.despine(trim=True)
+plt.tight_layout()
 plt.savefig(join(fig_path, 'light_mod_summary_states.pdf'))
