@@ -16,7 +16,8 @@ SPLIT = 'opto'  # choice, stim, fback, block or opto
 rec = query_ephys_sessions(n_trials=400, one=one)
 
 # computes PETHs, distance sums
-state_space.get_all_d_vars(SPLIT, eids_plus=rec[['eid', 'probe', 'pid']].values, mapping='high_level')
+state_space.get_all_d_vars(SPLIT, eids_plus=rec[['eid', 'probe', 'pid']].values, mapping='merged',
+                           contr=0)
 
 # combine results across insertions
 state_space.d_var_stacked(SPLIT)
