@@ -96,14 +96,16 @@ ordered_regions_pm = per_mouse_df.groupby('full_region').mean(numeric_only=True)
 # %% Plot percentage modulated neurons per region
 
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(3, 2), dpi=dpi)
+this_cmap = [colors['subject_palette'][i] for i in np.unique(per_mouse_df['subject_nr'])]
+
+f, ax1 = plt.subplots(1, 1, figsize=(2.625, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df, order=ordered_regions_pm['full_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
 sns.swarmplot(x='perc_mod', y='full_region', data=per_mouse_df, order=ordered_regions_pm['full_region'],
-              palette='tab20', hue='subject_nr', ax=ax1, size=2)
+              palette=this_cmap, hue='subject_nr', ax=ax1, size=2, legend=None)
 ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 100], xticks=np.arange(0, 101, 20))
-ax1.legend(frameon=False, bbox_to_anchor=(0.85, 1), prop={'size': 5}, title='Mouse',
-           handletextpad=0.1)
+#ax1.legend(frameon=False, bbox_to_anchor=(0.85, 1), prop={'size': 5}, title='Mouse',
+#           handletextpad=0.1)
 
 plt.tight_layout()
 sns.despine(trim=True)
@@ -115,7 +117,7 @@ PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'co
          'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
 ORDER = mod_neurons.groupby('full_region').mean()['mod_index_late'].sort_values(ascending=False).reset_index()['full_region']
 
-f, ax1 = plt.subplots(1, 1, figsize=(2.9, 2.5), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2.625, 2), dpi=dpi)
 sns.stripplot(x='mod_index_late', y='full_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
 sns.boxplot(x='mod_index_late', y='full_region', ax=ax1, data=mod_neurons, showmeans=True,

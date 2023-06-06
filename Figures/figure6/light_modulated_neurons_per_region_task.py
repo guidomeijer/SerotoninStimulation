@@ -111,7 +111,8 @@ ORDER = mod_neurons.groupby('high_level_region').mean(numeric_only=True)['opto_m
 f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
 sns.stripplot(x='opto_mod_roc', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
-sns.boxplot(x='opto_mod_roc', y='high_level_region', ax=ax1, data=mod_neurons, showmeans=True,
+sns.boxplot(x='opto_mod_roc', y='high_level_region', ax=ax1,
+            data=mod_neurons[mod_neurons['high_level_region'] != 'Amygdala'], showmeans=True,
             order=ORDER, meanprops={"marker": "|", "markeredgecolor": "red", "markersize": "8"},
             fliersize=0, zorder=2, **PROPS)
 ax1.plot([0, 0], ax1.get_ylim(), ls='--', color='black', zorder=0)
