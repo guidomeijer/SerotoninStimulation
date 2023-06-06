@@ -36,9 +36,9 @@ f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
 ax1.plot([-1, 1], [-1, 1], color='grey', ls='--', zorder=0)
 sns.regplot(data=merged_df, x='mod_index_late', y='opto_mod_roc', ax=ax1, ci=None, color='k',
             line_kws={'color': 'tab:red'}, scatter_kws={'lw': 0})
-ax1.set(xlim=[-1, 1], ylim=[-1, 1], ylabel='Task modulation',
+ax1.set(xlim=[-1, 1], ylim=[-1, 1], ylabel='Modulation index task',
         yticks=np.arange(-1, 1.1, 0.5), xticks=np.arange(-1, 1.1, 0.5),
-        xlabel='Quiet wakefullness\nmodulation')
+        xlabel='Modulation index wakefullness')
 plt.tight_layout()
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'task_vs_passive_modulation.pdf'))
