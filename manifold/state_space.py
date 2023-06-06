@@ -335,16 +335,31 @@ def get_d_vars(split, pid, mapping='Beryl', control=True, get_fr=False,
             
     elif split == 'opto':
         for opto in [1, 0]:
-            events.append(
-                trials['stimOn_times'][
-                    np.bitwise_and.reduce([
-                        mask,
-                        trials['opto'] == opto])])
-            trn.append(np.arange(len(trials['choice']))[
-                np.bitwise_and.reduce([
-                    mask,
-                    trials['opto'] == opto])])
+            if contr is None:  # include any contrast
+                events.append(
+                    trials['stimOn_times'][
+                        np.bitwise_and.reduce(
+                            [mask, trials['opto'] == opto])])
+                trn.append(
+                    np.arange(len(trials['choice']))[np.bitwise_and.reduce(
+                        [mask, trials['opto'] == opto])])
 
+            else:  # include only trials with given contrast
+                events.append(
+                    trials['stimOn_times'][
+                        np.bitwise_and.reduce([
+                            mask, trials['opto'] == opto,
+                            np.bitwise_or(
+                                trials['contrastLeft'] == contr,
+                                trials['contrastRight'] == contr)])])
+                trn.append(
+                    np.arange(len(trials['choice']))[
+                        np.bitwise_and.reduce([
+                            mask, trials['opto'] == opto,
+                            np.bitwise_or(
+                                trials['contrastLeft'] == contr,
+                                trials['contrastRight'] == contr)])])
+            
     else:
         print('what is the split?', split)
         return
