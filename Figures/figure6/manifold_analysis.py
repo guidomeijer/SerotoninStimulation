@@ -33,6 +33,6 @@ for r, region in enumerate(np.unique(peths_df['high_level_region'])):
     R_no_opto = np.array(peths_df.loc[(peths_df['high_level_region'] == region)
                                       & (peths_df['split'] == 'R_no_opto'), 'peth'].tolist())
     
-    
+    # 
     
     asd
