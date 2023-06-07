@@ -649,7 +649,8 @@ def get_all_d_vars(split, eids_plus, control=True, restr=False,
 
             gc.collect()
             print(k + 1, 'of', len(eids_plus), 'ok', split)
-        except BaseException:
+        except BaseException as err:
+            print(err)
             Fs.append(pid)
             gc.collect()
             print(k + 1, 'of', len(eids_plus), 'fail', pid, split)

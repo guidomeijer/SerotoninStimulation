@@ -17,7 +17,7 @@ rec = query_ephys_sessions(n_trials=400, one=one)
 
 # computes PETHs, distance sums
 state_space.get_all_d_vars(SPLIT, eids_plus=rec[['eid', 'probe', 'pid']].values, mapping='high_level',
-                           contr=0)
+                           contr=0, n_rand=100)
 
 # combine results across insertions
 state_space.d_var_stacked(SPLIT)
