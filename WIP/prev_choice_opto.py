@@ -292,18 +292,34 @@ plt.tight_layout()
 sns.despine(trim=True)
 
 # %%
-f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.5, 2), dpi=dpi, sharex=True)
 
 p_repeat_bins_df = p_repeat_bins_df[p_repeat_bins_df['sert-cre'] == 1]
-p = ttest_rel(p_repeat_bins_df.loc[(p_repeat_bins_df['trial'] == 5) & (p_repeat_bins_df['opto'] == 0), 'p_repeat'],
-              p_repeat_bins_df.loc[(p_repeat_bins_df['trial'] == 5) & (p_repeat_bins_df['opto'] == 1), 'p_repeat'])[1]
-
+p = ttest_rel(p_repeat_bins_df.loc[(p_repeat_bins_df['trial'] == 7.5) & (p_repeat_bins_df['opto'] == 0), 'p_repeat'],
+              p_repeat_bins_df.loc[(p_repeat_bins_df['trial'] == 7.5) & (p_repeat_bins_df['opto'] == 1), 'p_repeat'])[1]
+print(f'block p value: {p}')
 for i, subject in enumerate(np.unique(p_repeat_bins_df['subject'])):
     this_df = p_repeat_bins_df[p_repeat_bins_df['subject'] == subject]
-    ax1.plot([1, 2], [this_df.loc[(this_df['trial'] == 5) & (this_df['opto'] == 0), 'p_repeat'],
-                      this_df.loc[(this_df['trial'] == 5) & (this_df['opto'] == 1), 'p_repeat']],
-             color='k', marker='o')
-ax1.set(ylabel='P[repeat choice] (%)', xticks=[1, 2], xticklabels=['No stim', 'Stim'],
-        xlim=[0.8, 2.2], ylim=[65, 81])
-plt.tight_layout()
+    ax1.plot([1, 2], [this_df.loc[(this_df['trial'] == 7.5) & (this_df['opto'] == 0), 'p_repeat'],
+                      this_df.loc[(this_df['trial'] == 7.5) & (this_df['opto'] == 1), 'p_repeat']],
+             color='k', marker='o', ms=3.5, markeredgewidth=0.5, markeredgecolor='w')
+ax1.text(1.5, 78, '*', fontsize=10, ha='center')
+ax1.set(xticks=[1, 2], xlim=[0.7, 2.3], ylim=[65, 80], title='First block of 15 trials')
+
+p_repeat_probe_df = p_repeat_probe_df[p_repeat_probe_df['sert-cre'] == 1]
+p = ttest_rel(p_repeat_probe_df.loc[(p_repeat_probe_df['trial'] == 0) & (p_repeat_probe_df['opto'] == 0), 'p_repeat'],
+              p_repeat_probe_df.loc[(p_repeat_probe_df['trial'] == 0) & (p_repeat_probe_df['opto'] == 1), 'p_repeat'])[1]
+print(f'probe trial p value: {p}')
+for i, subject in enumerate(np.unique(p_repeat_probe_df['subject'])):
+    this_df = p_repeat_probe_df[p_repeat_probe_df['subject'] == subject]
+    ax2.plot([1, 2], [this_df.loc[(this_df['trial'] == 0) & (this_df['opto'] == 0), 'p_repeat'],
+                      this_df.loc[(this_df['trial'] == 0) & (this_df['opto'] == 1), 'p_repeat']],
+             color='k', marker='o', ms=3.5, markeredgewidth=0.5, markeredgecolor='w')
+ax2.text(1.5, 78, '*', fontsize=10, ha='center')
+ax2.set(xticks=[1, 2], xticklabels=['No stim', 'Stim'], title='Single probe trial',
+        xlim=[0.7, 2.3], ylim=[65, 80])
+f.text(0.04, 0.5, 'P[repeat choice] (%)', va='center', rotation='vertical')
+
+#plt.tight_layout()
+plt.subplots_adjust(left=0.25, right=0.99, hspace=0.4)
 sns.despine(trim=True)
