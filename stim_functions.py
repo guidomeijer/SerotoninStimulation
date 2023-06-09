@@ -20,6 +20,7 @@ from glob import glob
 from matplotlib import colors as matplotlib_colors
 from scipy.interpolate import interp1d
 import json
+from pathlib import Path
 from brainbox.io.spikeglx import spikeglx
 from brainbox.metrics.single_units import spike_sorting_metrics
 from brainbox.io.one import SpikeSortingLoader
@@ -66,10 +67,26 @@ def load_subjects(anesthesia='all', behavior=None):
     return subjects
 
 
-def paths():
+def paths(save_dir='repo'):
     """
     Load in figure path from paths.json, if this file does not exist it will be generated from
     user input
+    
+    Save directory can be either the repository (for small files) or the one cache directory
+    (for large files)
+    
+    Input
+    ------------------------
+    save_dir : str
+        'repo' or 'cache' for saving in the repository or one cache, respectively
+        
+    Output
+    ------------------------
+    fig_path : str
+        Path to where to save the figures
+        
+    save_path : str
+        Path to where to save the output data
     """
     if not isfile(join(dirname(realpath(__file__)), 'paths.json')):
         path_dict = dict()
@@ -80,7 +97,15 @@ def paths():
         path_file.close()
     with open(join(dirname(realpath(__file__)), 'paths.json')) as json_file:
         path_dict = json.load(json_file)
-    return path_dict['fig_path'], path_dict['save_path']
+    if save_dir == 'cache':
+        one = ONE(mode='local')
+        save_dir = Path(one.cache_dir, 'serotonin')
+        save_dir.mkdir(exist_ok=True)
+    elif save_dir == 'repo':
+        save_dir = path_dict['save_path']
+    else:
+        print('save_dir must be either repo or cache')
+    return path_dict['fig_path'], save_dir
 
 
 def figure_style():
