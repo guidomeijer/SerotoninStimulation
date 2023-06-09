@@ -10,7 +10,7 @@ from manifold.state_space import plot_grand_traj, plot_traj_and_dist, plot_all
 #SPLIT = 'choice'
 #plot_grand_traj(SPLIT)
 
-#plot_traj_and_dist('opto', 'Frontal cortex')
+#plot_traj_and_dist('choice', 'Frontal cortex')
 
 #plot_all(['stim', 'fback', 'choice'])
 plot_all(['choice', 'stim', 'fback', 'opto'])
