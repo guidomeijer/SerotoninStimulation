@@ -84,3 +84,4 @@ plt.subplots_adjust(left=0.08, bottom=0.15, right=1, top=0.85, wspace=0, hspace=
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate.pdf'))
 
+

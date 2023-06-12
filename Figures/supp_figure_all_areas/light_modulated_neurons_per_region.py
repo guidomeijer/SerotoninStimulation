@@ -129,3 +129,8 @@ ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticklabels=[-
 plt.tight_layout()
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'light_modulation_per_neuron_per_region.pdf'))
+
+# %%
+f, ax1 = plt.subplots(figsize=(2, 2), dpi=dpi)
+sns.barplot(x='')
+
