@@ -127,7 +127,7 @@ plt.savefig(join(fig_path, 'raster_anesthesia.jpg'), dpi=600)
 
 # %% Raster anesthesia with states
 f, ax1 = plt.subplots(1, 1, figsize=(3, 1.75), sharey=True, dpi=dpi)
-cmap = ListedColormap([colors['suppressed'], colors['enhanced']])
+cmap = ListedColormap([colors['up-state'], colors['down-state']])
 ax1.imshow(R, aspect='auto', cmap='binary', vmin=0, vmax=np.std(R),
            extent=np.r_[times[[0, -1]], depths[[0, -1]]], origin='upper')
 ax1.imshow(zhat[None,:], aspect="auto", extent=[time_ax[0], time_ax[-1], 4, 0],
