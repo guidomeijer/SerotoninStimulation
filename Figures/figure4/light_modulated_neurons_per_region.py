@@ -93,7 +93,7 @@ sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
 sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
               order=ordered_regions_pm['high_level_region'],
               hue='subject_nr', palette=this_cmap, ax=ax1, size=2, legend=None)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 100], xticks=np.arange(0, 101, 20))
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arange(0, 81, 20))
 #ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
 #           handletextpad=0.1)
 
@@ -101,6 +101,23 @@ ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 100], xticks=np.aran
 plt.subplots_adjust(left=0.35, bottom=0.2, right=0.95)
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
+
+# %%
+f, ax1 = plt.subplots(1, 1, figsize=(2.3, 2), dpi=dpi)
+sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
+            order=ordered_regions_pm['high_level_region'],
+            color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
+sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
+              order=ordered_regions_pm['high_level_region'],
+              color='k', ax=ax1, size=2, legend=None)
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arange(0, 81, 20))
+#ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
+#           handletextpad=0.1)
+
+#plt.tight_layout()
+plt.subplots_adjust(left=0.35, bottom=0.2, right=0.95)
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region_no-color.pdf'))
 
 # %%
 
