@@ -189,7 +189,7 @@ for r, region in enumerate(dist_opto.keys()):
                         np.nanquantile(dist_opto_shuffle[region], 0.05, axis=1),
                         np.nanquantile(dist_opto_shuffle[region], 0.95, axis=1),
                         color='grey', alpha=0.25, lw=0, zorder=1)
-    axs[r].plot(time_ax, dist_opto[region], marker='o', zorder=2)
+    axs[r].plot(time_ax, dist_opto[region], marker='o', zorder=2, ms=1.5)
     axs[r].plot([0, 0], axs[r].get_ylim(), ls='--', color='grey', lw=0.75, zorder=0)
     axs[r].set(title=f'{region}', yticks=[], xlabel='Time to choice (s)')
 sns.despine(trim=True, left=True)
@@ -203,7 +203,7 @@ for r, region in enumerate(dist_opto.keys()):
                         np.nanquantile(dist_choice_shuffle[region], 0.05, axis=1),
                         np.nanquantile(dist_choice_shuffle[region], 0.95, axis=1),
                         color='grey', alpha=0.25, lw=0, zorder=1)
-    axs[r].plot(time_ax, dist_choice[region], marker='o', zorder=2)
+    axs[r].plot(time_ax, dist_choice[region], marker='o', zorder=2, ms=1.5)
     axs[r].plot([0, 0], axs[r].get_ylim(), ls='--', color='grey', lw=0.75, zorder=0)
     axs[r].set(title=f'{region}', yticks=[], xlabel='Time to choice (s)')
 sns.despine(trim=True, left=True)
@@ -263,7 +263,7 @@ for r, region in enumerate(dot_prod.keys()):
                         np.quantile(dot_shuffle[region], 0.05, axis=1),
                         np.quantile(dot_shuffle[region], 0.95, axis=1),
                         color='grey', alpha=0.25, lw=0)
-    axs[r].plot(time_ax, dot_prod[region], marker='o', ms=2)
+    axs[r].plot(time_ax, dot_prod[region], marker='o', ms=1.5)
     #axs[r].plot([0, 0], axs[r].get_ylim(), ls='--', color='grey', lw=0.75, zorder=0)
     axs[r].set(title=f'{region}', yticks=[0, 800], ylim=[-20, 800], xlabel='Time to choice (s)')
 axs[0].set_ylabel('Dot product', labelpad=-10)
