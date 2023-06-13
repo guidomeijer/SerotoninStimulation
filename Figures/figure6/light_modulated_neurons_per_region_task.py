@@ -102,6 +102,23 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
 # %%
+f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
+sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
+            order=ordered_regions_pm['high_level_region'],
+            color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
+sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
+              order=ordered_regions_pm['high_level_region'],
+              color='k', ax=ax1, size=2, legend=None)
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 60], xticks=np.arange(0, 61, 20))
+#ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
+#           handletextpad=0.1)
+
+plt.tight_layout()
+#plt.subplots_adjust(left=0.35, bottom=0.2, right=0.95)
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region_no-color.pdf'))
+
+# %%
 
 PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'none'},
          'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
@@ -116,7 +133,7 @@ sns.boxplot(x='opto_mod_roc', y='high_level_region', ax=ax1,
             order=ORDER, meanprops={"marker": "|", "markeredgecolor": "red", "markersize": "8"},
             fliersize=0, zorder=2, **PROPS)
 ax1.plot([0, 0], ax1.get_ylim(), ls='--', color='black', zorder=0)
-ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticklabels=[-1, -0.5, 0, 0.5, 1])
+ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticklabels=[-1, 0, 1])
 #ax1.spines['bottom'].set_position(('data', np.floor(ax1.get_ylim()[0]) - 0.4))
 plt.tight_layout()
 sns.despine(trim=True)
