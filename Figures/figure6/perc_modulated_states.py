@@ -134,3 +134,37 @@ ax1.tick_params(axis='x', which='major', pad=0)
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'light_mod_summary_states.pdf'))
+
+# %%
+f, ax1 = plt.subplots(figsize=(1.4, 1.75), dpi=dpi)
+for i in all_mice[all_mice['state'] == 'anesthetized'].index:
+    if all_mice.loc[i, 'subject'] == 'ZFM-05169':
+        jitter = 0.05
+    elif all_mice.loc[i, 'subject'] == 'ZFM-05492':
+        jitter = -0.05
+    else:
+        jitter = 0
+    ax1.plot(1+jitter, all_mice.loc[i, 'perc_mod'],
+             color='k', marker='o', ms=3,
+             markeredgewidth=0.4, markeredgecolor='w')
+for i in all_mice[all_mice['state'] == 'awake'].index:
+    ax1.plot(2, all_mice.loc[i, 'perc_mod'],
+             color='k', marker='o', ms=3, markeredgewidth=0.4,
+             markeredgecolor='w')
+for i in all_mice[all_mice['state'] == 'task'].index:
+    ax1.plot(3, all_mice.loc[i, 'perc_mod'],
+             color='k', marker='o', ms=3, markeredgewidth=0.4,
+             markeredgecolor='w')
+ax1.plot([1, 2, 3], all_mice.groupby('state').mean(numeric_only=True)['perc_mod'], marker='_',
+         color='tab:red', lw=0, ms=7)
+ax1.plot([1, 3], [92, 92], color='k', lw=0.75)
+ax1.plot([1, 1.95], [90, 90], color='k', lw=0.75)
+ax1.plot([2.05, 3], [90, 90], color='k', lw=0.75)
+ax1.text(2, 90, '**', fontsize=10, ha='center')
+ax1.set(ylabel='Modulated neurons (%)', xlabel='', yticks=np.arange(0, 101, 20), xlim=[0.75, 3.25])
+ax1.set_xticklabels(['Anesthetized', 'Wakefullness', 'Behaving'], rotation=45, ha='right')
+ax1.tick_params(axis='x', which='major', pad=0)
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'light_mod_summary_states_no_lines.pdf'))
