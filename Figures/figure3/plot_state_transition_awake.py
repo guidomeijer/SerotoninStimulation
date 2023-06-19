@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Rectangle
-from scipy.stats import pearsonr
+from scipy.stats import ttest_rel
 from stim_functions import figure_style, paths, load_subjects
 from os.path import join, realpath, dirname, split
 
@@ -39,21 +39,37 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 state_trans_df = state_trans_df[state_trans_df['sert-cre'] == SERT_CRE]
 state_trans_null_df = state_trans_null_df[state_trans_null_df['sert-cre'] == SERT_CRE]
 
+# Do statistics
+p_vals = dict()
+time_ax = np.unique(state_trans_df['time'])
+for i, region in enumerate(REGION_ORDER):
+    p_vals[region] = np.empty(time_ax.shape[0])
+    for j, time_bin in enumerate(time_ax):
+        st_tr = state_trans_df.loc[(state_trans_df['region'] == region)
+                                   & (state_trans_df['time'] == time_bin),
+                                   'p_trans_bl'].values
+        st_tr_null = state_trans_null_df.loc[(state_trans_null_df['region'] == region)
+                                             & (state_trans_null_df['time'] == time_bin),
+                                             'p_trans_bl'].values
+        _, p_vals[region][j] = ttest_rel(st_tr, st_tr_null)
+
 # %%
 colors, dpi = figure_style()
-f, axs = plt.subplots(1, 7, figsize=(5.5, 1.75), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(1, 7, figsize=(6.25, 1.75), dpi=dpi, sharey=True, sharex=True)
 for i, region in enumerate(REGION_ORDER):
-    axs[i].add_patch(Rectangle((0, -0.05), 1, 0.1, color='royalblue', alpha=0.25, lw=0))
-    sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time', y='p_trans_bl',
-                 color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
+    axs[i].add_patch(Rectangle((0, -0.06), 1, 10, color='royalblue', alpha=0.25, lw=0))
+    sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time',
+                 y='p_trans_bl', color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans_bl',
                  color=colors['stim'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
-    axs[i].set(title=region, ylim=[-0.052, 0.055], yticks=[-0.05, 0, 0.05], yticklabels=[-5, 0, 5])
+    axs[i].scatter(time_ax[p_vals[region] < 0.05], [0.065]*np.sum(p_vals[region] < 0.05),
+                   marker='_', color='k', clip_on=False)
+    axs[i].set(title=region, ylim=[-0.062, 0.062], yticks=[-0.06, 0, 0.06], yticklabels=[-6, 0, 6])
     if i == 0:
         axs[i].set(ylabel='State transition probability (%)', xticks=[0, 2])
         axs[i].get_xaxis().set_visible(False)
         sns.despine(trim=True, bottom=True, ax=axs[i])
-        axs[i].text(1, -0.055, '2s', ha='center', va='top')
+        axs[i].text(1, -0.065, '2s', ha='center', va='top')
     else:
         axs[i].get_yaxis().set_visible(False)
         axs[i].axis('off')
@@ -64,11 +80,11 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate_baseline.pdf'))
 
 # %%
-f, axs = plt.subplots(1, 7, figsize=(5.5, 1.75), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(1, 7, figsize=(6.25, 1.75), dpi=dpi, sharey=True, sharex=True)
 for i, region in enumerate(REGION_ORDER):
     axs[i].add_patch(Rectangle((0, 0), 1, 0.3, color='royalblue', alpha=0.25, lw=0))
-    sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time', y='p_trans',
-                 color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
+    sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time',
+                 y='p_trans', color=colors['grey'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
     sns.lineplot(data=state_trans_df[state_trans_df['region'] == region], x='time', y='p_trans',
                  color=colors['stim'], errorbar='se', ax=axs[i], err_kws={'lw': 0})
     axs[i].set(title=region)

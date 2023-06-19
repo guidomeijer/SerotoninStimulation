@@ -18,7 +18,7 @@ from brainbox.io.one import SpikeSortingLoader
 from scipy.ndimage import gaussian_filter
 from brainbox.singlecell import calculate_peths
 from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times,
-                            figure_style, N_STATES, remap, high_level_regions)
+                            figure_style, N_STATES, N_STATES_REGIONS, remap, high_level_regions)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -38,6 +38,7 @@ PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
 PLOT = False
+N_STATE_SELECT = 'region'
 
 # Paths
 f_path, save_path = paths()
@@ -48,6 +49,12 @@ rec = query_ephys_sessions(one=one)
 
 # Get significantly modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+
+# Set number of states
+if N_STATE_SELECT == 'region':
+    n_states = N_STATES_REGIONS[REGION]
+elif N_STATE_SELECT == 'global':
+    n_states = N_STATES
 
 # Get session details
 eid = one.pid2eid(PID)[0]
@@ -86,7 +93,7 @@ clusters_regions = clusters['high_level_region'][use_neurons]
 clusters_in_region = use_neurons[clusters_regions == REGION]
 
 # Initialize HMM
-simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
+simple_hmm = ssm.HMM(n_states, clusters_in_region.shape[0], observations='poisson')
 
 # Get binned spikes centered at stimulation onset
 peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, opto_times,
@@ -103,13 +110,13 @@ for j in range(binned_spikes.shape[0]):
     trial_data.append(np.transpose(binned_spikes[j, :, :]))
             
 # Fit HMM
-simple_hmm = ssm.HMM(N_STATES, binned_spikes.shape[1], observations='poisson')
+simple_hmm = ssm.HMM(n_states, binned_spikes.shape[1], observations='poisson')
 lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
 # Loop over trials
 trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
 state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
+prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], n_states))
 for t in range(len(trial_data)):
 
     # Get most likely states for this trial
@@ -132,8 +139,8 @@ smooth_p_trans = smooth_p_trans[use_timepoints]
 prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
 # Get P(state)
-p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
-for ii in range(N_STATES):
+p_state_mat = np.empty((n_states, time_ax.shape[0]))
+for ii in range(n_states):
 
     # Get P state, first smooth, then crop timewindow
     this_p_state = np.mean(state_mat == ii, axis=0)
@@ -152,8 +159,8 @@ state_mat = state_mat[:, use_timepoints]
 trial = 38
 
 colors, dpi = figure_style()
-cmap = sns.color_palette(colors['states_light'], N_STATES)
-f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.25, 1.75), dpi=dpi, sharex=True)
+cmap = sns.color_palette(colors['states_light'], n_states)
+f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.25, 2), dpi=dpi, sharex=True)
 
 ax1.add_patch(Rectangle((0, 0), 1, len(clusters_in_region), color='royalblue', alpha=0.25, lw=0))
 tickedges = np.arange(0, binned_spikes.shape[1]+1)
@@ -168,7 +175,7 @@ ax1.set(yticks=[0, binned_spikes.shape[1]], yticklabels=[1, binned_spikes.shape[
         ylim=[0, binned_spikes.shape[1]], xticks=[])
 ax1.set_ylabel('Neurons', labelpad=-12)
 
-for kk in range(N_STATES):
+for kk in range(n_states):
     ax2.plot(time_ax, prob_mat[trial, :, kk], color=cmap[kk], lw=0.75)
 
 ax2.set(ylim=[0, 1], yticks=[0, 1])
@@ -185,18 +192,18 @@ plt.savefig(join(fig_path, f'hmm_example_trial_{REGION}.pdf'))
 
 
 # %%
-f, ax1 = plt.subplots(1, 1, figsize=(1.25, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.25, 2), dpi=dpi)
 
 ax1.add_patch(Rectangle((0, 1), 1, len(opto_times), color='royalblue', alpha=0.25, lw=0))
 ax1.imshow(np.flipud(state_mat), aspect='auto', cmap=ListedColormap(cmap),
-           vmin=0, vmax=N_STATES-1,
+           vmin=0, vmax=n_states-1,
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
 ax1.plot([-1, 4], [trial+1, trial+1], color='k', lw=0.5)
 ax1.plot([-1, 4], [trial+2.1, trial+2.1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
-ax1.plot([0, 2], [0, 0], lw=0.75, color='k', clip_on=False)
-ax1.text(1, -2, '2s', ha='center', va='center')
+ax1.plot([0, 2], [0.5, 0.5], lw=0.75, color='k', clip_on=False)
+ax1.text(1, -1.5, '2s', ha='center', va='center')
 
 sns.despine(trim=True, bottom=True)
 plt.subplots_adjust(left=0.2, top=0.97, bottom=0.05)
@@ -204,16 +211,24 @@ plt.savefig(join(fig_path, f'hmm_example_session_{REGION}.pdf'))
 
 # %%
 
-f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
-for i in range(N_STATES):
-    mean_state = np.mean(prob_mat[:,:,i], axis=0)
-    sem_state = np.std(prob_mat[:,:,i], axis=0) / np.sqrt(prob_mat.shape[0])
-    ax1.plot(time_ax, mean_state, color=cmap[i])
+f, ax1 = plt.subplots(figsize=(1.25, 2), dpi=dpi)
+ax1.add_patch(Rectangle((0, -1.5), 1, 1.9, color='royalblue', alpha=0.25, lw=0))
+for i, this_state in enumerate([5, 4, 1, 0, 3, 7, 6, 2]):
+    mean_state = (np.mean(prob_mat[:,:,this_state], axis=0)
+                  - np.mean(prob_mat[:,time_ax < 0,this_state])) - (i/6)
+    
+    sem_state = np.std(prob_mat[:,:,this_state], axis=0) / np.sqrt(prob_mat.shape[0])
+    ax1.plot(time_ax, mean_state, color=cmap[this_state])
     ax1.fill_between(time_ax, mean_state + sem_state, mean_state - sem_state, alpha=0.25,
-                     color=cmap[i], lw=0)
-ax1.set(ylabel='P(state)', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4])
-plt.tight_layout()
-sns.despine(trim=True)
+                     color=cmap[this_state], lw=0)
+ax1.plot([-1.1, -1.1], [-1.5, -1.25], color='k')
+ax1.plot([0, 2], [-1.55, -1.55], color='k')
+ax1.text(-1.4, -1.35, '25%', rotation=90, ha='center', va='center')
+ax1.text(1, -1.63, '2s', ha='center', va='center')
+ax1.set(xticks=[], yticks=[])
+ax1.set_ylabel('P(state)', labelpad=0)
+sns.despine(trim=True, left=True, bottom=True)
+plt.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.98)
 plt.savefig(join(fig_path, f'hmm_example_p_states_{REGION}.pdf'))
 
 
@@ -222,7 +237,7 @@ plt.savefig(join(fig_path, f'hmm_example_p_states_{REGION}.pdf'))
 trial = 38
 
 colors, dpi = figure_style()
-cmap = sns.color_palette(colors['states_light'], N_STATES)
+cmap = sns.color_palette(colors['states_light'], n_states)
 f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 
 tickedges = np.arange(0, binned_spikes.shape[1]+1)
@@ -236,7 +251,7 @@ ax1.plot([0, 2], [0, 0], lw=0.75, color='k', clip_on=False)
 ax1.text(1, -2, '2s', ha='center', va='center')
 
 ax1_2 = ax1.twinx()
-for kk in range(N_STATES):
+for kk in range(n_states):
     ax1_2.plot(time_ax, prob_mat[trial, :, kk], color=cmap[kk], lw=0.75)
 ax1.set(yticks=[0, binned_spikes.shape[1]], yticklabels=[1, binned_spikes.shape[1]], 
         ylim=[0, binned_spikes.shape[1]], xticks=[])
