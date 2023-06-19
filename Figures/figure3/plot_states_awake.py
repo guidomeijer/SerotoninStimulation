@@ -167,7 +167,7 @@ for i, region in enumerate(np.unique(p_state_null_df['region'])):
 
 
 # %%
-f, axs = plt.subplots(1, 7, figsize=(5.5, 1.75), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(1, 7, figsize=(6.25, 1.75), dpi=dpi, sharey=True, sharex=True)
 for i, region in enumerate(REGION_ORDER):
     axs[i].add_patch(Rectangle((0, -0.05), 1, 0.1, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time', y='p_trans_bl',
@@ -190,7 +190,7 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'state_change_rate_baseline.pdf'))
 
 # %%
-f, axs = plt.subplots(1, 7, figsize=(5.5, 1.75), dpi=dpi, sharey=True, sharex=True)
+f, axs = plt.subplots(1, 7, figsize=(6.25, 1.75), dpi=dpi, sharey=True, sharex=True)
 for i, region in enumerate(REGION_ORDER):
     axs[i].add_patch(Rectangle((0, 0), 1, 0.3, color='royalblue', alpha=0.25, lw=0))
     sns.lineplot(data=state_trans_null_df[state_trans_null_df['region'] == region], x='time', y='p_trans',
