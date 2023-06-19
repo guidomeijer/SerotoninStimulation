@@ -17,6 +17,7 @@ from os.path import join, realpath, dirname, split
 
 BIN_SIZE = 100  # ms
 NEURONS = 'all'  # non-sig, sig or all
+N_STATES_SELECT = 'region'
 SERT_CRE = 1
 REGION_ORDER = ['Frontal cortex', 'Hippocampus', 'Thalamus', 'Amygdala', 'Sensory cortex',
                 'Midbrain', 'Striatum']
@@ -26,8 +27,9 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
-state_trans_df = pd.read_csv(join(save_path, f'state_trans_{BIN_SIZE}msbins_{NEURONS}.csv'))
-state_trans_null_df = pd.read_csv(join(save_path, f'state_trans_null_{BIN_SIZE}msbins_{NEURONS}.csv'))
+str_add = f'{BIN_SIZE}msbins_{NEURONS}_{N_STATES_SELECT}-nstates'
+state_trans_df = pd.read_csv(join(save_path, f'state_trans_{str_add}.csv'))
+state_trans_null_df = pd.read_csv(join(save_path, f'state_trans_null_{str_add}.csv'))
 
 # Only select sert-cre mice
 subjects = load_subjects()

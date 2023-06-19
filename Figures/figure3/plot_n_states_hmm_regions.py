@@ -66,7 +66,7 @@ f, axs = plt.subplots(1, len(regions), figsize=(9, 1.75), dpi=dpi)
 for i, region in enumerate(regions):
     sns.lineplot(data=hmm_ll_df[hmm_ll_df['region'] == region], x='n_states', y='ll_norm',
                  errorbar='se', ax=axs[i], marker='o', err_kws={'lw': 0}, zorder=1)
-    axs[i].plot([N_STATES, N_STATES], axs[i].get_ylim(), color='grey', ls='--', lw=0.75)
+    #axs[i].plot([N_STATES, N_STATES], axs[i].get_ylim(), color='grey', ls='--', lw=0.75)
     if i == 0:
         axs[i].set(ylabel='Normalized log likelihood', xlabel='Number of states', title=f'{region}',
                    xlim=[1.5, MAX_STATES+0.5], xticks=np.arange(2, MAX_STATES+1, 2))

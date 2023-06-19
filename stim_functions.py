@@ -518,7 +518,6 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
 
                 # Load in chunk of trace
                 trace_chunk = sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1]))[:, 1]
-                analog_chunk = sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1]))[:, 3]
                 times_chunk = np.arange(chunk_edges[j], chunk_edges[j+1]) / sr.fs
 
                 # Get start times of pulse trains
@@ -536,6 +535,7 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
                 
                 # Get stimulation amplitudes
                 if sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1])).shape[1] > 3:
+                    analog_chunk = sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1]))[:, 3]
                     these_amps = np.empty(these_train_times.shape)
                     for ii, t_time in enumerate(these_train_times):
                         this_amp = np.max(analog_chunk[(times_chunk >= t_time) & (times_chunk <= t_time + 1)])
