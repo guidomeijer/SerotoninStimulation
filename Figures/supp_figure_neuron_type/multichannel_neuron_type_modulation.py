@@ -113,11 +113,11 @@ f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
 plt.subplots_adjust(wspace=2)
 
 sns.barplot(data=perc_mod_merged, x='region', y='percentage', errorbar='se', hue='type',
-            hue_order=['NS', 'RS1', 'RS2'],
-            palette=[colors['NS'], colors['RS1'], colors['RS2']], ax=ax1)
+            hue_order=['NS', 'WS1', 'WS2'],
+            palette=[colors['NS'], colors['WS1'], colors['WS2']], ax=ax1)
 """
 sns.swarmplot(data=perc_mod_merged, x='region', y='percentage', hue='type',
-              hue_order=['NS', 'RS1', 'RS2'], dodge=True, legend=False, size=3,
+              hue_order=['NS', 'WS1', 'WS2'], dodge=True, legend=False, size=3,
               palette=['gray', 'gray', 'gray'], ax=ax1)
 """
 ax1.set(ylim=[0, 80], ylabel='Modulated neurons (%)', xlabel='')
@@ -126,9 +126,9 @@ ax1.legend(frameon=False, prop={'size': 5.5}, bbox_to_anchor=(0.8, 0.7))
 
 sns.boxplot(x='type', y=var, ax=ax2, data=mod_neurons, showmeans=True,
             meanprops={"marker": "_", "markeredgecolor": "black", "markersize": "8"},
-            order=['NS', 'RS1', 'RS2'], fliersize=0, zorder=2, **PROPS)
-sns.swarmplot(data=mod_neurons, x='type', y=var, order=['NS', 'RS1', 'RS2'], legend=None,
-              size=2, hue='type', palette=[colors['NS'], colors['RS1'], colors['RS2']], ax=ax2,
+            order=['NS', 'WS1', 'WS2'], fliersize=0, zorder=2, **PROPS)
+sns.swarmplot(data=mod_neurons, x='type', y=var, order=['NS', 'WS1', 'WS2'], legend=None,
+              size=2, hue='type', palette=[colors['NS'], colors['WS1'], colors['WS2']], ax=ax2,
               zorder=1)
 ax2.set(ylabel='Modulation index', ylim=[-.75, .75], yticks=[-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75],
         xlabel='')

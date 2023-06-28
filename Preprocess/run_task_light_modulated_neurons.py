@@ -20,7 +20,7 @@ from stim_functions import (paths, remap, query_ephys_sessions, load_trials, fig
 one = init_one()
 
 # Settings
-OVERWRITE = True
+OVERWRITE = False
 NEURON_QC = True
 PLOT = False
 T_BEFORE = 1  # for plotting
