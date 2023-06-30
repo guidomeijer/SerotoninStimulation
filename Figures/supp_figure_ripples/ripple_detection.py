@@ -24,12 +24,15 @@ f_path, save_path = paths()
 fig_path = join(f_path, 'Extra plots', 'Ripples')
 
 # Settings
-OVERWRITE = False
+OVERWRITE = True
 FILT_ORDER = 5
 LOW_CUT = 150
 HIGH_CUT = 250
 FS = 2500
 SCALEBAR = 0.5
+MIN_TIME_BETWEEN = 0.1  # s
+BIN_SIZE = 0.25
+SMOOTHING = 0.1
 colors, dpi = figure_style()
     
 # Query sessions
@@ -62,8 +65,12 @@ for i in rec.index:
                               relative_to='begin', one=one)    
     
     # Load in AP band RMS
-    rms_ap = one.load_object(eid, 'ephysChannels', collection=f'raw_ephys_data/{probe}',
-                             attribute=['apRMS'])['apRMS'][0,:]
+    try:
+        rms_ap = one.load_object(eid, 'ephysChannels', collection=f'raw_ephys_data/{probe}',
+                                 attribute=['apRMS'])['apRMS'][0,:]
+    except Exception as err:
+        print(err)
+        continue
     
     # Get channels in CA1
     ca1_channels = np.where(channels[probe]['acronym'] == 'CA1')[0]
@@ -77,17 +84,19 @@ for i in rec.index:
     
     # Detect ripples
     std_cross = time[filt_lfp > np.std(filt_lfp)*6]
-    ripple_start = std_cross[np.concatenate(([True], np.diff(std_cross) > 0.01))]
+    if std_cross.shape[0] == 0:
+        continue
+    ripple_start = std_cross[np.concatenate(([True], np.diff(std_cross) > MIN_TIME_BETWEEN))]
     
     # Get ripple rate
     peths, _ = calculate_peths(ripple_start, np.ones(ripple_start.shape[0]), [1], opto_times,
-                               1, 4, 0.5, 0.1)
+                               1, 4, BIN_SIZE, SMOOTHING)
     
     # Plot
     p, ax = plt.subplots(1, 1, figsize=(1.25, 1.75), dpi=dpi)
     ax.add_patch(Rectangle((0, -100), 1, 200, color='royalblue', alpha=0.25, lw=0))
     peri_event_time_histogram(ripple_start, np.ones(ripple_start.shape[0]), opto_times,
-                              1, t_before=1, t_after=4, bin_size=0.5, smoothing=0.1,
+                              1, t_before=1, t_after=4, bin_size=BIN_SIZE, smoothing=SMOOTHING,
                               include_raster=True, error_bars='sem', ax=ax,
                               pethline_kwargs={'color': 'black', 'lw': 1},
                               errbar_kwargs={'color': 'black', 'alpha': 0.3, 'lw': 0},
