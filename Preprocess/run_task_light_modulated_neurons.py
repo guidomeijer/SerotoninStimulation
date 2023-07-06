@@ -11,24 +11,36 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 import seaborn as sns
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.task.closed_loop import (responsive_units, roc_single_event, differentiate_units,
-                                       roc_between_two_events)
+                                       roc_between_two_events, generate_pseudo_blocks)
 from stim_functions import (paths, remap, query_ephys_sessions, load_trials, figure_style,
                             get_neuron_qc, peri_multiple_events_time_histogram,
-                            remove_artifact_neurons, init_one)
+                            remove_artifact_neurons, init_one, calculate_peths)
 one = init_one()
 
 # Settings
-OVERWRITE = False
+OVERWRITE = True
 NEURON_QC = True
-PLOT = False
+PLOT = True
+
 T_BEFORE = 1  # for plotting
 T_AFTER = 2
-PRE_TIME = [0.5, 0]  # for significance testing
-POST_TIME = [0, 0.5]
-STIM_TIME = [0.5, 1]  # time for stimulation testing
 BIN_SIZE = 0.05
+
+PRE_TIME = [0.5, 0]  # for responsiveness testing
+POST_TIME = [0, 0.5]
+
+STIM_TIME = [0.5, 1]  # time for stimulation ROC
+
+PRE_TIME_OPTO = 0 # for statistical testing of opto on vs opto off
+POST_TIME_OPTO = 2
+BIN_SIZE_OPTO = 0.5
+
+N_PERMUT = 500  # for permutation testing
+
 fig_path, save_path = paths()
 fig_path = join(fig_path, 'Extra plots', 'Task neurons')
 colors, dpi = figure_style()
@@ -132,37 +144,79 @@ for i in rec.index.values:
                                                  trials['laser_stimulation'], pre_time=-STIM_TIME[0],
                                                  post_time=STIM_TIME[1])
     roc_stim_mod = 2 * (roc_auc - 0.5)
-
+    
+    # Get significantly opto modulated neurons (two-way anova over timebins * opto)
+    """
+    print(f'Starting permutation testing with {N_PERMUT} shuffles..')
+    zero_contr_trials = trials[trials['signed_contrast'] == 0]
+    _, spks_no_stim = calculate_peths(spikes.times, spikes.clusters, np.unique(spikes.clusters),
+                                      zero_contr_trials['goCue_times'][
+                                          zero_contr_trials['laser_stimulation'] == 0],
+                                      pre_time=PRE_TIME_OPTO, post_time=POST_TIME_OPTO,
+                                      bin_size=BIN_SIZE_OPTO, smoothing=0)
+    _, spks_stim = calculate_peths(spikes.times, spikes.clusters, np.unique(spikes.clusters),
+                                   zero_contr_trials['goCue_times'][
+                                       zero_contr_trials['laser_stimulation'] == 1],
+                                   pre_time=PRE_TIME_OPTO, post_time=POST_TIME_OPTO,
+                                   bin_size=BIN_SIZE_OPTO, smoothing=0)
+    n_bins = spks_stim.shape[2]
+    opto_mod_p = np.empty(len(np.unique(spikes.clusters)))
+    for n in range(len(np.unique(spikes.clusters))):
+        stim_df = pd.DataFrame(data={
+            'n_spikes': np.concatenate(spks_stim[:, n, :]),
+            'timebin': np.tile(np.arange(n_bins), spks_stim.shape[0]),
+            'opto': 1})
+        no_stim_df = pd.DataFrame(data={
+            'n_spikes': np.concatenate(spks_no_stim[:, n, :]),
+            'timebin': np.tile(np.arange(n_bins), spks_no_stim.shape[0]),
+            'opto': 0})
+        this_df = pd.concat((stim_df, no_stim_df))
+        model = ols('n_spikes ~ C(timebin) + C(opto) + C(timebin):C(opto)', data=this_df).fit()
+        result = sm.stats.anova_lm(model, type=2)
+        opto_mod_p[n] = result['PR(>F)']['C(opto)']
+    opto_mod = opto_mod_p < 0.05
+    
+    # Do two-way ANOVA a bunch of times with generated stim blocks 
+    opto_mod_s_null = np.empty((N_PERMUT, len(np.unique(spikes.clusters))))
+    for ii in range(N_PERMUT):
+        if np.mod(ii, 100) == 0:
+            print(f'Iteration {ii} of {N_PERMUT}')
+        opto_null = (generate_pseudo_blocks(trials.shape[0], first5050=0) == 0.2).astype(int)
+        zero_contr_opto_null = opto_null[trials['signed_contrast'] == 0]
+        this_opto_mod_f = np.empty(len(np.unique(spikes.clusters)))
+        _, spks_no_stim = calculate_peths(spikes.times, spikes.clusters, np.unique(spikes.clusters),
+                                          zero_contr_trials['goCue_times'][zero_contr_opto_null == 0],
+                                          pre_time=PRE_TIME_OPTO, post_time=POST_TIME_OPTO,
+                                          bin_size=BIN_SIZE_OPTO, smoothing=0)
+        _, spks_stim = calculate_peths(spikes.times, spikes.clusters, np.unique(spikes.clusters),
+                                       zero_contr_trials['goCue_times'][zero_contr_opto_null == 1],
+                                       pre_time=PRE_TIME_OPTO, post_time=POST_TIME_OPTO,
+                                       bin_size=BIN_SIZE_OPTO, smoothing=0)
+        for nn in range(len(np.unique(spikes.clusters))):
+            stim_df = pd.DataFrame(data={
+                'n_spikes': np.concatenate(spks_stim[:, nn, :]),
+                'timebin': np.tile(np.arange(n_bins), spks_stim.shape[0]),
+                'opto': 1})
+            no_stim_df = pd.DataFrame(data={
+                'n_spikes': np.concatenate(spks_no_stim[:, nn, :]),
+                'timebin': np.tile(np.arange(n_bins), spks_no_stim.shape[0]),
+                'opto': 0})
+            this_df = pd.concat((stim_df, no_stim_df))
+            model = ols('n_spikes ~ C(timebin) + C(opto) + C(timebin):C(opto)', data=this_df).fit()
+            result = sm.stats.anova_lm(model, type=2)
+            this_opto_mod_f[nn] = result['F']['C(opto)']
+        opto_mod_s_null[ii, :] = this_opto_mod_f
+    opto_mod = opto_mod_f > np.quantile(opto_mod_s_null, 0.95, axis=0)
+    """
+        
     # Get significantly opto modulated neurons; test 4 different time windows
     zero_contr_trials = trials[trials['signed_contrast'] == 0]
-    stim_mod_p = np.empty((4, len(np.unique(spikes.clusters))))
-    stim_mod_p[0, :] = differentiate_units(spikes.times, spikes.clusters, zero_contr_trials['goCue_times'],
-                                           zero_contr_trials['laser_stimulation'], pre_time=0, post_time=0.5)[2]
-    stim_mod_p[1, :] = differentiate_units(spikes.times, spikes.clusters, zero_contr_trials['goCue_times'],
-                                           zero_contr_trials['laser_stimulation'], pre_time=0.5, post_time=1)[2]
-    stim_mod_p[2, :] = differentiate_units(spikes.times, spikes.clusters, zero_contr_trials['goCue_times'],
-                                           zero_contr_trials['laser_stimulation'], pre_time=1, post_time=1.5)[2]
-    stim_mod_p[3, :] = differentiate_units(spikes.times, spikes.clusters, zero_contr_trials['goCue_times'],
-                                           zero_contr_trials['laser_stimulation'], pre_time=1.5, post_time=2)[2]
-    stim_mod_p = np.min(stim_mod_p, axis=0)
-    stim_mod = stim_mod_p < 0.05 / 4  # Bonferroni correction for multiple testing
-    print(f'Found {np.sum(stim_mod)} opto modulated neurons (0% contrast)')
+    opto_mod_p = differentiate_units(spikes.times, spikes.clusters, zero_contr_trials['goCue_times'],
+                                     zero_contr_trials['laser_stimulation'], pre_time=0.2, post_time=1)[2]   
+    opto_mod = opto_mod_p < 0.05      
+    print(f'{np.sum(opto_mod)} out of {opto_mod.shape[0]} opto modulated neurons '
+          f'({np.round((np.sum(opto_mod)/opto_mod.shape[0])*100, 1)}%)')
     
-    # Get significantly opto modulated neurons; test 4 different time windows
-    full_contr_trials = trials[(trials['signed_contrast'] == 1) | (trials['signed_contrast'] == -1)]
-    stim_mod_p_full = np.empty((4, len(np.unique(spikes.clusters))))
-    stim_mod_p_full[0, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
-                                                full_contr_trials['laser_stimulation'], pre_time=0, post_time=0.5)[2]
-    stim_mod_p_full[1, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
-                                                full_contr_trials['laser_stimulation'], pre_time=0.5, post_time=1)[2]
-    stim_mod_p_full[2, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
-                                                full_contr_trials['laser_stimulation'], pre_time=1, post_time=1.5)[2]
-    stim_mod_p_full[3, :] = differentiate_units(spikes.times, spikes.clusters, full_contr_trials['goCue_times'],
-                                                full_contr_trials['laser_stimulation'], pre_time=1.5, post_time=2)[2]
-    stim_mod_p_full = np.min(stim_mod_p_full, axis=0)
-    stim_mod_full = stim_mod_p_full < 0.05 / 4  # Bonferroni correction for multiple testing
-    print(f'Found {np.sum(stim_mod_full)} opto modulated neurons (100% contrast)')
-
     # Add results to df
     cluster_regions = remap(clusters.acronym[neuron_ids])
     task_neurons = pd.concat((task_neurons, pd.DataFrame(data={
@@ -171,8 +225,7 @@ for i in rec.index.values:
         'task_roc': roc_task, 'task_no_opto_roc': roc_no_opto_task, 'task_opto_roc': roc_opto_task,
         'choice_no_stim_roc': choice_no_stim_roc, 'choice_stim_roc': choice_stim_roc,
         'choice_stim_p': choice_stim_p, 'choice_no_stim_p': choice_no_stim_p,
-        'opto_modulated': stim_mod, 'opto_mod_full': stim_mod_full, 'opto_mod_roc': roc_stim_mod,
-        'opto_mod_p': stim_mod_p})))
+        'opto_modulated': opto_mod, 'opto_mod_roc': roc_stim_mod})))
     task_neurons = remove_artifact_neurons(task_neurons)
 
     if PLOT:

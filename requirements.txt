@@ -1,3 +1,4 @@
+statsmodels
 ibllib
 scikit-posthocs
 zetapy
