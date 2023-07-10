@@ -20,8 +20,6 @@ from stim_functions import paths, figure_style, load_subjects, high_level_region
 # Settings
 N_BINS = 30
 MIN_NEURONS = 0
-AP = [2, -1.5, -3.5]
-colors, dpi = figure_style()
 
 # Get paths
 f_path, save_path = paths()
