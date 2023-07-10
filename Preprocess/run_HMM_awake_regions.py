@@ -17,12 +17,11 @@ from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
 from scipy.ndimage import gaussian_filter
 from brainbox.singlecell import calculate_peths
-from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
+from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times, init_one,
                             high_level_regions, figure_style, N_STATES_REGIONS, N_STATES)
-from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
-one = ONE(mode='remote')
+one = init_one()
 
 # Settings
 BIN_SIZE = 0.1  # s
@@ -35,7 +34,7 @@ MIN_NEURONS = 5
 CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = True
+PLOT = False
 N_STATE_SELECT = 'region'  # global or region
 
 # Create text to add to save files
@@ -189,6 +188,9 @@ for i in rec.index.values:
         
         # Crop timewindow for plotting
         state_mat = state_mat[:, use_timepoints]
+        
+        # Save the trial-level P(state) data
+        np.save(join(save_path, 'HMM', f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
         
         if PLOT:
             # Plot example trial
