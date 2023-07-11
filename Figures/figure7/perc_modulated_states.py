@@ -24,6 +24,7 @@ MIN_NEURONS = 0
 # Get paths
 f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
+colors, dpi = figure_style()
 
 # Load in results
 task_neurons = pd.read_csv(join(save_path, 'task_modulated_neurons.csv'))
@@ -66,11 +67,11 @@ anes_mice = anes_mice.rename(columns={0: 'perc_mod'})
 
 # Add modulation index
 task_mice['mod_index'] = task_neurons[task_neurons['opto_modulated']].groupby(
-    ['subject', 'subject_nr']).median(numeric_only=True)['opto_mod_roc']
+    ['subject', 'subject_nr']).mean(numeric_only=True)['opto_mod_roc']
 awake_mice['mod_index'] = awake_neurons[awake_neurons['modulated']].groupby([
-    'subject', 'subject_nr']).median(numeric_only=True)['mod_index_late']
+    'subject', 'subject_nr']).mean(numeric_only=True)['mod_index_late']
 anes_mice['mod_index'] = anes_neurons[anes_neurons['modulated']].groupby(
-    ['subject', 'subject_nr']).median(numeric_only=True)['mod_index_late']
+    ['subject', 'subject_nr']).mean(numeric_only=True)['mod_index_late']
 
 # Reset index
 task_mice = task_mice.reset_index()
