@@ -5,6 +5,7 @@ Created on Mon Jul 10 16:11:41 2023
 By Guido Meijer
 """
 
+import numpy as np
 from glob import glob
 from os.path import join, split
 from stim_functions import paths
