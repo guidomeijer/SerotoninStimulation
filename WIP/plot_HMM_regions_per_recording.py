@@ -6,9 +6,26 @@ By Guido Meijer
 """
 
 import numpy as np
+import seaborn as sns
 from glob import glob
 from os.path import join, split
-from stim_functions import paths
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from stim_functions import paths, figure_style
+
+# Settings
+CMAP = 'Set2'
+PRE_TIME = 1
+POST_TIME = 4
+
+# Plotting
+colors, dpi = figure_style()
+
+def get_most_likely_states(state_prob):
+    ml_state = np.empty((state_prob.shape[0], state_prob.shape[1]))
+    for trial in range(state_prob.shape[0]):
+        ml_state[trial, :] = np.argmax(state_prob[trial, : :], axis=1)
+    return ml_state
 
 # Get paths
 f_path, save_path = paths()
@@ -21,5 +38,25 @@ all_files = glob(join(save_path, 'HMM', '*.npy'))
 all_rec = np.unique([split(i)[1][:28] for i in all_files])
 
 for i, this_rec in enumerate(all_rec):
-    glob(join(save_path, ))
     
+    # Get all brain regions simultaneously recorded in this recording session
+    rec_region = glob(join(save_path, 'HMM', f'{this_rec}*'))
+    
+    # Plot
+    f, axs = plt.subplots(1, len(rec_region), dpi=dpi, figsize=(1.75*len(rec_region), 1.75))
+    if len(rec_region) == 1:
+        axs = [axs]
+    for ii in range(len(rec_region)):
+        state_prob = np.load(f'{rec_region[ii]}')
+        ml_state = get_most_likely_states(state_prob)
+        n_states = state_prob.shape[2]
+        axs[ii].imshow(ml_state, aspect='auto', cmap=ListedColormap(sns.color_palette(CMAP, n_states)),
+                       vmin=0, vmax=state_prob.shape[2]-1,
+                       extent=(-PRE_TIME, POST_TIME, 1, state_prob.shape[1]), interpolation=None)
+        axs[ii].plot([0, 0], [1, state_prob.shape[1]], ls='--', color='k', lw=0.75)
+        axs[ii].set(ylabel='Trials', xlabel='Time from stimulation start (s)',
+                    xticks=[-1, 0, 1, 2, 3, 4], title=f'{split(rec_region[ii])[1][29:-4]}')
+    sns.despine(trim=True)
+    plt.tight_layout()
+    plt.savefig(join(fig_path, f'{this_rec[:20]}.jpg'), dpi=600)
+    plt.close(f)
