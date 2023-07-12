@@ -40,10 +40,11 @@ all_rec = np.unique([split(i)[1][:28] for i in all_files])
 for i, this_rec in enumerate(all_rec):
     
     # Get all brain regions simultaneously recorded in this recording session
-    rec_region = glob(join(save_path, 'HMM', f'{this_rec}*'))
+    rec_region = glob(join(save_path, 'HMM', f'{this_rec[:20]}*'))
     
     # Plot
-    f, axs = plt.subplots(1, len(rec_region), dpi=dpi, figsize=(1.75*len(rec_region), 1.75))
+    f, axs = plt.subplots(1, len(rec_region), dpi=dpi, figsize=(1.5*len(rec_region), 1.75),
+                          sharey=True)
     if len(rec_region) == 1:
         axs = [axs]
     for ii in range(len(rec_region)):
@@ -54,9 +55,12 @@ for i, this_rec in enumerate(all_rec):
                        vmin=0, vmax=state_prob.shape[2]-1,
                        extent=(-PRE_TIME, POST_TIME, 1, state_prob.shape[1]), interpolation=None)
         axs[ii].plot([0, 0], [1, state_prob.shape[1]], ls='--', color='k', lw=0.75)
-        axs[ii].set(ylabel='Trials', xlabel='Time from stimulation start (s)',
-                    xticks=[-1, 0, 1, 2, 3, 4], title=f'{split(rec_region[ii])[1][29:-4]}')
+        axs[ii].set(yticks=[1, 50], xticks=[-1, 0, 1, 2, 3, 4], title=f'{split(rec_region[ii])[1][29:-4]}')
+        if ii == 0:
+            axs[ii].set_ylabel('Trials', labelpad=-10)
+    f.text(0.5, 0.02, 'Time from stimulation start (s)', ha='center')
     sns.despine(trim=True)
-    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.19, left=0.1, right=0.95)
+    
     plt.savefig(join(fig_path, f'{this_rec[:20]}.jpg'), dpi=600)
     plt.close(f)
