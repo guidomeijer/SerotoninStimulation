@@ -21,11 +21,10 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-OVERWRITE = False
+OVERWRITE = True
 NEURON_QC = True
-PRE_TIME = [0.5, 0]  # for modulation index
-POST_TIME_EARLY = [0, 0.5]
-POST_TIME_LATE = [0.5, 1]
+PRE_TIME = [0.8, 0]  # for modulation index
+POST_TIME = [0.2, 1]
 BIN_SIZE = 0.05
 MIN_FR = 0.1
 _, save_path = paths()
@@ -167,19 +166,13 @@ for i in rec.index.values:
     # Calculate modulation index
     roc_auc, cluster_ids = roc_single_event(spikes.times, spikes.clusters,
                                             opto_train_times, pre_time=PRE_TIME,
-                                            post_time=POST_TIME_EARLY)
-    mod_idx_early = 2 * (roc_auc - 0.5)
-
-    roc_auc, cluster_ids = roc_single_event(spikes.times, spikes.clusters,
-                                            opto_train_times, pre_time=PRE_TIME,
-                                            post_time=POST_TIME_LATE)
-    mod_idx_late = 2 * (roc_auc - 0.5)
+                                            post_time=POST_TIME)
+    mod_idx = 2 * (roc_auc - 0.5)
 
     cluster_regions = remap(clusters.acronym[cluster_ids])
     light_neurons = pd.concat((light_neurons, pd.DataFrame(data={
         'subject': subject, 'date': date, 'eid': eid, 'probe': probe, 'pid': pid,
-        'region': cluster_regions, 'neuron_id': cluster_ids,
-        'mod_index_early': mod_idx_early, 'mod_index_late': mod_idx_late,
+        'region': cluster_regions, 'neuron_id': cluster_ids, 'mod_index': mod_idx,
         'modulated': p_values < 0.05, 'p_value': p_values, 'firing_rate': firing_rates,
         'latency_peak': latency_peak, 'latency_peak_onset': latency_peak_onset})))
 
