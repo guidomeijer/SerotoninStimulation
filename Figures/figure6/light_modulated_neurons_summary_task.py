@@ -75,8 +75,8 @@ sns.swarmplot(x=[2]*np.sum(all_mice['sert-cre'] == 0),
 #sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=2.5, hue='subject_nr',
 #              palette=this_cmap, legend=None, ax=ax1)
 f.subplots_adjust(bottom=0.2, left=0.35, right=0.85, top=0.9)
-ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 50], xlabel='',
-        yticks=[0, 30])
+ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 35], xlabel='',
+        yticks=[0, 35])
 
 sns.despine(trim=True)
 #plt.tight_layout()
@@ -94,7 +94,7 @@ sns.regplot(data=merged_df, x='perc_mod', y='rel_fluo', ax=ax1, ci=None,
                          'cmap': this_cmap, 'alpha': 1, 's': 3},
             line_kws={'color': 'k', 'lw': 1})
 
-ax1.set(xlim=[0, 32], xticks=[0, 30],
+ax1.set(xlim=[0, 35], xticks=[0, 35],
         yticks=[0, 175, 350])
 ax1.tick_params(axis='x', which='major', pad=2)
 ax1.set_ylabel('Rel. expression (%)', rotation=90, labelpad=2)
