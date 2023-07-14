@@ -31,7 +31,7 @@ subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     corr_df.loc[corr_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
-# Plot
+# %% Plot all region pairs together
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 ax1.add_patch(Rectangle((0, -0.005), 1, 0.01, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=corr_df, x='time', y='r', errorbar='se', hue='sert-cre', err_kws={'lw': 0},
@@ -47,3 +47,9 @@ for t, l in zip(g.texts, ['WT', 'SERT']):
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'state_correlation.jpg'), dpi=600)
+
+# %% Plot region pairs seperately
+g = sns.FacetGrid(corr_df[corr_df['sert-cre'] == 1], col='region_pair', col_wrap=5, height=2,
+                  ylim=(-0.02, 0.02))
+g.map(sns.lineplot, 'time', 'r', color='k', errorbar='se')
+plt.savefig(join(fig_path, 'state_correlation_all_region_pair.jpg'), dpi=600)
