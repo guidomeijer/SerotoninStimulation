@@ -13,12 +13,10 @@ from scipy.stats import pearsonr
 from scipy.signal import gaussian
 from sklearn.cross_decomposition import CCA
 from sklearn.decomposition import PCA
-from sklearn.model_selection import LeaveOneOut, KFold
-from brainbox.metrics.single_units import spike_sorting_metrics
+from sklearn.model_selection import KFold
 from brainbox.io.one import SpikeSortingLoader
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                            get_artifact_neurons, calculate_peths, get_neuron_qc,
-                            high_level_regions)
+                            get_artifact_neurons, calculate_peths, get_neuron_qc, high_level_regions)
 from one.api import ONE
 from ibllib.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -27,19 +25,21 @@ cca = CCA(n_components=1, max_iter=5000)
 pca = PCA(n_components=10)
 
 # Settings
-OVERWRITE = True  # whether to overwrite existing runs
+OVERWRITE = False  # whether to overwrite existing runs
 NEURON_QC = True  # whether to use neuron qc to exclude bad units
+PCA = True  # whether to use PCA on neural activity before CCA
+N_PC = 10  # number of PCs to use
 MIN_NEURONS = 10  # minimum neurons per region
 WIN_SIZE = 0.1  # window size in seconds
-PRE_TIME = 1  # time before stim onset in s
-POST_TIME = 4  # time after stim onset in s
+PRE_TIME = 1.5  # time before stim onset in s
+POST_TIME = 4.5  # time after stim onset in s
 SMOOTHING = 0.05  # smoothing of psth
+MAX_DELAY = 0.5  # max delay shift
 SUBTRACT_MEAN = False  # whether to subtract the mean PSTH from each trial
 DIV_BASELINE = True  # whether to divide over baseline + 1 spk/s
-K_FOLD = 2  # k in k-fold
-K_FOLD_BOOTSTRAPS = 50  # how often to repeat the random trial selection
+K_FOLD = 5  # k in k-fold
+K_FOLD_BOOTSTRAPS = 20  # how often to repeat the random trial selection
 MIN_FR = 0.5  # minimum firing rate over the whole recording
-N_PC = 10  # number of PCs to use
 
 # Paths
 fig_path, save_path = paths()
@@ -52,14 +52,15 @@ if SMOOTHING > 0:
     window = gaussian(w, std=SMOOTHING / WIN_SIZE)
     window /= np.sum(window)
 
-# Query sessions with frontal and amygdala
-rec = query_ephys_sessions(one=one)
+# Query sessions with frontal
+rec = query_ephys_sessions(one=one, acronym=['MOs', 'CA1'])
 
 # Load in artifact neurons
 artifact_neurons = get_artifact_neurons()
 
-if ~OVERWRITE & isfile(join(save_path, 'cca_results.pickle')):
-    cca_df = pd.read_pickle(join(save_path, 'cca_results.pickle'))
+file_name = f'jPECC_delay_{WIN_SIZE}_binsize.pickle'
+if ~OVERWRITE & isfile(join(save_path, file_name)):
+    cca_df = pd.read_pickle(join(save_path, file_name))
 else:
     cca_df = pd.DataFrame(columns=['region_pair', 'eid'])
 
@@ -68,7 +69,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     # Get session details
     subject = rec.loc[rec['eid'] == eid, 'subject'].values[0]
     date = rec.loc[rec['eid'] == eid, 'date'].values[0]
-    print(f'Starting {subject}, {date}')
+    print(f'Starting {subject}, {date} [{i+1} of {len(np.unique(rec["eid"]))}]')
 
     # Load in laser pulse times
     try:
@@ -108,9 +109,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     pca_opto, spks_opto = dict(), dict()
     for probe in spikes.keys():
         for region in np.unique(clusters[probe]['region']):
-            if region == 'root':
-                continue
-            
+
             # Exclude neurons with low firing rates
             clusters_in_region = np.where(clusters[probe]['region'] == region)[0]
             fr = np.empty(clusters_in_region.shape[0])
@@ -137,7 +136,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                     for nn in range(binned_spks_opto.shape[1]):
                         for tt in range(binned_spks_opto.shape[0]):
                             binned_spks_opto[tt, nn, :] = (binned_spks_opto[tt, nn, :]
-                                                          / (np.mean(psth_opto['means'][nn, psth_opto['tscale'] < 0])
+                                                          / (np.median(psth_opto['means'][nn, psth_opto['tscale'] < 0])
                                                              + (1/PRE_TIME)))
 
                 if SUBTRACT_MEAN:
@@ -153,6 +152,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                 for tb in range(binned_spks_opto.shape[2]):
                     pca_opto[region][:, :, tb] = pca.fit_transform(binned_spks_opto[:, :, tb])
 
+
     # Perform CCA per region pair
     print('Starting CCA per region pair')
     all_cca_df = pd.DataFrame()
@@ -161,51 +161,63 @@ for i, eid in enumerate(np.unique(rec['eid'])):
             if region_1 == region_2:
                 continue
             region_pair = f'{np.sort([region_1, region_2])[0]}-{np.sort([region_1, region_2])[1]}'
-            
-            # Skip if already processed
-            if cca_df[(cca_df['region_pair'] == region_pair) & (cca_df['eid'] == eid)].shape[0] > 0:
-                print(f'Found {region_1}-{region_2} for {subject} {date}')
-                continue
-    
-            if (region_1 in pca_opto.keys()) & (region_2 in pca_opto.keys()):
-                print(f'Calculating {region_1}-{region_2}')
-    
-                # Run CCA
-                r_mean, r_std, r_median = np.empty(n_time_bins), np.empty(n_time_bins), np.empty(n_time_bins)
-                for tb in range(n_time_bins):
-                    if np.mod(tb, 20) == 0:
-                        print(f'Timebin {tb} of {n_time_bins}..')
+
+        # Skip if already processed
+        if cca_df[(cca_df['region_pair'] == region_pair) & (cca_df['eid'] == eid)].shape[0] > 0:
+            print(f'Found {region_1}-{region_2} for {subject} {date}')
+            continue
+
+        if (region_1 in pca_opto.keys()) & (region_2 in pca_opto.keys()):
+            print(f'Calculating {region_pair}')
+
+            # Run CCA per combination of two timebins
+            r_mean = np.empty((n_time_bins - int(MAX_DELAY/WIN_SIZE)*2, (int(MAX_DELAY/WIN_SIZE) * 2)+1))
+            r_std = np.empty((n_time_bins - int(MAX_DELAY/WIN_SIZE)*2, (int(MAX_DELAY/WIN_SIZE) * 2)+1))
+            delta_time = np.arange(-MAX_DELAY, MAX_DELAY + WIN_SIZE, WIN_SIZE)
+
+            for it_1, time_1 in enumerate(psth_opto['tscale'][int(MAX_DELAY/WIN_SIZE) : -int(MAX_DELAY/WIN_SIZE)]):
+                if np.mod(it_1, 20) == 0:
+                    print(f'Timebin {it_1} of {n_time_bins}..')
+                for it_2, time_2 in enumerate(psth_opto['tscale'][(psth_opto['tscale'] >= time_1 - MAX_DELAY - (WIN_SIZE/2))
+                                                                  & (psth_opto['tscale'] <= time_1 + MAX_DELAY + (WIN_SIZE/2))]):
+
+                    # Get timebin index
+                    tb_1 = np.where(psth_opto['tscale'] == time_1)[0][0]
+                    tb_2 = np.where(psth_opto['tscale'] == time_2)[0][0]
+
+                    # Get activity matrix
+                    if PCA:
+                        act_mat = pca_opto
+                    else:
+                        act_mat = spks_opto
+
+                    # Run CCA
                     opto_x = np.empty(pca_opto[region_1][:, :, 0].shape[0])
                     opto_y = np.empty(pca_opto[region_1][:, :, 0].shape[0])
-    
+
                     r_boot = []
                     for kk in range(K_FOLD_BOOTSTRAPS):
-                        x_test, y_test = np.empty(opto_train_times.shape[0]), np.empty(opto_train_times.shape[0])
                         r_splits = []
+                        x_test, y_test = np.empty(opto_train_times.shape[0]), np.empty(opto_train_times.shape[0])
                         for train_index, test_index in kfold.split(pca_opto[region_1][:, :, 0]):
-                            cca.fit(pca_opto[region_1][train_index, :, tb],
-                                    pca_opto[region_2][train_index, :, tb])
-                            x, y = cca.transform(pca_opto[region_1][test_index, :, tb],
-                                                 pca_opto[region_2][test_index, :, tb])
+                            cca.fit(pca_opto[region_1][train_index, :, tb_1],
+                                    pca_opto[region_2][train_index, :, tb_2])
+                            x, y = cca.transform(pca_opto[region_1][test_index, :, tb_1],
+                                                 pca_opto[region_2][test_index, :, tb_2])
                             x_test[test_index] = x.T[0]
                             y_test[test_index] = y.T[0]
                             r_splits.append(pearsonr(x.T[0], y.T[0])[0])
-                        r_boot.append(pearsonr(x_test, y_test)[0])
                         #r_boot.append(np.mean(r_splits))
-                    r_mean[tb] = np.mean(r_boot)
-                    r_median[tb] = np.median(r_boot)
-                    r_std[tb] = np.std(r_boot)
-    
-                # Add to dataframe
-                cca_df = pd.concat((cca_df, pd.DataFrame(index=[cca_df.shape[0]], data={
-                    'subject': subject, 'date': date, 'eid': eid, 'region_1': region_1, 'region_2': region_2,
-                    'region_pair': region_pair, 'r_mean': [r_mean], 'r_std': [r_std],
-                    'r_median': [r_median], 'time': [psth_opto['tscale']]})))
+                        r_boot.append(pearsonr(x_test, y_test)[0])
+                    r_mean[it_1, it_2] = np.mean(r_boot)
+                    r_std[it_1, it_2] = np.std(r_boot)
 
-    # Save result
-    cca_df.to_pickle(join(save_path, 'cca_results.pickle'))
-    print('Results saved to disk')
+            # Add to dataframe
+            cca_df = pd.concat((cca_df, pd.DataFrame(index=[cca_df.shape[0]], data={
+                'subject': subject, 'date': date, 'eid': eid, 'region_1': region_1, 'region_2': region_2,
+                'region_pair': region_pair, 'r_opto': [r_mean], 'r_std': [r_std],
+                'delta_time': [delta_time],
+                'time': [psth_opto['tscale'][int(MAX_DELAY/WIN_SIZE) : -int(MAX_DELAY/WIN_SIZE)]]})))
+    cca_df.to_pickle(join(save_path, file_name))
 
-# Save result
-cca_df.to_pickle(join(save_path, 'cca_results.pickle'))
-print('Done!')
+cca_df.to_pickle(join(save_path, file_name))
