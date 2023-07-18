@@ -15,7 +15,7 @@ from scipy.ndimage import gaussian_filter
 from stim_functions import paths, load_subjects, figure_style
 
 # Settings
-ASYM_TIME = 0.1
+ASYM_TIME = 0.05
 CCA_TIME = 0.05
 BIN_SIZE = 0.01
 
@@ -79,9 +79,9 @@ for i, region_pair in enumerate(jPECC.keys()):
                interpolation='nearest', aspect='auto',
                extent=[time_asy[0], time_asy[-1],
                        time_ax[0] - np.mean(np.diff(time_ax))/2, time_ax[-1] + np.mean(np.diff(time_ax))/2])
-    ax1.plot([0, 0], [-1, 3], color='white', ls='--', lw=0.5)
+    ax1.plot([0, 0], [-0.3, 0.1], color='white', ls='--', lw=0.5)
     ax1.set(ylabel='Time from stim. onset (s)', xlabel='Delay (s)',
-            title=region_pair.replace('-', ' vs '), ylim=[-1, 3],
+            title=region_pair.replace('-', ' vs '), ylim=[-0.3, 0.1],
             xticks=[time_asy[0], 0, time_asy[-1]])
     
     ax_cb.axis('off')
@@ -95,27 +95,26 @@ for i, region_pair in enumerate(jPECC.keys()):
 
 # %%
 colors, dpi = figure_style()
-f, axs = plt.subplots(2, 4, figsize=(7, 3.5), dpi=dpi)
+f, axs = plt.subplots(3, 5, figsize=(9, 7), dpi=dpi)
 axs = np.concatenate(axs)
 for i, region_pair in enumerate(np.unique(cca_long_df['region_pair'])):
-    axs[i].plot([-1, 3], [0, 0], ls='--', color='grey')
-    axs[i].add_patch(Rectangle((0, -0.4), 1, 0.8, color='royalblue', alpha=0.25, lw=0))
+    axs[i].plot([-0.3, 0.1], [0, 0], ls='--', color='grey')
     sns.lineplot(x='time', y='value',
                  data=cca_long_df[(cca_long_df['variable'] == 'cca_bl')
                                   & (cca_long_df['region_pair'] == region_pair)],
                  ax=axs[i], errorbar='se', color='k')
     axs[i].set(xlabel='Time (s)', ylabel='Canonical correlation \n over baseline (r)',
-               xlim=[-1, 3], ylim=[-0.4, 0.4], yticks=np.arange(-0.4, 0.41, 0.2),
-               xticks=[-1, 0, 1, 2, 3], title=region_pair)
+               xlim=[-0.3, 0.1], ylim=[-0.4, 0.4], yticks=np.arange(-0.4, 0.41, 0.2),
+               title=region_pair)
     
 plt.tight_layout()
 sns.despine(trim=True)
 
-#plt.savefig(join(fig_path, 'jPECC_CCA_M2_mPFC_ORB.pdf'))
+plt.savefig(join(fig_path, 'jPECC_task_CCA.jpg'), dpi=600)
 
 # %%
 colors, dpi = figure_style()
-f, axs = plt.subplots(2, 4, figsize=(7, 3.5), dpi=dpi)
+f, axs = plt.subplots(3, 5, figsize=(9, 7), dpi=dpi)
 axs = np.concatenate(axs)
 for i, region_pair in enumerate(np.unique(cca_long_df['region_pair'])):
     axs[i].plot([-1, 3], [0, 0], ls='--', color='grey')
@@ -124,9 +123,9 @@ for i, region_pair in enumerate(np.unique(cca_long_df['region_pair'])):
                  data=cca_long_df[(cca_long_df['variable'] == 'asym')
                                   & (cca_long_df['region_pair'] == region_pair)],
                  ax=axs[i], errorbar='se', color='k')
-    axs[i].set(xlabel='Time (s)', ylabel='Canonical correlation \n over baseline (r)',
-               xlim=[-1, 3], ylim=[-0.4, 0.4], yticks=np.arange(-0.4, 0.41, 0.2),
-               xticks=[-1, 0, 1, 2, 3], title=region_pair)
+    axs[i].set(xlabel='Time (s)', ylabel='Assymetry',
+               xlim=[-0.3, 0.1], ylim=[-0.1, 0.1], yticks=np.arange(-0.4, 0.41, 0.2),
+               title=region_pair)
     
 plt.tight_layout()
 sns.despine(trim=True)
