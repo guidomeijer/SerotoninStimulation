@@ -18,7 +18,7 @@ from stim_functions import paths, load_subjects, figure_style
 
 # Paths
 fig_path, save_path = paths()
-fig_path = join(fig_path, 'Ephys', 'CCA')
+fig_path = join(fig_path, 'Extra plots', 'CCA')
 
 # Load in data
 cca_df = pd.read_pickle(join(save_path, 'cca_results.pickle'))
@@ -57,13 +57,14 @@ new_labels = ['label 1', 'label 2']
 for t, l in zip(g.texts, ['WT', 'SERT']):
     t.set_text(l)
 ax1.set(ylabel='Canonical correlation (r)', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3],
-        ylim=[-0.2, 0.2])
+        ylim=[-0.05, 0.05])
 
 sns.despine(trim=True)
 plt.tight_layout()
+plt.savefig(join(fig_path, 'CCA_passive.jpg'), dpi=600)
 
 # %% Plot region pairs seperately
 g = sns.FacetGrid(cca_long_df[cca_long_df['sert-cre'] == 1], col='region_pair', col_wrap=5, height=3.5,
-                  ylim=(-0.2, 0.8))
+                  ylim=(-0.1, 0.4))
 g.map(sns.lineplot, 'time', 'r', color='k', errorbar='se')
-#plt.savefig(join(fig_path, 'state_correlation_all_region_pair.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'CCA_passive_all_region_pair.jpg'), dpi=600)
