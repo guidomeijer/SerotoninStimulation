@@ -16,7 +16,7 @@ from stim_functions import paths, figure_style
 import networkx as nx
 
 # Settings
-BIN_SIZE = 50
+BIN_SIZE = 25
 MIN_SUBJECTS = 2
 TIME_WIN = [0.2, 0.8]
 
