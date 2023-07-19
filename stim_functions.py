@@ -390,7 +390,7 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
     return regions
 
 
-def high_level_regions(acronyms, merge_cortex=False, input_atlas='Allen'):
+def high_level_regions(acronyms, merge_cortex=False, only_vis=False, input_atlas='Allen'):
     """
     """
     if input_atlas == 'Allen':
@@ -404,7 +404,10 @@ def high_level_regions(acronyms, merge_cortex=False, input_atlas='Allen'):
         regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2', 'Pir', 'BC', 'VIS'])] = 'Cortex'
     else:
         regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2'])] = 'Frontal cortex'
-        regions[np.in1d(first_level_regions, ['Pir', 'BC', 'VIS'])] = 'Sensory cortex'
+        if only_vis:
+            regions[np.in1d(first_level_regions, ['VIS'])] = 'Visual cortex'
+        else:
+            regions[np.in1d(first_level_regions, ['Pir', 'BC', 'VIS'])] = 'Sensory cortex'
     regions[cosmos_regions == 'MB'] = 'Midbrain'
     regions[cosmos_regions == 'HPF'] = 'Hippocampus'
     regions[cosmos_regions == 'TH'] = 'Thalamus'
