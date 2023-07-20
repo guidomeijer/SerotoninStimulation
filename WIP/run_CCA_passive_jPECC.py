@@ -56,7 +56,14 @@ rec = query_ephys_sessions(one=one)
 # Load in artifact neurons
 artifact_neurons = get_artifact_neurons()
 
-file_name = f'jPECC_delay_{WIN_SIZE}_binsize.pickle'
+# Determine file name
+add_str = ''
+if DIV_BASELINE:
+    add_str += 'div-baseline'
+if SUBTRACT_MEAN:
+    add_str += 'subtr-mean'    
+file_name = f'jPECC_passive_{WIN_SIZE}' + add_str + '.pickle'
+
 if ~OVERWRITE & isfile(join(save_path, file_name)):
     cca_df = pd.read_pickle(join(save_path, file_name))
 else:
@@ -168,54 +175,36 @@ for i, eid in enumerate(np.unique(rec['eid'])):
         if (region_1 in pca_opto.keys()) & (region_2 in pca_opto.keys()):
             print(f'Calculating {region_pair}')
 
-            # Run CCA per combination of two timebins
-            r_mean = np.empty((n_time_bins - int(MAX_DELAY/WIN_SIZE)*2, (int(MAX_DELAY/WIN_SIZE) * 2)+1))
-            r_std = np.empty((n_time_bins - int(MAX_DELAY/WIN_SIZE)*2, (int(MAX_DELAY/WIN_SIZE) * 2)+1))
-            delta_time = np.arange(-MAX_DELAY, MAX_DELAY + WIN_SIZE, WIN_SIZE)
-
-            for it_1, time_1 in enumerate(psth_opto['tscale'][int(MAX_DELAY/WIN_SIZE) : -int(MAX_DELAY/WIN_SIZE)]):
-                if np.mod(it_1, 20) == 0:
-                    print(f'Timebin {it_1} of {n_time_bins}..')
-                for it_2, time_2 in enumerate(psth_opto['tscale'][(psth_opto['tscale'] >= time_1 - MAX_DELAY - (WIN_SIZE/2))
-                                                                  & (psth_opto['tscale'] <= time_1 + MAX_DELAY + (WIN_SIZE/2))]):
-
-                    # Get timebin index
-                    tb_1 = np.where(psth_opto['tscale'] == time_1)[0][0]
-                    tb_2 = np.where(psth_opto['tscale'] == time_2)[0][0]
-
+            r_opto = np.empty((n_time_bins, n_time_bins))
+            p_opto = np.empty((n_time_bins, n_time_bins))    
+            for tb_1, time_1 in enumerate(psth_opto['tscale']):
+                if np.mod(tb_1, 10) == 0:
+                    print(f'Timebin {tb_1} of {n_time_bins}..')
+                for tb_2, time_2 in enumerate(psth_opto['tscale']):
+    
                     # Get activity matrix
                     if PCA:
                         act_mat = pca_opto
                     else:
                         act_mat = spks_opto
-
+    
                     # Run CCA
-                    opto_x = np.empty(pca_opto[region_1][:, :, 0].shape[0])
-                    opto_y = np.empty(pca_opto[region_1][:, :, 0].shape[0])
-
-                    r_boot = []
-                    for kk in range(K_FOLD_BOOTSTRAPS):
-                        r_splits = []
-                        x_test, y_test = np.empty(opto_train_times.shape[0]), np.empty(opto_train_times.shape[0])
-                        for train_index, test_index in kfold.split(pca_opto[region_1][:, :, 0]):
-                            cca.fit(pca_opto[region_1][train_index, :, tb_1],
-                                    pca_opto[region_2][train_index, :, tb_2])
-                            x, y = cca.transform(pca_opto[region_1][test_index, :, tb_1],
-                                                 pca_opto[region_2][test_index, :, tb_2])
-                            x_test[test_index] = x.T[0]
-                            y_test[test_index] = y.T[0]
-                            r_splits.append(pearsonr(x.T[0], y.T[0])[0])
-                        #r_boot.append(np.mean(r_splits))
-                        r_boot.append(pearsonr(x_test, y_test)[0])
-                    r_mean[it_1, it_2] = np.mean(r_boot)
-                    r_std[it_1, it_2] = np.std(r_boot)
+                    x_test = np.empty(act_mat[region_1].shape[0])
+                    y_test = np.empty(act_mat[region_1].shape[0])
+                    for train_index, test_index in kfold.split(act_mat[region_1][:, :, 0]):
+                        cca.fit(act_mat[region_1][train_index, :, tb_1],
+                                act_mat[region_2][train_index, :, tb_2])
+                        x, y = cca.transform(act_mat[region_1][test_index, :, tb_1],
+                                             act_mat[region_2][test_index, :, tb_2])
+                        x_test[test_index] = x.T[0]
+                        y_test[test_index] = y.T[0]
+                    r_opto[tb_1, tb_2], p_opto[tb_1, tb_2] = pearsonr(x_test, y_test)
 
             # Add to dataframe
             cca_df = pd.concat((cca_df, pd.DataFrame(index=[cca_df.shape[0]], data={
-                'subject': subject, 'date': date, 'eid': eid, 'region_1': region_1, 'region_2': region_2,
-                'region_pair': region_pair, 'r_opto': [r_mean], 'r_std': [r_std],
-                'delta_time': [delta_time],
-                'time': [psth_opto['tscale'][int(MAX_DELAY/WIN_SIZE) : -int(MAX_DELAY/WIN_SIZE)]]})))
+                'subject': subject, 'date': date, 'eid': eid, 'region_1': region_1,
+                'region_2': region_2, 'region_pair': region_pair,
+                'r_opto': [r_opto], 'p_opto': [p_opto], 'time': psth_opto['tscale']})))
     cca_df.to_pickle(join(save_path, file_name))
 
 cca_df.to_pickle(join(save_path, file_name))
