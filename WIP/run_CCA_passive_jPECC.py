@@ -167,38 +167,38 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                 continue
             region_pair = f'{np.sort([region_1, region_2])[0]}-{np.sort([region_1, region_2])[1]}'
 
-        # Skip if already processed
-        if cca_df[(cca_df['region_pair'] == region_pair) & (cca_df['eid'] == eid)].shape[0] > 0:
-            print(f'Found {region_1}-{region_2} for {subject} {date}')
-            continue
-
-        if (region_1 in pca_opto.keys()) & (region_2 in pca_opto.keys()):
-            print(f'Calculating {region_pair}')
-
-            r_opto = np.empty((n_time_bins, n_time_bins))
-            p_opto = np.empty((n_time_bins, n_time_bins))    
-            for tb_1, time_1 in enumerate(psth_opto['tscale']):
-                if np.mod(tb_1, 10) == 0:
-                    print(f'Timebin {tb_1} of {n_time_bins}..')
-                for tb_2, time_2 in enumerate(psth_opto['tscale']):
+            # Skip if already processed
+            if cca_df[(cca_df['region_pair'] == region_pair) & (cca_df['eid'] == eid)].shape[0] > 0:
+                print(f'Found {region_1}-{region_2} for {subject} {date}')
+                continue
     
-                    # Get activity matrix
-                    if PCA:
-                        act_mat = pca_opto
-                    else:
-                        act_mat = spks_opto
+            if (region_1 in pca_opto.keys()) & (region_2 in pca_opto.keys()):
+                print(f'Calculating {region_pair}')
     
-                    # Run CCA
-                    x_test = np.empty(act_mat[region_1].shape[0])
-                    y_test = np.empty(act_mat[region_1].shape[0])
-                    for train_index, test_index in kfold.split(act_mat[region_1][:, :, 0]):
-                        cca.fit(act_mat[region_1][train_index, :, tb_1],
-                                act_mat[region_2][train_index, :, tb_2])
-                        x, y = cca.transform(act_mat[region_1][test_index, :, tb_1],
-                                             act_mat[region_2][test_index, :, tb_2])
-                        x_test[test_index] = x.T[0]
-                        y_test[test_index] = y.T[0]
-                    r_opto[tb_1, tb_2], p_opto[tb_1, tb_2] = pearsonr(x_test, y_test)
+                r_opto = np.empty((n_time_bins, n_time_bins))
+                p_opto = np.empty((n_time_bins, n_time_bins))    
+                for tb_1, time_1 in enumerate(psth_opto['tscale']):
+                    if np.mod(tb_1, 10) == 0:
+                        print(f'Timebin {tb_1} of {n_time_bins}..')
+                    for tb_2, time_2 in enumerate(psth_opto['tscale']):
+        
+                        # Get activity matrix
+                        if PCA:
+                            act_mat = pca_opto
+                        else:
+                            act_mat = spks_opto
+        
+                        # Run CCA
+                        x_test = np.empty(act_mat[region_1].shape[0])
+                        y_test = np.empty(act_mat[region_1].shape[0])
+                        for train_index, test_index in kfold.split(act_mat[region_1][:, :, 0]):
+                            cca.fit(act_mat[region_1][train_index, :, tb_1],
+                                    act_mat[region_2][train_index, :, tb_2])
+                            x, y = cca.transform(act_mat[region_1][test_index, :, tb_1],
+                                                 act_mat[region_2][test_index, :, tb_2])
+                            x_test[test_index] = x.T[0]
+                            y_test[test_index] = y.T[0]
+                        r_opto[tb_1, tb_2], p_opto[tb_1, tb_2] = pearsonr(x_test, y_test)
 
             # Add to dataframe
             cca_df = pd.concat((cca_df, pd.DataFrame(index=[cca_df.shape[0]], data={
