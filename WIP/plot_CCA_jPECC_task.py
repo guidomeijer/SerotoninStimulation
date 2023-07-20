@@ -15,11 +15,13 @@ from stim_functions import paths, load_subjects, figure_style
 colors, dpi = figure_style()
 
 # Settings
-CENTER_ON = 'stimOn'
-#CENTER_ON = 'firstMovement'
+#CENTER_ON = 'stimOn'
+CENTER_ON = 'firstMovement'
 ASYM_TIME = 0.05
 BIN_SIZE = 0.01
 SMOOTHING = False
+DIV_BASELINE = False
+SUBTRACT_MEAN = True
 
 if CENTER_ON == 'stimOn':
     LABEL = 'Time from trial start (s)'
@@ -31,7 +33,14 @@ fig_path, save_path = paths()
 fig_path = join(fig_path, 'Extra plots', 'CCA')
 
 # Load in data
-jpecc_df = pd.read_pickle(join(save_path, f'task_jPECC_{CENTER_ON}_{BIN_SIZE}_binsize.pickle'))
+add_str = ''
+if DIV_BASELINE:
+    add_str += '_div-baseline'
+if SUBTRACT_MEAN:
+    add_str += '_subtr-mean'    
+file_name = f'jPECC_task_{CENTER_ON}_{int(BIN_SIZE*1000)}ms-bins' + add_str + '.pickle'
+save_name = f'{CENTER_ON}_{int(BIN_SIZE*1000)}ms-bins' + add_str
+jpecc_df = pd.read_pickle(join(save_path, file_name))
 
 # Add expression
 subjects = load_subjects()
@@ -136,7 +145,7 @@ for i, region_pair in enumerate(jPECC_opto.keys()):
     cbar = f.colorbar(mappable=ax1.images[0], cax=cb_ax)
     cbar.ax.set_ylabel('Population correlation (r)', rotation=270, labelpad=8)
     
-    plt.savefig(join(fig_path, f'jPECC_{region_pair}_{CENTER_ON}.jpg'), dpi=600)
+    plt.savefig(join(fig_path, f'jPECC_{save_name}.jpg'), dpi=600)
     plt.close(f)
 
 # %%
@@ -154,7 +163,7 @@ for i, region_pair in enumerate(np.unique(cca_long_df['region_pair'])):
 plt.tight_layout()
 sns.despine(trim=True)
 
-plt.savefig(join(fig_path, f'CCA_{CENTER_ON}.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'CCA_{save_name}.jpg'), dpi=600)
 
 # %%
 f, axs = plt.subplots(2, 4, figsize=(7, 3.5), dpi=dpi)
@@ -171,5 +180,5 @@ for i, region_pair in enumerate(np.unique(cca_long_df['region_pair'])):
 plt.tight_layout()
 sns.despine(trim=True)
 
-plt.savefig(join(fig_path, f'asym_{CENTER_ON}.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'asym_{save_name}.jpg'), dpi=600)
 

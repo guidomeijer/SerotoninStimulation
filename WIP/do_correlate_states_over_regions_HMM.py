@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from glob import glob
+from itertools import permutations
 from scipy.stats import pearsonr
 from os.path import join, split
 import matplotlib.pyplot as plt
@@ -64,6 +65,7 @@ for i, this_rec in enumerate(all_rec):
             corr_mats = np.empty((rec_region[region1].shape[2], rec_region[region2].shape[2],
                                   rec_region[region1].shape[1]))
             corr_mean = np.empty(rec_region[region1].shape[1])
+            corr_permut = np.empty(rec_region[region1].shape[1])
             for tb in range(rec_region[region1].shape[1]):
                 
                 # Correlate each state with each other state
@@ -74,9 +76,26 @@ for i, this_rec in enumerate(all_rec):
                                                                  rec_region[region2][:, tb, state2])[0]
                 corr_mean[tb] = np.mean(corr_mats[:, :, tb])
             
+                # From the region with the most states, drop the states with the lowest correlation
+                # This is to make the matrix square
+                this_mat = corr_mats[:, :, tb]
+                lowest_states = np.argsort(np.max(this_mat, axis=np.argmin(this_mat.shape)))
+                this_mat = np.delete(this_mat,
+                                     np.argsort(lowest_states)[:np.abs(this_mat.shape[0] - this_mat.shape[1])],
+                                     np.argmax(this_mat.shape))
+                
+                # Permute matrix to get maximal correlation along the diagonal
+                all_perm = list(permutations(np.arange(this_mat.shape[0])))
+                permut_diag = np.empty(len(all_perm))
+                for permut in range(len(all_perm)):
+                    permut_diag[permut] = np.sum(np.diag(this_mat[:, all_perm[permut]]))
+                permut_mat = this_mat[:, all_perm[np.argmax(permut_diag)]]
+                corr_permut[tb] = np.mean(np.diag(permut_mat))
+                
             # Add to dataframe
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
-                'time': time_ax, 'r': corr_mean, 'region1': region1, 'region2': region2,
+                'time': time_ax, 'r_mean': corr_mean, 'r_permut': corr_permut,
+                'region1': region1, 'region2': region2,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date, 'probe': probe})))
             
