@@ -33,12 +33,13 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 
 # %% Plot all region pairs together
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-ax1.add_patch(Rectangle((0, -0.005), 1, 0.01, color='royalblue', alpha=0.25, lw=0))
-sns.lineplot(data=corr_df, x='time', y='r', errorbar='se', hue='sert-cre', err_kws={'lw': 0},
+#ax1.add_patch(Rectangle((0, -0.005), 1, 0.01, color='royalblue', alpha=0.25, lw=0))
+sns.lineplot(data=corr_df, x='time', y='r_mean', errorbar='se', hue='sert-cre', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['wt'], colors['sert']])
 ax1.set(xlabel='Time from stimulation start (s)', 
-        xticks=[-1, 0, 1, 2, 3, 4], ylim=[-0.001, 0.005], yticks=[0, 0.005],
-        yticklabels=[0, 0.005])
+        xticks=[-1, 0, 1, 2, 3, 4])
+        #ylim=[-0.001, 0.005], yticks=[0, 0.005],
+        #yticklabels=[0, 0.005])
 ax1.set_ylabel('State correlation (r)', labelpad=-5)
 g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.85), prop={'size': 5})
 new_labels = ['label 1', 'label 2']
@@ -51,5 +52,5 @@ plt.savefig(join(fig_path, 'state_correlation.jpg'), dpi=600)
 # %% Plot region pairs seperately
 g = sns.FacetGrid(corr_df[corr_df['sert-cre'] == 1], col='region_pair', col_wrap=5, height=2,
                   ylim=(-0.02, 0.02))
-g.map(sns.lineplot, 'time', 'r', color='k', errorbar='se')
+g.map(sns.lineplot, 'time', 'r_permut', color='k', errorbar='se')
 plt.savefig(join(fig_path, 'state_correlation_all_region_pair.jpg'), dpi=600)

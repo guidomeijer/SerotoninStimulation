@@ -20,7 +20,9 @@ CMAP = 'Set2'
 PRE_TIME = 1
 POST_TIME = 4
 PLOT = False
-BIN_SIZE = 0.1
+ORIG_BIN_SIZE = 0.1  # original bin size
+BIN_SIZE = 0.5  # binning to apply for this analysis
+BIN_SHIFT = 0.1
 PRE_TIME = 1
 POST_TIME = 4
 
@@ -38,7 +40,8 @@ all_files = glob(join(save_path, 'HMM', '*.npy'))
 all_rec = np.unique([split(i)[1][:28] for i in all_files])
 
 # Create time axis
-time_ax = np.arange(-PRE_TIME + BIN_SIZE/2, (POST_TIME+BIN_SIZE)-BIN_SIZE/2, BIN_SIZE)
+bin_centers = np.arange(-PRE_TIME + BIN_SIZE/2, (POST_TIME - BIN_SIZE/2) + BIN_SHIFT, BIN_SHIFT)
+time_ax = np.arange(-PRE_TIME + ORIG_BIN_SIZE/2, (POST_TIME+ORIG_BIN_SIZE)-ORIG_BIN_SIZE/2, ORIG_BIN_SIZE)
 
 corr_df = pd.DataFrame()
 for i, this_rec in enumerate(all_rec):
@@ -63,17 +66,28 @@ for i, this_rec in enumerate(all_rec):
             
             # Loop over timebins
             corr_mats = np.empty((rec_region[region1].shape[2], rec_region[region2].shape[2],
-                                  rec_region[region1].shape[1]))
-            corr_mean = np.empty(rec_region[region1].shape[1])
-            corr_permut = np.empty(rec_region[region1].shape[1])
-            for tb in range(rec_region[region1].shape[1]):
+                                  bin_centers.shape[0]))
+            corr_mean = np.empty(bin_centers.shape[0])
+            corr_permut = np.empty(bin_centers.shape[0])
+            for tb, bin_center in enumerate(bin_centers):
                 
                 # Correlate each state with each other state
                 this_corr_mat = np.empty((rec_region[region1].shape[2], rec_region[region2].shape[2]))
                 for state1 in range(rec_region[region1].shape[2]):
                     for state2 in range(rec_region[region2].shape[2]):
-                        corr_mats[state1, state2, tb] = pearsonr(rec_region[region1][:, tb, state1],
-                                                                 rec_region[region2][:, tb, state2])[0]
+                        
+                        # Bin state probabilities
+                        r1s1 = np.mean(rec_region[region1][:, (time_ax >= bin_center - BIN_SIZE/2)
+                                                           & (time_ax <= bin_center + BIN_SIZE/2), state1],
+                                       axis=1)
+                        r2s2 = np.mean(rec_region[region2][:, (time_ax >= bin_center - BIN_SIZE/2)
+                                                           & (time_ax <= bin_center + BIN_SIZE/2), state2],
+                                       axis=1)
+                        
+                        # Correlate
+                        corr_mats[state1, state2, tb] = pearsonr(r1s1, r2s2)[0]
+                        
+                # Get mean over entire correlation matrix
                 corr_mean[tb] = np.mean(corr_mats[:, :, tb])
             
                 # From the region with the most states, drop the states with the lowest correlation
@@ -94,7 +108,7 @@ for i, this_rec in enumerate(all_rec):
                 
             # Add to dataframe
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
-                'time': time_ax, 'r_mean': corr_mean, 'r_permut': corr_permut,
+                'time': bin_centers, 'r_mean': corr_mean, 'r_permut': corr_permut,
                 'region1': region1, 'region2': region2,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date, 'probe': probe})))

@@ -15,13 +15,13 @@ from stim_functions import paths, load_subjects, figure_style
 colors, dpi = figure_style()
 
 # Settings
-#CENTER_ON = 'stimOn'
-CENTER_ON = 'firstMovement'
+CENTER_ON = 'stimOn'
+#CENTER_ON = 'firstMovement'
 ASYM_TIME = 0.05
 BIN_SIZE = 0.01
 SMOOTHING = False
 DIV_BASELINE = False
-SUBTRACT_MEAN = True
+SUBTRACT_MEAN = False
 
 if CENTER_ON == 'stimOn':
     LABEL = 'Time from trial start (s)'
