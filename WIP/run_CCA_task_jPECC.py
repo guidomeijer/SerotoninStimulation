@@ -69,7 +69,7 @@ if DIV_BASELINE:
     add_str += 'div-baseline'
 if SUBTRACT_MEAN:
     add_str += 'subtr-mean'    
-file_name = f'jPECC_task_{CENTER_ON[:-6]}_{WIN_SIZE}' + add_str + '.pickle'
+file_name = f'jPECC_task_{CENTER_ON[:-6]}_{int(1/WIN_SIZE)}ms-bins_' + add_str + '.pickle'
     
 if ~OVERWRITE & isfile(join(save_path, file_name)):
     cca_df = pd.read_pickle(join(save_path, file_name))
@@ -175,7 +175,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                         for tt in range(binned_spks_no_opto.shape[0]):
                             binned_spks_no_opto[tt, nn, :] = (binned_spks_no_opto[tt, nn, :]
                                                               / (np.median(psth_no_opto['means'][nn, psth_no_opto['tscale'] < 0])
-                                                                 + (0.1/PRE_TIME)))
+                                                                 + (1/PRE_TIME)))
 
                 if SUBTRACT_MEAN:
                     # Subtract mean PSTH from each opto stim
