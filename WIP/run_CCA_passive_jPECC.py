@@ -30,15 +30,13 @@ NEURON_QC = True  # whether to use neuron qc to exclude bad units
 PCA = True  # whether to use PCA on neural activity before CCA
 N_PC = 10  # number of PCs to use
 MIN_NEURONS = 10  # minimum neurons per region
-WIN_SIZE = 0.1  # window size in seconds
-PRE_TIME = 1.5  # time before stim onset in s
-POST_TIME = 4.5  # time after stim onset in s
-SMOOTHING = 0.05  # smoothing of psth
-MAX_DELAY = 0.5  # max delay shift
+WIN_SIZE = 0.01  # window size in seconds
+PRE_TIME = 0.5  # time before stim onset in s
+POST_TIME = 1.5  # time after stim onset in s
+SMOOTHING = 0.025  # smoothing of psth
 SUBTRACT_MEAN = False  # whether to subtract the mean PSTH from each trial
-DIV_BASELINE = True  # whether to divide over baseline + 1 spk/s
-K_FOLD = 5  # k in k-fold
-K_FOLD_BOOTSTRAPS = 20  # how often to repeat the random trial selection
+DIV_BASELINE = False  # whether to divide over baseline + 1 spk/s
+K_FOLD = 10  # k in k-fold
 MIN_FR = 0.5  # minimum firing rate over the whole recording
 
 # Paths
@@ -53,7 +51,7 @@ if SMOOTHING > 0:
     window /= np.sum(window)
 
 # Query sessions with frontal
-rec = query_ephys_sessions(one=one, acronym=['MOs', 'CA1'])
+rec = query_ephys_sessions(one=one)
 
 # Load in artifact neurons
 artifact_neurons = get_artifact_neurons()
