@@ -30,13 +30,13 @@ NEURON_QC = True  # whether to use neuron qc to exclude bad units
 PCA = True  # whether to use PCA on neural activity before CCA
 N_PC = 10  # number of PCs to use
 MIN_NEURONS = 10  # minimum neurons per region
-WIN_SIZE = 0.01  # window size in seconds
-SMOOTHING = 0.025  # smoothing of psth
-SUBTRACT_MEAN = True  # whether to subtract the mean PSTH from each trial
+WIN_SIZE = 0.02  # window size in seconds
+SMOOTHING = 0.05  # smoothing of psth
+SUBTRACT_MEAN = False  # whether to subtract the mean PSTH from each trial
 DIV_BASELINE = False  # whether to divide over baseline + 1 spk/s
 K_FOLD = 10  # k in k-fold
 MIN_FR = 0.5  # minimum firing rate over the whole recording
-"""
+
 CENTER_ON = 'firstMovement_times'  
 PRE_TIME = 0.3  # time before event in s 
 POST_TIME = 0.1  # time after event in s
@@ -44,7 +44,7 @@ POST_TIME = 0.1  # time after event in s
 CENTER_ON = 'stimOn_times'  
 PRE_TIME = 0.1  # time before event in s
 POST_TIME = 0.4  # time after event in s
-
+"""
 
 # Paths
 fig_path, save_path = paths()
