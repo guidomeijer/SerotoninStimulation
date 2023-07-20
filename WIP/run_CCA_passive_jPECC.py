@@ -204,7 +204,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
             cca_df = pd.concat((cca_df, pd.DataFrame(index=[cca_df.shape[0]], data={
                 'subject': subject, 'date': date, 'eid': eid, 'region_1': region_1,
                 'region_2': region_2, 'region_pair': region_pair,
-                'r_opto': [r_opto], 'p_opto': [p_opto], 'time': psth_opto['tscale']})))
+                'r_opto': [r_opto], 'p_opto': [p_opto], 'time': [psth_opto['tscale']]})))
     cca_df.to_pickle(join(save_path, file_name))
 
 cca_df.to_pickle(join(save_path, file_name))
