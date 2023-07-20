@@ -16,7 +16,7 @@ from stim_functions import paths, figure_style
 import networkx as nx
 
 # Settings
-BIN_SIZE = 25
+BIN_SIZE = 100
 MIN_SUBJECTS = 2
 TIME_WIN = [0.2, 0.8]
 
@@ -79,6 +79,7 @@ for r1, region_1 in enumerate(all_regions[:-1]):
                          f'{region_1} - {region_2} {BIN_SIZE}ms bins.jpg'), dpi=600)
         plt.close(f)
 
-# Get average over animals
-mean_summary_df = summary_df.groupby(['region_1', 'region_2']).mean(numeric_only=True).reset_index()
+# %%
+f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+sns.lineplot(data=corr_df, x='time', y='r_baseline', ax=ax1, errorbar='se', hue='sert-cre')
 

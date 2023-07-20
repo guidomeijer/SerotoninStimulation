@@ -69,7 +69,7 @@ if DIV_BASELINE:
     add_str += 'div-baseline'
 if SUBTRACT_MEAN:
     add_str += 'subtr-mean'    
-file_name = f'jPECC_task_{CENTER_ON[:-6]}_{int(1/WIN_SIZE)}ms-bins_' + add_str + '.pickle'
+file_name = f'jPECC_task_{CENTER_ON[:-6]}_{int(WIN_SIZE*1000)}ms-bins_' + add_str + '.pickle'
     
 if ~OVERWRITE & isfile(join(save_path, file_name)):
     cca_df = pd.read_pickle(join(save_path, file_name))
