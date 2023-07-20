@@ -36,15 +36,15 @@ SUBTRACT_MEAN = False  # whether to subtract the mean PSTH from each trial
 DIV_BASELINE = False  # whether to divide over baseline + 1 spk/s
 K_FOLD = 10  # k in k-fold
 MIN_FR = 0.5  # minimum firing rate over the whole recording
-
+"""
 CENTER_ON = 'firstMovement_times'  
 PRE_TIME = 0.3  # time before event in s 
 POST_TIME = 0.1  # time after event in s
 """
 CENTER_ON = 'stimOn_times'  
 PRE_TIME = 0.1  # time before event in s
-POST_TIME = 0.4  # time after event in s
-"""
+POST_TIME = 1  # time after event in s
+
 
 # Paths
 fig_path, save_path = paths()
@@ -66,10 +66,10 @@ artifact_neurons = get_artifact_neurons()
 # Determine file name
 add_str = ''
 if DIV_BASELINE:
-    add_str += 'div-baseline'
+    add_str += '_div-baseline'
 if SUBTRACT_MEAN:
-    add_str += 'subtr-mean'    
-file_name = f'jPECC_task_{CENTER_ON[:-6]}_{int(WIN_SIZE*1000)}ms-bins_' + add_str + '.pickle'
+    add_str += '_subtr-mean'    
+file_name = f'jPECC_task_{CENTER_ON[:-6]}_{int(WIN_SIZE*1000)}ms-bins' + add_str + '.pickle'
     
 if ~OVERWRITE & isfile(join(save_path, file_name)):
     cca_df = pd.read_pickle(join(save_path, file_name))
