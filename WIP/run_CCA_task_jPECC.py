@@ -32,21 +32,19 @@ N_PC = 10  # number of PCs to use
 MIN_NEURONS = 10  # minimum neurons per region
 WIN_SIZE = 0.01  # window size in seconds
 SMOOTHING = 0.025  # smoothing of psth
-MAX_DELAY = 0.15  # max delay shift
 SUBTRACT_MEAN = False  # whether to subtract the mean PSTH from each trial
-DIV_BASELINE = False  # whether to divide over baseline + 1 spk/s
+DIV_BASELINE = True  # whether to divide over baseline + 1 spk/s
 K_FOLD = 10  # k in k-fold
 MIN_FR = 0.5  # minimum firing rate over the whole recording
 
-"""
 CENTER_ON = 'firstMovement_times'  
 PRE_TIME = 0.3  # time before event in s 
 POST_TIME = 0.1  # time after event in s
 """
 CENTER_ON = 'stimOn_times'  
-PRE_TIME = 0.1  # time before event in s (needs to be a bigger window to commodate for delays)
+PRE_TIME = 0.1  # time before event in s
 POST_TIME = 0.4  # time after event in s
-
+"""
 
 # Paths
 fig_path, save_path = paths()
@@ -65,7 +63,14 @@ rec = query_ephys_sessions(one=one, n_trials=300)
 # Load in artifact neurons
 artifact_neurons = get_artifact_neurons()
 
-file_name = f'task_jPECC_{CENTER_ON[:-6]}_{WIN_SIZE}_binsize.pickle'
+# Determine file name
+add_str = ''
+if DIV_BASELINE:
+    add_str += 'div-baseline'
+if SUBTRACT_MEAN:
+    add_str += 'subtr-mean'    
+file_name = f'jPECC_task_{CENTER_ON[:-6]}_{WIN_SIZE}' + add_str + '.pickle'
+    
 if ~OVERWRITE & isfile(join(save_path, file_name)):
     cca_df = pd.read_pickle(join(save_path, file_name))
 else:
@@ -83,7 +88,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     
     # Exclude trials with RT < 0.1 ms and > 1 s
     if CENTER_ON == 'firstMovement_times':
-        trials = trials[(trials['reaction_times'] > 0.1) & (trials['reaction_times'] < 1)]
+        trials = trials[(trials['reaction_times'] > 0.2) & (trials['reaction_times'] < 1)]
 
     # Load in neural data of both probes of the recording
     spikes, clusters, channels, clusters_pass = dict(), dict(), dict(), dict()
@@ -141,8 +146,8 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                     for nn in range(binned_spks_opto.shape[1]):
                         for tt in range(binned_spks_opto.shape[0]):
                             binned_spks_opto[tt, nn, :] = (binned_spks_opto[tt, nn, :]
-                                                          / (np.median(psth_opto['means'][nn, psth_opto['tscale'] < 0])
-                                                             + (0.1/PRE_TIME)))
+                                                          / (np.mean(psth_opto['means'][nn, psth_opto['tscale'] < 0])
+                                                             + (1/PRE_TIME)))
 
                 if SUBTRACT_MEAN:
                     # Subtract mean PSTH from each opto stim
@@ -220,8 +225,8 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                             act_mat = spks_opto
     
                         # Run CCA
-                        #r_splits, p_splits = [], []
-                        x_test, y_test = np.empty(act_mat[region_1].shape[0]), np.empty(act_mat[region_1].shape[0])
+                        x_test = np.empty(act_mat[region_1].shape[0])
+                        y_test = np.empty(act_mat[region_1].shape[0])
                         for train_index, test_index in kfold.split(act_mat[region_1][:, :, 0]):
                             cca.fit(act_mat[region_1][train_index, :, tb_1],
                                     act_mat[region_2][train_index, :, tb_2])
@@ -229,15 +234,6 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                                                  act_mat[region_2][test_index, :, tb_2])
                             x_test[test_index] = x.T[0]
                             y_test[test_index] = y.T[0]
-                            """
-                            r, p = pearsonr(x.T[0], y.T[0])
-                            r_splits.append(r)
-                            p_splits.append(p)
-                            """
-                        """
-                        r_mean[it_1, it_2] = np.mean(r_splits)
-                        r_std[it_1, it_2] = np.std(r_splits)
-                        """
                         r_opto[tb_1, tb_2], p_opto[tb_1, tb_2] = pearsonr(x_test, y_test)
                         
                 # Run CCA per combination of two timebins
@@ -257,8 +253,8 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                             act_mat = spks_no_opto
     
                         # Run CCA
-                        #r_splits, p_splits = [], []
-                        x_test, y_test = np.empty(act_mat[region_1].shape[0]), np.empty(act_mat[region_1].shape[0])
+                        x_test = np.empty(act_mat[region_1].shape[0])
+                        y_test = np.empty(act_mat[region_1].shape[0])
                         for train_index, test_index in kfold.split(act_mat[region_1][:, :, 0]):
                             cca.fit(act_mat[region_1][train_index, :, tb_1],
                                     act_mat[region_2][train_index, :, tb_2])
@@ -266,15 +262,6 @@ for i, eid in enumerate(np.unique(rec['eid'])):
                                                  act_mat[region_2][test_index, :, tb_2])
                             x_test[test_index] = x.T[0]
                             y_test[test_index] = y.T[0]
-                            """
-                            r, p = pearsonr(x.T[0], y.T[0])
-                            r_splits.append(r)
-                            p_splits.append(p)
-                            """
-                        """
-                        r_mean[it_1, it_2] = np.mean(r_splits)
-                        r_std[it_1, it_2] = np.std(r_splits)
-                        """
                         r_no_opto[tb_1, tb_2], p_no_opto[tb_1, tb_2] = pearsonr(x_test, y_test)
 
             # Add to dataframe

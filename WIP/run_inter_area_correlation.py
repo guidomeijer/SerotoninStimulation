@@ -17,9 +17,9 @@ one = init_one()
 ba = AllenAtlas()
 
 # Settings
-T_BEFORE = 0.5
-T_AFTER = 2
-BIN_SIZE = 0.025
+T_BEFORE = 1
+T_AFTER = 4
+BIN_SIZE = 0.2
 SMOOTHING = 0
 SUBTRACT_MEAN = False
 OVERWRITE = True
