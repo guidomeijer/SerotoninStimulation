@@ -25,16 +25,17 @@ BIN_SIZE = 0.5  # binning to apply for this analysis
 BIN_SHIFT = 0.1
 PRE_TIME = 1
 POST_TIME = 4
+N_STATES_SELECT = 'global'
 
 # Plotting
 colors, dpi = figure_style()
 
 # Get paths
 f_path, save_path = paths()
-fig_path = join(f_path, 'Extra plots', 'State', 'Correlation matrices')
+fig_path = join(f_path, 'Extra plots', 'State', 'Correlation matrices', f'{N_STATES_SELECT}')
 
 # Get all files
-all_files = glob(join(save_path, 'HMM', '*.npy'))
+all_files = glob(join(save_path, 'HMM', f'{N_STATES_SELECT}', 'prob_mat', '*.npy'))
 
 # Get all recordings
 all_rec = np.unique([split(i)[1][:28] for i in all_files])
@@ -48,7 +49,7 @@ for i, this_rec in enumerate(all_rec):
     print(f'Processing recording {i} of {len(all_rec)}')
     
     # Get all brain regions simultaneously recorded in this recording session
-    rec_region_paths = glob(join(save_path, 'HMM', f'{this_rec[:20]}*'))
+    rec_region_paths = glob(join(save_path, 'HMM', f'{N_STATES_SELECT}', 'prob_mat', f'{this_rec[:20]}*'))
     rec_region = dict()
     for ii in range(len(rec_region_paths)):
         rec_region[split(rec_region_paths[ii])[1][29:-4]] = np.load(join(rec_region_paths[ii]))
@@ -125,7 +126,7 @@ for i, this_rec in enumerate(all_rec):
                         xticks=np.arange(rec_region[region2].shape[2]),
                         xticklabels=np.arange(1, rec_region[region2].shape[2]+1))
                 
-                ax2.plot(time_ax, corr_mean, color='k')
+                ax2.plot(bin_centers, corr_mean, color='k')
                 ax2.set(ylabel='Correlation (r)', xlabel='Time from stimulation start (s)',
                         xticks=[-1, 0, 1, 2, 3, 4])
                 
@@ -135,7 +136,7 @@ for i, this_rec in enumerate(all_rec):
                 plt.close(f)
                 
     # Save output
-    corr_df.to_csv(join(save_path, 'state_correlation.csv'))
+    corr_df.to_csv(join(save_path, f'state_correlation_{N_STATES_SELECT}.csv'))
                 
                              
                 
