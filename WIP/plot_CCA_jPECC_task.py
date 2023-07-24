@@ -151,7 +151,7 @@ for i, region_pair in enumerate(jPECC_opto.keys()):
 # %%
 f, axs = plt.subplots(2, 4, figsize=(7, 3.5), dpi=dpi)
 axs = np.concatenate(axs)
-for i, region_pair in enumerate(np.unique(cca_long_df['region_pair'])):
+for i, region_pair in enumerate(region_pair):
     
     sns.lineplot(x='time', y='cca', hue='opto', data=cca_df[(cca_df['region_pair'] == region_pair)],
                  ax=axs[i], errorbar='se', hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']],

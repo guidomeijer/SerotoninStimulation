@@ -189,8 +189,11 @@ for i in rec.index.values:
         # Crop timewindow for plotting
         state_mat = state_mat[:, use_timepoints]
         
-        # Save the trial-level P(state) data
-        np.save(join(save_path, 'HMM', f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
+        # Save the trial-level P(state) data and zhat matrix
+        np.save(join(save_path, 'HMM', f'{N_STATE_SELECT}', 'prob_mat',
+                     f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
+        np.save(join(save_path, 'HMM', f'{N_STATE_SELECT}', 'state_mat',
+                     f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
         
         if PLOT:
             # Plot example trial

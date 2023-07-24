@@ -24,7 +24,7 @@ f_path, save_path = paths()
 fig_path = join(f_path, 'Extra plots', 'State')
 
 # Load in data
-corr_df = pd.read_csv(join(save_path, 'state_correlation.csv'))
+corr_df = pd.read_csv(join(save_path, 'state_correlation_region.csv'))
 
 # Add genotype
 subjects = load_subjects()
@@ -52,5 +52,5 @@ plt.savefig(join(fig_path, 'state_correlation.jpg'), dpi=600)
 # %% Plot region pairs seperately
 g = sns.FacetGrid(corr_df[corr_df['sert-cre'] == 1], col='region_pair', col_wrap=5, height=2,
                   ylim=(-0.02, 0.02))
-g.map(sns.lineplot, 'time', 'r_permut', color='k', errorbar='se')
+g.map(sns.lineplot, 'time', 'r_mean', color='k', errorbar='se')
 plt.savefig(join(fig_path, 'state_correlation_all_region_pair.jpg'), dpi=600)
