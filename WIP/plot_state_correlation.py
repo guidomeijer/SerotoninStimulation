@@ -33,15 +33,15 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 
 # %% Plot all region pairs together
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-#ax1.add_patch(Rectangle((0, -0.005), 1, 0.01, color='royalblue', alpha=0.25, lw=0))
+ax1.add_patch(Rectangle((0, -0.005), 1, 0.02, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=corr_df, x='time', y='r_mean', errorbar='se', hue='sert-cre', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['wt'], colors['sert']])
-ax1.set(xlabel='Time from stimulation start (s)', 
-        xticks=[-1, 0, 1, 2, 3, 4])
+ax1.set(xlabel='Time from stimulation start (s)', ylim=[-0.001, 0.0075],
+        xticks=[-1, 0, 1, 2, 3, 4], yticks=[0, 0.007], yticklabels=[0, 0.007])
         #ylim=[-0.001, 0.005], yticks=[0, 0.005],
         #yticklabels=[0, 0.005])
 ax1.set_ylabel('State correlation (r)', labelpad=-5)
-g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.85), prop={'size': 5})
+g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.21), prop={'size': 5})
 new_labels = ['label 1', 'label 2']
 for t, l in zip(g.texts, ['WT', 'SERT']):
     t.set_text(l)
