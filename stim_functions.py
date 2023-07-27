@@ -512,7 +512,7 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
         opto_freqs[opto_freqs == 0] = 1
 
         # If there are different stimulation frequencies than 25 Hz it's a long stim session
-        if np.any(np.isin([1, 5, 10], opto_freqs)):
+        if np.any(np.isin([1, 5, 10], opto_freqs)) & (np.sum(opto_freqs == 40) < 5):
             print('Long opto stim session detected')
 
             # Load in the trace in chunks and only extract the 25Hz trains
