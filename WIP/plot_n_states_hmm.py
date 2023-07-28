@@ -19,7 +19,8 @@ BIN_SIZE = 100
 fig_path, save_path = paths()
 
 # Load in data
-hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_all-neurons_{BIN_SIZE}ms_bins.csv'))
+hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
+#hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_all-neurons_{BIN_SIZE}ms_bins.csv'))
 
 # Convert ll
 hmm_ll_df['xcorr'] = -2 * hmm_ll_df['log_likelihood']
@@ -114,6 +115,11 @@ ax6.set(title='Midbrain', ylabel='Normalized log likelihood', xlabel='Number of 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Amygdala'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax7, marker='o')
 ax7.set(title='Amygdala', ylabel='Normalized log likelihood', xlabel='Number of states',
+        xticks=np.arange(2, 21, 2))
+
+sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm',
+             errorbar='se', ax=ax8, marker='o')
+ax8.set(title='All', ylabel='Normalized log likelihood', xlabel='Number of states',
         xticks=np.arange(2, 21, 2))
 
 plt.tight_layout()

@@ -34,8 +34,11 @@ OPEN_ONE = False
 
 # Number of states of HMM
 N_STATES = 7
+N_STATES_TASK = 11
 N_STATES_REGIONS = {'Frontal cortex': 8, 'Amygdala': 6, 'Hippocampus': 7, 'Midbrain': 7,
                     'Sensory cortex': 8, 'Striatum': 7, 'Thalamus': 5}
+N_STATES_TASK_REGIONS = {'Frontal cortex': 9, 'Amygdala': 12, 'Hippocampus': 13, 'Midbrain': 14,
+                         'Sensory cortex': 10, 'Striatum': 9, 'Thalamus': 7}
 
 
 def init_one(open_one=OPEN_ONE):
