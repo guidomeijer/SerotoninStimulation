@@ -32,8 +32,10 @@ expression_df = pd.read_csv(join(save_path, 'expression_levels.csv'))
 # Add genotype and subject number
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
-    all_neurons.loc[all_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
-    all_neurons.loc[all_neurons['subject'] == nickname, 'subject_nr'] = subjects.loc[subjects['subject'] == nickname, 'subject_nr'].values[0]
+    all_neurons.loc[all_neurons['subject'] == nickname,
+                    'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+    all_neurons.loc[all_neurons['subject'] == nickname,
+                    'subject_nr'] = subjects.loc[subjects['subject'] == nickname, 'subject_nr'].values[0]
 
 # Only sert-cre mice
 sert_neurons = all_neurons[all_neurons['sert-cre'] == 1]
@@ -64,11 +66,11 @@ this_cmap = ListedColormap([colors['subject_palette'][i] for i in np.sort(all_mi
 f.subplots_adjust(bottom=0.2, left=0.35, right=0.85, top=0.9)
 sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=2.5, hue='subject_nr',
               palette=this_cmap, legend=None, ax=ax1)
-ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 50], xlabel='',
+ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 52], xlabel='',
         yticks=[0, 25, 50])
 
 sns.despine(trim=True)
-#plt.tight_layout()
+# plt.tight_layout()
 
 plt.savefig(join(fig_path, 'light_mod_summary.pdf'))
 
@@ -83,7 +85,7 @@ sns.regplot(data=merged_df, x='perc_mod', y='rel_fluo', ax=ax1, ci=None,
                          'cmap': this_cmap, 'alpha': 1, 's': 3},
             line_kws={'color': 'k', 'lw': 1})
 
-ax1.set(xlim=[0, 50], xticks=[0, 25, 50],
+ax1.set(xlim=[0, 52], xticks=[0, 25, 50],
         yticks=[0, 175, 350])
 ax1.tick_params(axis='x', which='major', pad=2)
 ax1.set_ylabel('Rel. expression (%)', rotation=90, labelpad=2)
@@ -98,8 +100,3 @@ sns.despine(trim=True)
 plt.tight_layout()
 
 plt.savefig(join(fig_path, 'light_mod_vs_expression.pdf'))
-
-
-
-
-

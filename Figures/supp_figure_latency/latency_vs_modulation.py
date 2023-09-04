@@ -26,14 +26,16 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 neuron_type = pd.read_csv(join(save_path, 'neuron_type.csv'))
 neuron_type = neuron_type.rename(columns={'cluster_id': 'neuron_id'})
-all_neurons = pd.merge(light_neurons, neuron_type, on=['subject', 'probe', 'eid', 'pid', 'neuron_id'])
+all_neurons = pd.merge(light_neurons, neuron_type, on=[
+                       'subject', 'probe', 'eid', 'pid', 'neuron_id'])
 all_neurons['full_region'] = combine_regions(all_neurons['region'], split_thalamus=False)
 all_neurons['high_region'] = high_level_regions(all_neurons['region'])
 
 # Add genotype
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
-    all_neurons.loc[all_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+    all_neurons.loc[all_neurons['subject'] == nickname,
+                    'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
 # Only modulated neurons in sert-cre mice
 sert_neurons = all_neurons[(all_neurons['sert-cre'] == 1) & (all_neurons['modulated'] == 1)]
@@ -65,7 +67,7 @@ sert_neurons['log_latency'] = np.log10(sert_neurons['latency'])
 sert_neurons['latency'] = sert_neurons['latency'] * 1000
 
 # Get absolute
-sert_neurons['mod_index_abs'] = sert_neurons['mod_index_late'].abs()
+sert_neurons['mod_index_abs'] = sert_neurons['mod_index'].abs()
 
 # %%
 
@@ -73,23 +75,23 @@ colors, dpi = figure_style()
 f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
 
 (
-     so.Plot(sert_neurons, x='mod_index_late', y='latency')
-     .add(so.Dot(pointsize=2))
-     .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
-     .limit(x=[-1, 1], y=[-15, 1000])
-     .label(x='Modulation index', y='Modulation latency (ms)')
-     .on(ax1)
-     .plot()
+    so.Plot(sert_neurons, x='mod_index', y='latency')
+    .add(so.Dot(pointsize=2))
+    .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
+    .limit(x=[-1, 1], y=[-15, 1000])
+    .label(x='Modulation index', y='Modulation latency (ms)')
+    .on(ax1)
+    .plot()
 )
 
 (
-     so.Plot(sert_neurons, x='mod_index_abs', y='latency')
-     .add(so.Dot(pointsize=2))
-     .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
-     .limit(x=[-0.1, 1], y=[-15, 1000])
-     .label(x='Absolute modulation index', y='Modulation latency (ms)')
-     .on(ax2)
-     .plot()
+    so.Plot(sert_neurons, x='mod_index_abs', y='latency')
+    .add(so.Dot(pointsize=2))
+    .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
+    .limit(x=[-0.1, 1], y=[-15, 1000])
+    .label(x='Absolute modulation index', y='Modulation latency (ms)')
+    .on(ax2)
+    .plot()
 )
 ax1.set(title='All neurons')
 
@@ -103,18 +105,18 @@ plt.savefig(join(fig_path, 'modulation_vs_latency.pdf'))
 df_slice = sert_neurons[(sert_neurons['full_region'] == 'Medial prefrontal cortex')
                         & (sert_neurons['type'] != 'Und.')]
 df_slice = df_slice[~np.isnan(df_slice['latency'])]
-r, p = pearsonr(df_slice['mod_index_late'], df_slice['latency'])
+r, p = pearsonr(df_slice['mod_index'], df_slice['latency'])
 print(f'r = {r:.2f}\np = {p}')
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 (
-     so.Plot(df_slice, x='mod_index_late', y='latency')
-     .add(so.Dot(pointsize=2), color='type')
-     .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
-     .scale(color=[colors['WS'], colors['NS']])
-     .limit(x=[-1, 1], y=[-15, 1000])
-     .label(x='Modulation index', y='Modulation latency (ms)')
-     .on(ax1)
-     .plot()
+    so.Plot(df_slice, x='mod_index', y='latency')
+    .add(so.Dot(pointsize=2), color='type')
+    .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
+    .scale(color=[colors['WS'], colors['NS']])
+    .limit(x=[-1, 1], y=[-15, 1000])
+    .label(x='Modulation index', y='Modulation latency (ms)')
+    .on(ax1)
+    .plot()
 )
 ax1.text(0, 1000, '***', fontsize=10, ha='center')
 legend = f.legends.pop(0)
@@ -130,18 +132,18 @@ plt.savefig(join(fig_path, 'modulation_vs_latency_frontal.pdf'))
 df_slice = sert_neurons[(sert_neurons['full_region'] == 'Visual cortex')
                         & (sert_neurons['type'] != 'Und.')]
 df_slice = df_slice[~np.isnan(df_slice['latency'])]
-r, p = pearsonr(df_slice['mod_index_late'], df_slice['latency'])
+r, p = pearsonr(df_slice['mod_index'], df_slice['latency'])
 print(f'r = {r:.2f}\np = {p}')
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 (
-     so.Plot(df_slice, x='mod_index_late', y='latency')
-     .add(so.Dot(pointsize=2), color='type')
-     .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
-     .scale(color=[colors['WS'], colors['NS']])
-     .limit(x=[-0.6, 0.6], y=[-15, 1000])
-     .label(x='Modulation index', y='Modulation latency (ms)')
-     .on(ax1)
-     .plot()
+    so.Plot(df_slice, x='mod_index_late', y='latency')
+    .add(so.Dot(pointsize=2), color='type')
+    .add(so.Line(color='k', linewidth=1), so.PolyFit(order=1))
+    .scale(color=[colors['WS'], colors['NS']])
+    .limit(x=[-0.6, 0.6], y=[-15, 1000])
+    .label(x='Modulation index', y='Modulation latency (ms)')
+    .on(ax1)
+    .plot()
 )
 ax1.text(0, 1000, '***', fontsize=10, ha='center')
 legend = f.legends.pop(0)
@@ -151,9 +153,3 @@ ax1.legend(legend.legendHandles, ['WS', 'NS'], frameon=False,
 plt.tight_layout()
 sns.despine(trim=True, offset=2)
 plt.savefig(join(fig_path, 'modulation_vs_latency_visual.pdf'))
-
-
-
-
-
-
