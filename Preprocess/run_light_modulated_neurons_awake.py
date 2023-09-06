@@ -9,7 +9,7 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.task.closed_loop import roc_single_event
-from zetapy import getZeta
+from zetapy import zetatest
 from brainbox.io.one import SpikeSortingLoader
 from scipy.signal import find_peaks
 from scipy.stats import zscore
@@ -91,71 +91,20 @@ for i in rec.index.values:
     for n, neuron_id in enumerate(np.unique(spikes.clusters)):
         if np.mod(n, 20) == 0:
             print(f'Neuron {n} of {np.unique(spikes.clusters).shape[0]}')
-        p_values[n], arr_latency, dRate = getZeta(spikes.times[spikes.clusters == neuron_id],
-                                                  opto_train_times, intLatencyPeaks=4,
-                                                  tplRestrictRange=(0, 1), dblUseMaxDur=6,
-                                                  boolReturnRate=True)
+
+        # Perform ZETA test for neural responsiveness
+        p_values[n], _, dRate, vecLatencies = zetatest(spikes.times[spikes.clusters == neuron_id],
+                                                       opto_train_times, intLatencyPeaks=4,
+                                                       tplRestrictRange=(0, 1), dblUseMaxDur=6,
+                                                       boolReturnRate=True)
+
+        # Get modulation onset
+        latency_peak[n] = dRate['dblPeakTime']
+        latency_peak_onset[n] = vecLatencies[3]
 
         # Get firing rate
         firing_rates[n] = (np.sum(spikes.times[spikes.clusters == neuron_id].shape[0])
                            / (spikes.times[-1]))
-
-        # Find modulation onset
-        if (len(dRate) == 0) | (p_values[n] > 0.05):
-            latency_peak[n] = np.nan
-            latency_peak_onset[n] = np.nan
-        elif dRate['vecRate'].shape[0] < 50:
-            latency_peak[n] = np.nan
-            latency_peak_onset[n] = np.nan
-        else:
-            # Do some smoothing of the inst firing rate to get rid of super narrow peaks
-            smooth_rate = zscore(smooth_interpolate_signal_sg(dRate['vecRate'], window=21, order=3))
-
-            # Find largest positive peak
-            peak_locs, peak_props = find_peaks(smooth_rate[dRate['vecT'] < 1], threshold=0,
-                                               prominence=-np.inf)
-            if len(peak_locs) == 0:
-                pos_peak_loc = []
-                pos_prominence = 0
-            else:
-                pos_peak_loc = peak_locs[np.argmax(peak_props['prominences'])]
-                pos_prominence = np.max(peak_props['prominences'])
-
-            # Find largest negative peak
-            peak_locs, peak_props = find_peaks(-smooth_rate[dRate['vecT'] < 1], threshold=0,
-                                               prominence=-np.inf)
-            if len(peak_locs) == 0:
-                neg_peak_loc = []
-                neg_prominence = 0
-            else:
-                neg_peak_loc = peak_locs[np.argmax(peak_props['prominences'])]
-                neg_prominence = np.max(peak_props['prominences'])
-
-            # Get largest peak
-            if pos_prominence > neg_prominence:
-                peak_loc = pos_peak_loc
-            else:
-                peak_loc = neg_peak_loc
-
-            # Get peak onset (zero crossing of the z-scored inst firing rate)
-            if type(peak_loc) == list:
-                latency_peak[n] = np.nan
-                latency_peak_onset[n] = np.nan
-            else:
-                zero_crossings = np.where(np.diff(np.sign(smooth_rate[dRate['vecT'] < 1])))[0]
-                if zero_crossings.shape[0] == 0:
-                    latency_peak[n] = dRate['vecT'][peak_loc]
-                    latency_peak_onset[n] = np.nan
-                else:
-                    rel_crossings = zero_crossings - peak_loc
-                    if np.sum(np.sign(rel_crossings) == -1) == 0:
-                        latency_peak[n] = dRate['vecT'][peak_loc]
-                        latency_peak_onset[n] = np.nan
-                    else:
-                        onset_loc = zero_crossings[np.where(
-                            rel_crossings == rel_crossings[np.sign(rel_crossings) == -1][-1])[0][0]]
-                        latency_peak[n] = dRate['vecT'][peak_loc]
-                        latency_peak_onset[n] = dRate['vecT'][onset_loc]
 
     # Exclude low firing rate units
     p_values[firing_rates < MIN_FR] = 1
