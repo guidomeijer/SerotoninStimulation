@@ -30,7 +30,8 @@ all_neurons['abr_region'] = combine_regions(all_neurons['region'], abbreviate=Tr
 # Add genotype
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
-    all_neurons.loc[all_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+    all_neurons.loc[all_neurons['subject'] == nickname,
+                    'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
 # Only modulated neurons in sert-cre mice
 sert_neurons = all_neurons[(all_neurons['sert-cre'] == 1) & (all_neurons['modulated'] == 1)]
@@ -59,10 +60,11 @@ ordered_regions = sert_neurons.groupby('full_region').median(numeric_only=True).
 sert_neurons['log_latency'] = np.log10(sert_neurons['latency'])
 
 # Get absolute
-sert_neurons['mod_index_abs'] = sert_neurons['mod_index_late'].abs()
+sert_neurons['mod_index_abs'] = sert_neurons['mod_index'].abs()
 
 # Group by region
-grouped_df = sert_neurons.groupby(['abr_region', 'full_region']).median(numeric_only=True).reset_index().reset_index()
+grouped_df = sert_neurons.groupby(['abr_region', 'full_region']).median(
+    numeric_only=True).reset_index().reset_index()
 
 # Drop root
 grouped_df = grouped_df[grouped_df['abr_region'] != 'root']
@@ -74,25 +76,26 @@ sert_neurons['latency'] = sert_neurons['latency'] * 1000
 
 # %%
 
-PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'red'},
-         'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
+PROPS = {'boxprops': {'facecolor': 'none', 'edgecolor': 'none'}, 'medianprops': {'color': 'red'},
+         'whiskerprops': {'color': 'none'}, 'capprops': {'color': 'none'}}
 
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(2.7, 2), dpi=dpi)
-#sns.pointplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
+# sns.pointplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
 #              join=False, ci=68, color=colors['general'], ax=ax1)
-#sns.boxplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
+# sns.boxplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
 #            color=colors['general'], fliersize=0, linewidth=0.75, ax=ax1)
 sns.violinplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
                color=colors['grey'], linewidth=0, ax=ax1)
-sns.boxplot(x='latency', y='full_region', ax=ax1, data=sert_neurons, 
-            order=ordered_regions['full_region'], 
+sns.boxplot(x='latency', y='full_region', ax=ax1, data=sert_neurons,
+            order=ordered_regions['full_region'],
             fliersize=0, zorder=2, **PROPS)
 sns.stripplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
-               color='k', size=1, ax=ax1)
-ax1.set(xlabel='Modulation onset latency (ms)', ylabel='', xticks=np.arange(0, 1001, 200), xlim=[-150, 1150])
-#plt.xticks(rotation=90)
-#for i, region in enumerate(ordered_regions['full_region']):
+              color='k', size=1, ax=ax1)
+ax1.set(xlabel='Modulation onset latency (ms)', ylabel='',
+        xticks=np.arange(0, 1001, 200), xlim=[-150, 1150])
+# plt.xticks(rotation=90)
+# for i, region in enumerate(ordered_regions['full_region']):
 #    this_lat = ordered_regions.loc[ordered_regions['full_region'] == region, 'latency'].values[0] * 1000
 #    ax1.text(1200, i+0.25, f'{this_lat:.0f} ms', fontsize=5)
 plt.tight_layout()
@@ -108,28 +111,25 @@ grouped_df['color'] = [colors[i] for i in grouped_df['full_region']]
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 # this only plots the line
 (
-     so.Plot(grouped_df, x='mod_index_late', y='latency')
-     .add(so.Dot(pointsize=0))
-     .add(so.Line(color='grey', linewidth=1), so.PolyFit(order=1))
-     .on(ax1)
-     .plot()
+    so.Plot(grouped_df, x='mod_index', y='latency')
+    .add(so.Dot(pointsize=0))
+    .add(so.Line(color='grey', linewidth=1), so.PolyFit(order=1))
+    .on(ax1)
+    .plot()
 )
 # this plots the colored region names
 for i in grouped_df.index:
-    ax1.text(grouped_df.loc[i, 'mod_index_late'] ,
+    ax1.text(grouped_df.loc[i, 'mod_index'],
              grouped_df.loc[i, 'latency'],
              grouped_df.loc[i, 'abr_region'],
              ha='center', va='center',
              color=grouped_df.loc[i, 'color'], fontsize=4.5, fontweight='bold')
-ax1.set(yticks=[0, 200, 400, 600], xticks=[-0.4, -0.2, 0, 0.2],
+ax1.set(yticks=[0, 250], xticks=[-0.4, -0.2, 0, 0.2, 0.4],
         ylabel='Modulation latency (ms)', xlabel='Modulation index')
-r, p = pearsonr(grouped_df['mod_index_late'], grouped_df['latency'])
-#ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
-ax1.text(-0.1, 520, '***', fontsize=10, ha='center')
+r, p = pearsonr(grouped_df['mod_index'], grouped_df['latency'])
+# ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
+ax1.text(-0.1, 250, '***', fontsize=10, ha='center')
 
 sns.despine(offset=2, trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'modulation_latency_vs_index.pdf'))
-
-
-

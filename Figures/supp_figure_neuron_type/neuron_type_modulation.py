@@ -32,17 +32,19 @@ merged_df['full_region'] = combine_regions(merged_df['region'], abbreviate=True)
 # Add expression
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
-    merged_df.loc[merged_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+    merged_df.loc[merged_df['subject'] == nickname,
+                  'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
 # %%
-_, p = ttest_ind(merged_df.loc[merged_df['type'] == 'WS', 'mod_index_late'],
-                 merged_df.loc[merged_df['type'] == 'NS', 'mod_index_late'])
+_, p = ttest_ind(merged_df.loc[merged_df['type'] == 'WS', 'mod_index'],
+                 merged_df.loc[merged_df['type'] == 'NS', 'mod_index'])
 print(f'p = {p:.2f}')
 
 colors, dpi = figure_style()
 
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-sns.violinplot(data=merged_df, x='type', y='mod_index_late', ax=ax1, palette=[colors['NS'], colors['WS']])
+sns.violinplot(data=merged_df, x='type', y='mod_index',
+               ax=ax1, palette=[colors['NS'], colors['WS']])
 ax1.set(ylabel='Modulation index', xticklabels=['Narrow\nspiking', 'Wide\nspiking'],
         xlabel='', yticks=[-1, -0.5, 0, 0.5, 1])
 ax1.text(0.5, 1, 'n.s.', ha='center', va='center', fontsize=7)
