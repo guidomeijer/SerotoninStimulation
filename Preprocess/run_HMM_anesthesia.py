@@ -32,7 +32,7 @@ POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 OVERWRITE = True
-PLOT = True
+PLOT = False
 
 # Get path
 fig_path, save_path = paths()
@@ -91,7 +91,7 @@ for i in rec.index.values:
     clusters_pass = np.array([i for i in clusters_pass if i not in artifact_neurons.loc[
         artifact_neurons['pid'] == pid, 'neuron_id'].values])
     if clusters_pass.shape[0] == 0:
-            continue
+        continue
 
     # Select QC pass neurons
     spikes.times = spikes.times[np.isin(spikes.clusters, clusters_pass)]
@@ -134,51 +134,53 @@ for i in rec.index.values:
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
         down_trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
         up_trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
-       
+
         # Fit HMM on all data
         lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
-    
+
+        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], 2))
         for t in range(len(trial_data)):
-    
+
             # Get posterior probability and most likely states for this trial
             posterior = simple_hmm.filter(trial_data[t])
-            posterior = posterior[np.concatenate(([False], use_timepoints[:-1])), :]  
+            posterior = posterior[np.concatenate(([False], use_timepoints[:-1])), :]
             zhat = simple_hmm.most_likely_states(trial_data[t])
-            
+            prob_mat[t, :, :] = simple_hmm.filter(trial_data[t])
+
             # Make sure 0 is down state and 1 is up state
-            if np.mean(binned_spikes[t, :, zhat==0]) > np.mean(binned_spikes[t, :, zhat==1]):
+            if np.mean(binned_spikes[t, :, zhat == 0]) > np.mean(binned_spikes[t, :, zhat == 1]):
                 # State 0 is up state
-                zhat = np.where((zhat==0)|(zhat==1), zhat^1, zhat)
+                zhat = np.where((zhat == 0) | (zhat == 1), zhat ^ 1, zhat)
                 p_pos_down = posterior[:, 1]
             else:
                 p_pos_down = posterior[:, 0]
-            
+
             # Get transitions
             trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
             down_trans_mat[t, :] = np.concatenate((np.diff(zhat) == -1, [False])).astype(int)
             up_trans_mat[t, :] = np.concatenate((np.diff(zhat) == 1, [False])).astype(int)
-            
+
             # Select trial timewindow
             zhat = zhat[use_timepoints]
-    
+
             # Add to dataframe
             this_df = pd.concat((this_df, pd.DataFrame(data={
                 'state': zhat, 'p_pos_down': p_pos_down, 'region': region, 'time': time_ax,
                 'trial': t})))
 
-        # Smooth and crop state change traces 
+        # Smooth and crop state change traces
         p_state_change = gaussian_filter(np.mean(trans_mat, axis=0), 1)
         p_state_change = p_state_change[use_timepoints]
         p_down_state_change = gaussian_filter(np.mean(down_trans_mat, axis=0), 1)
         p_down_state_change = p_down_state_change[use_timepoints]
         p_up_state_change = gaussian_filter(np.mean(up_trans_mat, axis=0), 1)
         p_up_state_change = p_up_state_change[use_timepoints]
-       
+
         # Add to dataframe
         p_down = this_df[['time', 'state']].groupby('time').mean().reset_index()
         p_down['state'] = 1-p_down['state']
         p_down['state_bl'] = p_down['state'] - p_down.loc[p_down['time'] < 0, 'state'].mean()
-        
+
         up_down_state_df = pd.concat((up_down_state_df, pd.DataFrame(data={
             'p_down': p_down['state'], 'p_down_bl': p_down['state_bl'], 'time': p_down['time'],
             'subject': subject, 'pid': pid, 'region': region})))
@@ -189,6 +191,11 @@ for i in rec.index.values:
             'p_down_state_change': p_down_state_change, 'p_up_state_change': p_up_state_change,
             'region': region, 'subject': subject, 'pid': pid})))
 
+        # Save the trial-level P(state) data
+        prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]  # select time
+        np.save(join(save_path, 'HMM', 'Anesthesia', 'prob_mat',
+                     f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
+
         if PLOT:
             # Plot example trial
             trial = 1
@@ -197,8 +204,9 @@ for i in rec.index.values:
             f, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
             for kk, time_bin in enumerate(time_ax):
                 ax.add_patch(Rectangle((time_bin-BIN_SIZE/2, -1), BIN_SIZE, len(clusters_in_region)+1,
-                                       color=cmap.colors[this_df.loc[this_df['trial'] == trial, 'state'].values[kk]],
-                                       alpha=0.25, lw=0))                           
+                                       color=cmap.colors[this_df.loc[this_df['trial']
+                                                                     == trial, 'state'].values[kk]],
+                                       alpha=0.25, lw=0))
             tickedges = np.arange(0, len(clusters_in_region)+1)
             for i, n in enumerate(clusters_in_region):
                 idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
@@ -206,29 +214,29 @@ for i in rec.index.values:
                 neuron_spks = spikes.times[spikes.clusters == n][idx]
                 ax.vlines(neuron_spks - opto_times[trial], tickedges[i + 1], tickedges[i], color='black',
                           lw=0.5)
-            
+
             ax.set(xlabel='Time (s)', yticks=[0, len(clusters_in_region)],
                    yticklabels=[1, len(clusters_in_region)], xticks=[-1, 0, 1, 2, 3, 4],
                    ylim=[0, len(clusters_in_region)], title=f'{region}')
             ax.set_ylabel('Neurons', labelpad=-5)
-            
+
             ax2 = ax.twinx()
             ax2.plot(time_ax, this_df.loc[this_df['trial'] == trial, 'p_pos_down'], lw=0.5,
                      color=colors['suppressed'])
-            ax2.set(ylim=[-0.01, 1.01])            
+            ax2.set(ylim=[-0.01, 1.01])
             ax2.set_ylabel('P(down state)', rotation=270, labelpad=10)
             ax2.yaxis.label.set_color(colors['suppressed'])
-            ax2.tick_params(axis='y', colors=colors['suppressed'])            
+            ax2.tick_params(axis='y', colors=colors['suppressed'])
             ax2.spines['right'].set_color(colors['suppressed'])
-            
+
             sns.despine(trim=True, right=False)
             plt.tight_layout()
-                        
+
             plt.savefig(join(fig_path, 'Extra plots', 'State', 'Anesthesia',
                              f'{region}_{subject}_{date}_trial.jpg'),
                         dpi=600)
             plt.close(f)
-    
+
             # Plot session
             pivot_df = this_df.pivot_table(index='trial', columns='time', values='state').sort_values(
                 'trial', ascending=False)
@@ -247,7 +255,7 @@ for i in rec.index.values:
 
         # Run the HMM on random onset times
         random_times = np.sort(np.random.uniform(opto_times[0], opto_times[-1], size=100))
-        
+
         # Get binned spikes centered at stimulation onset
         peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, random_times,
                                               pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME, bin_size=BIN_SIZE,
@@ -256,77 +264,83 @@ for i in rec.index.values:
         full_time_ax = peth['tscale']
         use_timepoints = (full_time_ax > -PRE_TIME) & (full_time_ax < POST_TIME)
         time_ax = full_time_ax[use_timepoints]
-    
+
         # Create list of (time_bins x neurons) per stimulation trial
         trial_data = []
         for i in range(binned_spikes.shape[0]):
             trial_data.append(np.transpose(binned_spikes[i, :, :]))
-    
+
         # Initialize HMM
         simple_hmm = ssm.HMM(N_STATES, clusters_in_region.shape[0], observations='poisson')
-    
+
         this_df = pd.DataFrame()
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
         down_trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
         up_trans_mat = np.empty((len(trial_data), full_time_ax.shape[0]))
-       
+
         # Fit HMM on all data
         lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
-    
+
+        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], 2))
         for t in range(len(trial_data)):
-    
+
             # Get posterior probability and most likely states for this trial
             posterior = simple_hmm.filter(trial_data[t])
-            posterior = posterior[np.concatenate(([False], use_timepoints[:-1])), :]  
+            posterior = posterior[np.concatenate(([False], use_timepoints[:-1])), :]
             zhat = simple_hmm.most_likely_states(trial_data[t])
-            
+            prob_mat[t, :, :] = simple_hmm.filter(trial_data[t])
+
             # Make sure 0 is down state and 1 is up state
-            if np.mean(binned_spikes[t, :, zhat==0]) > np.mean(binned_spikes[t, :, zhat==1]):
+            if np.mean(binned_spikes[t, :, zhat == 0]) > np.mean(binned_spikes[t, :, zhat == 1]):
                 # State 0 is up state
-                zhat = np.where((zhat==0)|(zhat==1), zhat^1, zhat)
+                zhat = np.where((zhat == 0) | (zhat == 1), zhat ^ 1, zhat)
                 p_pos_down = posterior[:, 1]
             else:
                 p_pos_down = posterior[:, 0]
-            
+
             # Get transitions
             trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
             down_trans_mat[t, :] = np.concatenate((np.diff(zhat) == -1, [False])).astype(int)
             up_trans_mat[t, :] = np.concatenate((np.diff(zhat) == 1, [False])).astype(int)
-            
+
             # Select trial timewindow
             zhat = zhat[use_timepoints]
-    
+
             # Add to dataframe
             this_df = pd.concat((this_df, pd.DataFrame(data={
                 'state': zhat, 'p_pos_down': p_pos_down, 'region': region, 'time': time_ax,
                 'trial': t})))
-    
-        # Smooth and crop state change traces 
+
+        # Smooth and crop state change traces
         p_state_change = gaussian_filter(np.mean(trans_mat, axis=0), 1)
         p_state_change = p_state_change[use_timepoints]
         p_down_state_change = gaussian_filter(np.mean(down_trans_mat, axis=0), 1)
         p_down_state_change = p_down_state_change[use_timepoints]
         p_up_state_change = gaussian_filter(np.mean(up_trans_mat, axis=0), 1)
         p_up_state_change = p_up_state_change[use_timepoints]
-       
+
         # Add to dataframe
         p_down = this_df[['time', 'state']].groupby('time').mean().reset_index()
         p_down['state'] = 1-p_down['state']
         p_down['state_bl'] = p_down['state'] - p_down.loc[p_down['time'] < 0, 'state'].mean()
-        
+
         up_down_state_null_df = pd.concat((up_down_state_null_df, pd.DataFrame(data={
             'p_down': p_down['state'], 'p_down_bl': p_down['state_bl'], 'time': p_down['time'],
             'subject': subject, 'pid': pid, 'region': region})))
-    
+
         # Add state change PSTH to dataframe
         state_trans_null_df = pd.concat((state_trans_null_df, pd.DataFrame(data={
             'time': time_ax, 'p_state_change': p_state_change,
             'p_down_state_change': p_down_state_change, 'p_up_state_change': p_up_state_change,
             'region': region, 'subject': subject, 'pid': pid})))
-    
+
+        # Save the trial-level P(state) data
+        prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]  # select time
+        np.save(join(save_path, 'HMM', 'Anesthesia', 'prob_mat_null',
+                     f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
+
     # Save result
     up_down_state_df.to_csv(join(save_path, 'updown_states_anesthesia.csv'))
     state_trans_df.to_csv(join(save_path, 'state_trans_anesthesia.csv'))
     up_down_state_null_df.to_csv(join(save_path, 'updown_states_null_anesthesia.csv'))
     state_trans_null_df.to_csv(join(save_path, 'state_trans_null_anesthesia.csv'))
-
