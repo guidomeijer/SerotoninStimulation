@@ -5,21 +5,21 @@ Created on Wed Jan 18 11:20:14 2023
 By: Guido Meijer
 """
 
-import numpy as np
-np.random.seed(0)
-import ssm
-from os.path import join
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-from matplotlib.patches import Rectangle
-from brainbox.io.one import SpikeSortingLoader
-from scipy.ndimage import gaussian_filter
-from brainbox.singlecell import calculate_peths
+from ibllib.atlas import AllenAtlas
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times, init_one,
                             high_level_regions, figure_style, N_STATES_REGIONS, N_STATES)
-from ibllib.atlas import AllenAtlas
+from brainbox.singlecell import calculate_peths
+from scipy.ndimage import gaussian_filter
+from brainbox.io.one import SpikeSortingLoader
+from matplotlib.patches import Rectangle
+from matplotlib.colors import ListedColormap
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from os.path import join
+import ssm
+import numpy as np
+np.random.seed(0)
 ba = AllenAtlas()
 one = init_one()
 
@@ -42,7 +42,8 @@ add_str = f'{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}_{N_STATE_SELECT}-nstates'
 
 # Get paths
 f_path, save_path = paths()
-fig_path = join(f_path, 'Extra plots', 'State', 'Awake', f'{INCL_NEURONS}', f'{int(BIN_SIZE*1000)}ms')
+fig_path = join(f_path, 'Extra plots', 'State', 'Awake',
+                f'{INCL_NEURONS}', f'{int(BIN_SIZE*1000)}ms')
 
 # Query sessions
 rec = query_ephys_sessions(one=one)
@@ -107,7 +108,7 @@ for i in rec.index.values:
     for r, region in enumerate(np.unique(clusters['high_level_region'])):
         if region == 'root':
             continue
-        
+
         if N_STATE_SELECT == 'global':
             n_states = N_STATES
         elif N_STATE_SELECT == 'region':
@@ -143,19 +144,19 @@ for i in rec.index.values:
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], n_states))
-        
+
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
             zhat = simple_hmm.most_likely_states(trial_data[t])
             prob_mat[t, :, :] = simple_hmm.filter(trial_data[t])
-            
+
             # Get state transitions times
             trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
 
             # Add state to state matrix
             state_mat[t, :] = zhat
-        
+
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
         smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
@@ -185,28 +186,28 @@ for i in rec.index.values:
             'cumsum_trans': np.cumsum(np.sum(trans_mat, axis=0)),
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
-        
+
         # Crop timewindow for plotting
         state_mat = state_mat[:, use_timepoints]
-        
+
         # Save the trial-level P(state) data and zhat matrix
         np.save(join(save_path, 'HMM', 'Passive', f'{N_STATE_SELECT}', 'prob_mat',
                      f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
         np.save(join(save_path, 'HMM', 'Passive', f'{N_STATE_SELECT}', 'state_mat',
                      f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
-        
+
         if PLOT:
             # Plot example trial
             trial = 0
             cmap = sns.color_palette(CMAP, n_states)
             colors, dpi = figure_style()
             f, ax = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
-            
+
             for kk, time_bin in enumerate(time_ax):
                 ax.add_patch(Rectangle((time_bin-BIN_SIZE/2, -1), BIN_SIZE, len(clusters_in_region)+1,
                                        color=cmap[state_mat[trial, kk]],
-                                       alpha=0.25, lw=0)) 
-                
+                                       alpha=0.25, lw=0))
+
             tickedges = np.arange(0, len(clusters_in_region)+1)
             for k, n in enumerate(clusters_in_region):
                 idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
@@ -225,40 +226,40 @@ for i in rec.index.values:
             ax2.set_ylabel('P(state)', rotation=270, labelpad=10)
             sns.despine(trim=True, right=False)
             plt.tight_layout()
-            
+
             plt.savefig(join(fig_path, f'{region}_{subject}_{date}_trial.jpg'), dpi=600)
             plt.close(f)
-    
+
             # Plot session
             f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
             ax1.imshow(state_mat, aspect='auto', cmap=ListedColormap(cmap),
                        vmin=0, vmax=n_states-1,
-                      extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
+                       extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)), interpolation=None)
             ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
             ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
-                   title=f'{region}')
-    
+                    title=f'{region}')
+
             for ii in range(n_states):
                 ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
             ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
-    
+
             ax3.imshow(trans_mat, aspect='auto', cmap='Greys', interpolation=None,
                        extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)))
             ax32 = ax3.twinx()
             ax32.plot(time_ax, smooth_p_trans)
             ax32.set(ylabel='P(state change)')
             ax3.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4])
-    
-            #sns.despine(trim=True)
+
+            # sns.despine(trim=True)
             plt.tight_layout()
             plt.savefig(join(
                 fig_path, f'{region}_{subject}_{date}_ses.jpg'),
                 dpi=600)
             plt.close(f)
-            
+
         # Run the HMM on random onset times in the spontaneous activity
         random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10, size=100))
-        
+
         # Initialize HMM
         simple_hmm = ssm.HMM(n_states, clusters_in_region.shape[0], observations='poisson')
 
@@ -288,13 +289,13 @@ for i in rec.index.values:
             # Get most likely states for this trial
             zhat = simple_hmm.most_likely_states(trial_data[t])
             prob_mat[t, :, :] = simple_hmm.filter(trial_data[t])
-            
+
             # Get state transitions times
             trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
 
             # Add state to state matrix
             state_mat[t, :] = zhat
-            
+
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
         smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
@@ -321,13 +322,21 @@ for i in rec.index.values:
         # Add state change PSTH to dataframe
         state_trans_null_df = pd.concat((state_trans_null_df, pd.DataFrame(data={
             'time': time_ax, 'p_trans': smooth_p_trans,
+            'cumsum_trans': np.cumsum(np.sum(trans_mat, axis=0)),
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
-        
+
+        # Crop timewindow for plotting
+        state_mat = state_mat[:, use_timepoints]
+
+        # Save the trial-level P(state) data and zhat matrix
+        np.save(join(save_path, 'HMM', 'Passive', f'{N_STATE_SELECT}', 'prob_mat_null',
+                     f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
+        np.save(join(save_path, 'HMM', 'Passive', f'{N_STATE_SELECT}', 'state_mat_null',
+                     f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
+
     # Save output
     state_trans_df.to_csv(join(save_path, f'state_trans_{add_str}.csv'))
     p_state_df.to_csv(join(save_path, f'p_state_{add_str}.csv'))
     state_trans_null_df.to_csv(join(save_path, f'state_trans_null_{add_str}.csv'))
     p_state_null_df.to_csv(join(save_path, f'p_state_null_{add_str}.csv'))
-
-
