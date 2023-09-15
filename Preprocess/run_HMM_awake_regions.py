@@ -258,7 +258,8 @@ for i in rec.index.values:
             plt.close(f)
 
         # Run the HMM on random onset times in the spontaneous activity
-        random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10, size=100))
+        random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10,
+                                                 size=opto_times.shape[0]))
 
         # Initialize HMM
         simple_hmm = ssm.HMM(n_states, clusters_in_region.shape[0], observations='poisson')
