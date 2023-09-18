@@ -74,7 +74,7 @@ for i in rec.index.values:
     if len(opto_times) == 0:
         print('Could not load light pulses')
         continue
-    
+
     # Generate random times during spontaneous activity
     random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10,
                                              size=opto_times.shape[0]))
@@ -128,7 +128,7 @@ for i in rec.index.values:
         simple_hmm = ssm.HMM(n_states, clusters_in_region.shape[0], observations='poisson')
 
         # Get binned spikes centered at stimulation onset
-        peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region, 
+        peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region,
                                               np.concatenate((random_times, opto_times)),
                                               pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME,
                                               bin_size=BIN_SIZE, smoothing=0, return_fr=False)
@@ -185,10 +185,10 @@ for i in rec.index.values:
             p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
                 'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
                 'subject': subject, 'pid': pid, 'region': region, 'opto': 0})))
-            
+
             # Opto times
             # Get P state, first smooth, then crop timewindow
-            this_p_state = np.mean(prob_mat[opto_times.shape[0], :, ii], axis=0)
+            this_p_state = np.mean(prob_mat[opto_times.shape[0]:, :, ii], axis=0)
             p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
 
             # Add to dataframe and matrix
