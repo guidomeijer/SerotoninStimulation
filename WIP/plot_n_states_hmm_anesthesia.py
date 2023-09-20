@@ -118,3 +118,13 @@ ax7.set(title='Amygdala', ylabel='Normalized log likelihood', xlabel='Number of 
 
 plt.tight_layout()
 sns.despine(trim=True)
+
+# %%
+f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm',
+             errorbar='se', err_kws={'lw': 0}, ax=ax1, marker='o')
+ax1.set(title='Anesthesia', ylabel='Normalized log likelihood', xlabel='Number of states',
+        xticks=np.arange(2, 21, 2))
+
+plt.tight_layout()
+sns.despine(trim=True)

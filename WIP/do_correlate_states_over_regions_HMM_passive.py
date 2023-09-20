@@ -19,13 +19,13 @@ from stim_functions import paths, figure_style
 CMAP = 'Set2'
 PRE_TIME = 1
 POST_TIME = 4
-PLOT = False
+PLOT = True
 ORIG_BIN_SIZE = 0.1  # original bin size
 BIN_SIZE = 0.5  # binning to apply for this analysis
 BIN_SHIFT = 0.1
 PRE_TIME = 1
 POST_TIME = 4
-N_STATES_SELECT = 'region'
+N_STATES_SELECT = 'global'
 
 # Plotting
 colors, dpi = figure_style()
@@ -66,7 +66,7 @@ for i, this_rec in enumerate(all_rec):
         for r2, region2 in enumerate(list(rec_region.keys())[r1:]):
             if region1 == region2:
                 continue
-
+            
             # Loop over timebins
             corr_mats = np.empty((rec_region[region1].shape[2], rec_region[region2].shape[2],
                                   bin_centers.shape[0]))
@@ -81,43 +81,30 @@ for i, this_rec in enumerate(all_rec):
                     for state2 in range(rec_region[region2].shape[2]):
 
                         # Bin state probabilities
-                        r1s1 = np.mean(rec_region[region1][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state1],
-                                       axis=1)
-                        r2s2 = np.mean(rec_region[region2][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state2],
-                                       axis=1)
+                        r1s1 = np.mean(rec_region[region1][
+                            rec_region[region1].shape[0]//2:,
+                            (time_ax >= bin_center - BIN_SIZE/2) & (time_ax <= bin_center + BIN_SIZE/2),
+                            state1],
+                            axis=1)
+                        r2s2 = np.mean(rec_region[region2][
+                            rec_region[region2].shape[0]//2:,
+                            (time_ax >= bin_center - BIN_SIZE/2) & (time_ax <= bin_center + BIN_SIZE/2),
+                            state2],
+                            axis=1)
 
                         # Correlate
                         corr_mats[state1, state2, tb] = pearsonr(r1s1, r2s2)[0]
 
                 # Get mean over entire correlation matrix
                 corr_mean[tb] = np.mean(corr_mats[:, :, tb])
-
+                
                 # Get highest state pairs
                 n_states = np.max([rec_region[region1].shape[2], rec_region[region2].shape[2]])
                 corr_max[tb] = np.mean(np.sort(np.concatenate(corr_mats[:, :, tb]))[-n_states:])
 
-                # From the region with the most states, drop the states with the lowest correlation
-                # This is to make the matrix square
-                this_mat = corr_mats[:, :, tb]
-                lowest_states = np.argsort(np.max(this_mat, axis=np.argmin(this_mat.shape)))
-                this_mat = np.delete(this_mat,
-                                     np.argsort(lowest_states)[:np.abs(
-                                         this_mat.shape[0] - this_mat.shape[1])],
-                                     np.argmax(this_mat.shape))
-
-                # Permute matrix to get maximal correlation along the diagonal
-                all_perm = list(permutations(np.arange(this_mat.shape[0])))
-                permut_diag = np.empty(len(all_perm))
-                for permut in range(len(all_perm)):
-                    permut_diag[permut] = np.sum(np.diag(this_mat[:, all_perm[permut]]))
-                permut_mat = this_mat[:, all_perm[np.argmax(permut_diag)]]
-                corr_permut[tb] = np.mean(np.diag(permut_mat))
-
             # Add to dataframe
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
-                'time': bin_centers, 'r_mean': corr_mean, 'r_max': corr_max, 'r_permut': corr_permut,
+                'time': bin_centers, 'r_mean': corr_mean, 'r_max': corr_max,
                 'region1': region1, 'region2': region2, 'opto': 1,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date, 'probe': probe})))
@@ -146,7 +133,7 @@ for i, this_rec in enumerate(all_rec):
     # Do the same for the random onset times null condition
     # Get all brain regions simultaneously recorded in this recording session
     rec_region_paths = glob(
-        join(save_path, 'HMM', 'Passive', f'{N_STATES_SELECT}', 'prob_mat_null', f'{this_rec[:20]}*'))
+        join(save_path, 'HMM', 'Passive', f'{N_STATES_SELECT}', 'prob_mat', f'{this_rec[:20]}*'))
     rec_region = dict()
     for ii in range(len(rec_region_paths)):
         rec_region[split(rec_region_paths[ii])[1][29:-4]] = np.load(join(rec_region_paths[ii]))
@@ -171,12 +158,16 @@ for i, this_rec in enumerate(all_rec):
                     for state2 in range(rec_region[region2].shape[2]):
 
                         # Bin state probabilities
-                        r1s1 = np.mean(rec_region[region1][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state1],
-                                       axis=1)
-                        r2s2 = np.mean(rec_region[region2][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state2],
-                                       axis=1)
+                        r1s1 = np.mean(rec_region[region1][
+                            :rec_region[region1].shape[0]//2,
+                            (time_ax >= bin_center - BIN_SIZE/2) & (time_ax <= bin_center + BIN_SIZE/2),
+                            state1],
+                            axis=1)
+                        r2s2 = np.mean(rec_region[region2][
+                            :rec_region[region2].shape[0]//2,
+                            (time_ax >= bin_center - BIN_SIZE/2) & (time_ax <= bin_center + BIN_SIZE/2),
+                            state2],
+                            axis=1)
 
                         # Correlate
                         corr_mats[state1, state2, tb] = pearsonr(r1s1, r2s2)[0]
@@ -188,26 +179,9 @@ for i, this_rec in enumerate(all_rec):
                 n_states = np.max([rec_region[region1].shape[2], rec_region[region2].shape[2]])
                 corr_max[tb] = np.mean(np.sort(np.concatenate(corr_mats[:, :, tb]))[-n_states:])
 
-                # From the region with the most states, drop the states with the lowest correlation
-                # This is to make the matrix square
-                this_mat = corr_mats[:, :, tb]
-                lowest_states = np.argsort(np.max(this_mat, axis=np.argmin(this_mat.shape)))
-                this_mat = np.delete(this_mat,
-                                     np.argsort(lowest_states)[:np.abs(
-                                         this_mat.shape[0] - this_mat.shape[1])],
-                                     np.argmax(this_mat.shape))
-
-                # Permute matrix to get maximal correlation along the diagonal
-                all_perm = list(permutations(np.arange(this_mat.shape[0])))
-                permut_diag = np.empty(len(all_perm))
-                for permut in range(len(all_perm)):
-                    permut_diag[permut] = np.sum(np.diag(this_mat[:, all_perm[permut]]))
-                permut_mat = this_mat[:, all_perm[np.argmax(permut_diag)]]
-                corr_permut[tb] = np.mean(np.diag(permut_mat))
-
             # Add to dataframe
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
-                'time': bin_centers, 'r_mean': corr_mean, 'r_max': corr_max, 'r_permut': corr_permut,
+                'time': bin_centers, 'r_mean': corr_mean, 'r_max': corr_max, 
                 'region1': region1, 'region2': region2, 'opto': 0,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date, 'probe': probe})))

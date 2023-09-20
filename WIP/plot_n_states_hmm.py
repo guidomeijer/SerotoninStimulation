@@ -19,7 +19,8 @@ BIN_SIZE = 100
 fig_path, save_path = paths()
 
 # Load in data
-hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
+#hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
+hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_regions_{BIN_SIZE}ms_bins.csv'))
 #hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_all-neurons_{BIN_SIZE}ms_bins.csv'))
 
 # Convert ll
@@ -120,6 +121,16 @@ ax7.set(title='Amygdala', ylabel='Normalized log likelihood', xlabel='Number of 
 sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm',
              errorbar='se', ax=ax8, marker='o')
 ax8.set(title='All', ylabel='Normalized log likelihood', xlabel='Number of states',
+        xticks=np.arange(2, 21, 2))
+
+plt.tight_layout()
+sns.despine(trim=True)
+
+# %%
+f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm',
+             errorbar='se', err_kws={'lw': 0}, ax=ax1, marker='o')
+ax1.set(title='Quiet wakefullness', ylabel='Normalized log likelihood', xlabel='Number of states',
         xticks=np.arange(2, 21, 2))
 
 plt.tight_layout()
