@@ -26,6 +26,7 @@ one = init_one()
 # Settings
 BIN_SIZE = 0.1  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
+RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
@@ -38,7 +39,7 @@ PLOT = False
 N_STATE_SELECT = 'global'  # global or region
 
 # Create text to add to save files
-add_str = f'{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}_{N_STATE_SELECT}-nstates'
+add_str = f'{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}_{RANDOM_TIMES}-nstates'
 
 # Get paths
 f_path, save_path = paths()
@@ -76,8 +77,12 @@ for i in rec.index.values:
         continue
 
     # Generate random times during spontaneous activity
-    random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10,
-                                             size=opto_times.shape[0]))
+    if RANDOM_TIMES == 'jitter':
+        random_times = np.sort(np.random.uniform(opto_times[0]-HMM_PRE_TIME, opto_times[-1]+HMM_POST_TIME,
+                                                 size=opto_times.shape[0]))
+    elif RANDOM_TIMES == 'spont':
+        random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10,
+                                                 size=opto_times.shape[0]))
 
     # Load in spikes
     try:
@@ -204,7 +209,7 @@ for i in rec.index.values:
             'region': region, 'subject': subject, 'pid': pid})))
 
         # Save the trial-level P(state) data and zhat matrix
-        np.save(join(save_path, 'HMM', 'Passive', f'{N_STATE_SELECT}', 'prob_mat',
+        np.save(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}',
                      f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
 
         if PLOT:

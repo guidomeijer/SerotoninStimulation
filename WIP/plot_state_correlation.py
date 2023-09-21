@@ -15,7 +15,8 @@ from os.path import join, split
 import matplotlib.pyplot as plt
 from stim_functions import paths, figure_style, load_subjects
 
-N_STATES_SELECT = 'global'  # region or global
+N_STATES_SELECT = 'global'
+RANDOM_TIMES = 'spont'
 
 # Plotting
 colors, dpi = figure_style()
@@ -26,7 +27,7 @@ fig_path = join(f_path, 'Extra plots', 'State')
 
 # Load in data
 corr_anes_df = pd.read_csv(join(save_path, 'state_correlation_anesthesia.csv'))
-corr_passive_df = pd.read_csv(join(save_path, f'state_correlation_{N_STATES_SELECT}_passive.csv'))
+corr_passive_df = pd.read_csv(join(save_path, f'state_correlation_{RANDOM_TIMES}_passive.csv'))
 corr_task_df = pd.read_csv(join(save_path, f'state_correlation_{N_STATES_SELECT}_task.csv'))
 corr_task_df = corr_task_df[corr_task_df['opto'] != 2]  # exclude probe trials
 
@@ -83,7 +84,7 @@ for t, l in zip(g.texts, ['No stim', 'Stim']):
     t.set_text(l)
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, f'state_correlation_{N_STATES_SELECT}_passive_mean.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_mean.jpg'), dpi=600)
 
 # %% Passive max
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
@@ -102,7 +103,7 @@ for t, l in zip(g.texts, ['No stim', 'Stim']):
     t.set_text(l)
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, f'state_correlation_{N_STATES_SELECT}_passive_max.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_max.jpg'), dpi=600)
 
 """
 # %% Plot region pairs seperately
@@ -130,7 +131,7 @@ for t, l in zip(g.texts, ['No stim', 'Stim']):
     t.set_text(l)
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, f'state_correlation_{N_STATES_SELECT}_passive_permut.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_permut.jpg'), dpi=600)
 
 
 # %% Task mean
@@ -150,7 +151,7 @@ for t, l in zip(g.texts, ['No stim', 'Stim']):
     t.set_text(l)
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, f'state_correlation_{N_STATES_SELECT}_task_mean.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_task_mean.jpg'), dpi=600)
 
 
 # %% Plot all region pairs together
@@ -159,14 +160,9 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 sns.lineplot(data=corr_task_df[corr_task_df['sert-cre'] == 1],
              x='time', y='r_max', errorbar='se', hue='opto', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
-if N_STATES_SELECT == 'global':
-    ax1.set(xlabel='Time from trial start (s)', ylim=[0.4, 0.5],
-            xticks=[-1, 0, 1, 2, 3, 4], yticks=[0.4, 0.5], yticklabels=[0.4, 0.5])
-    g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.9), prop={'size': 5})
-elif N_STATES_SELECT == 'region':
-    ax1.set(xlabel='Time from trial start (s)', ylim=[0.4, 0.51],
-            xticks=[-1, 0, 1, 2, 3, 4], yticks=[0.4, 0.5], yticklabels=[0.4, 0.5])
-    g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.9), prop={'size': 5})
+ax1.set(xlabel='Time from trial start (s)', ylim=[0.4, 0.51],
+        xticks=[-1, 0, 1, 2, 3, 4], yticks=[0.4, 0.5], yticklabels=[0.4, 0.5])
+g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.9), prop={'size': 5})
 ax1.set_ylabel('State correlation (r)', labelpad=-5)
 
 new_labels = ['label 1', 'label 2']
@@ -174,7 +170,7 @@ for t, l in zip(g.texts, ['No stim', 'Stim']):
     t.set_text(l)
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, f'state_correlation_{N_STATES_SELECT}_task_max.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_task_max.jpg'), dpi=600)
 
 """
 # %% Plot region pairs seperately
