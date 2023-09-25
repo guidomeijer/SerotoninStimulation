@@ -17,7 +17,7 @@ from stim_functions import paths, figure_style
 
 # Settings
 CMAP = 'Set2'
-RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
+RANDOM_TIMES = 'jitter'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1
 POST_TIME = 4
 PLOT = False
@@ -36,7 +36,7 @@ f_path, save_path = paths()
 fig_path = join(f_path, 'Extra plots', 'State', 'Correlation matrices', f'{RANDOM_TIMES}')
 
 # Get all files
-all_files = glob(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', '*.npy'))
+all_files = glob(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', 'prob_mat', '*.npy'))
 
 # Get all recordings
 all_rec = np.unique([split(i)[1][:28] for i in all_files])
@@ -52,7 +52,7 @@ for i, this_rec in enumerate(all_rec):
 
     # Get all brain regions simultaneously recorded in this recording session
     rec_region_paths = glob(
-        join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', f'{this_rec[:20]}*'))
+        join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', 'prob_mat', f'{this_rec[:20]}*'))
     rec_region = dict()
     for ii in range(len(rec_region_paths)):
         rec_region[split(rec_region_paths[ii])[1][29:-4]] = np.load(join(rec_region_paths[ii]))
