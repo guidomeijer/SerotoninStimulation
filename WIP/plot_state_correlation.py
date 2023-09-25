@@ -88,12 +88,12 @@ plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_mean.jpg')
 
 # %% Passive max
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-ax1.add_patch(Rectangle((0, 0), 1, 0.5, color='royalblue', alpha=0.25, lw=0))
+ax1.add_patch(Rectangle((0, 0), 1, 0.6, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=corr_passive_df[corr_passive_df['sert-cre'] == 1], x='time', y='r_max',
              errorbar='se', hue='opto', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
-ax1.set(xlabel='Time from stimulation start (s)', ylim=[0.1, 0.5],
-        xticks=[-1, 0, 1, 2, 3, 4], yticks=[0.1, 0.5], yticklabels=[0.1, 0.5])
+ax1.set(xlabel='Time from stimulation start (s)', ylim=[0.1, 0.6],
+        xticks=[-1, 0, 1, 2, 3, 4], yticks=[0.1, 0.6], yticklabels=[0.1, 0.6])
 # ylim=[-0.001, 0.005], yticks=[0, 0.005],
 # yticklabels=[0, 0.005])
 ax1.set_ylabel('State correlation (r)', labelpad=-5)
@@ -104,6 +104,26 @@ for t, l in zip(g.texts, ['No stim', 'Stim']):
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_max.jpg'), dpi=600)
+
+# %% Passive min
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+ax1.add_patch(Rectangle((0, -1), 1, 2, color='royalblue', alpha=0.25, lw=0))
+sns.lineplot(data=corr_passive_df[corr_passive_df['sert-cre'] == 1], x='time', y='r_min',
+             errorbar='se', hue='opto', err_kws={'lw': 0},
+             hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
+ax1.set(xlabel='Time from stimulation start (s)', ylim=[-0.5, -0.2],
+        xticks=[-1, 0, 1, 2, 3, 4], yticks=[-0.5, -0.2])
+# ylim=[-0.001, 0.005], yticks=[0, 0.005],
+# yticklabels=[0, 0.005])
+ax1.set_ylabel('State correlation (r)', labelpad=-5)
+g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.8), prop={'size': 5})
+new_labels = ['label 1', 'label 2']
+for t, l in zip(g.texts, ['No stim', 'Stim']):
+    t.set_text(l)
+sns.despine(trim=True)
+plt.tight_layout()
+
+plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_min.jpg'), dpi=600)
 
 """
 # %% Plot region pairs seperately

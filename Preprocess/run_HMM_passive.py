@@ -175,6 +175,7 @@ for i in rec.index.values:
         trans_mat = trans_mat[:, use_timepoints]
         smooth_p_trans = smooth_p_trans[use_timepoints]
         prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
+        state_mat = state_mat[:, use_timepoints]
 
         # Get P(state)
         p_state_mat = np.empty((n_states, time_ax.shape[0]))
@@ -209,8 +210,10 @@ for i in rec.index.values:
             'region': region, 'subject': subject, 'pid': pid})))
 
         # Save the trial-level P(state) data and zhat matrix
-        np.save(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}',
+        np.save(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', 'prob_mat',
                      f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
+        np.save(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', 'state_mat',
+                     f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
 
         if PLOT:
             # Plot example trial
