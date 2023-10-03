@@ -29,8 +29,8 @@ from ibllib.atlas import BrainRegions
 from ibllib.atlas import AllenAtlas
 from one.api import ONE
 
-# Whether to use released open-source data 
-OPEN_ONE = False 
+# Whether to use released open-source data
+OPEN_ONE = False
 
 # Number of states of HMM
 N_STATES = 7
@@ -39,6 +39,7 @@ N_STATES_REGIONS = {'Frontal cortex': 8, 'Amygdala': 6, 'Hippocampus': 7, 'Midbr
                     'Sensory cortex': 8, 'Striatum': 7, 'Thalamus': 5}
 N_STATES_TASK_REGIONS = {'Frontal cortex': 9, 'Amygdala': 12, 'Hippocampus': 13, 'Midbrain': 14,
                          'Sensory cortex': 10, 'Striatum': 9, 'Thalamus': 7}
+N_STATES_CONT = 7
 
 
 def init_one(open_one=OPEN_ONE):
@@ -47,7 +48,7 @@ def init_one(open_one=OPEN_ONE):
                   password='international', silent=True)
     else:
         one = ONE()
-    return one            
+    return one
 
 
 def load_subjects(anesthesia='all', behavior=None):
@@ -74,20 +75,20 @@ def paths(save_dir='repo'):
     """
     Load in figure path from paths.json, if this file does not exist it will be generated from
     user input
-    
+
     Save directory can be either the repository (for small files) or the one cache directory
     (for large files)
-    
+
     Input
     ------------------------
     save_dir : str
         'repo' or 'cache' for saving in the repository or one cache, respectively
-        
+
     Output
     ------------------------
     fig_path : str
         Path to where to save the figures
-        
+
     save_path : str
         Path to where to save the output data
     """
@@ -138,7 +139,7 @@ def figure_style():
                 'legend.fontsize': 7,
                 'legend.title_fontsize': 7,
                 'legend.frameon': False,
-                 })
+                })
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
     subject_pal = sns.color_palette(
@@ -151,7 +152,7 @@ def figure_style():
     thalamus = sns.color_palette('Dark2')[0]
     striatum = sns.color_palette('Set1')[7]
     midbrain = sns.color_palette('Dark2')[3]
-    
+
     colors = {'subject_palette': subject_pal,
               'grey': [0.7, 0.7, 0.7],
               'sert': sns.color_palette('Dark2')[0],
@@ -254,14 +255,15 @@ def figure_style():
  """
 
 
-
 def get_artifact_neurons():
-    artifact_neurons = pd.read_csv(join(pathlib.Path(__file__).parent.resolve(), 'artifact_neurons.csv'))
+    artifact_neurons = pd.read_csv(
+        join(pathlib.Path(__file__).parent.resolve(), 'artifact_neurons.csv'))
     return artifact_neurons
 
 
 def remove_artifact_neurons(df):
-    artifact_neurons = pd.read_csv(join(pathlib.Path(__file__).parent.resolve(), 'artifact_neurons.csv'))
+    artifact_neurons = pd.read_csv(
+        join(pathlib.Path(__file__).parent.resolve(), 'artifact_neurons.csv'))
     for i, column in enumerate(df.columns):
         if df[column].dtype == bool:
             df[column] = df[column].astype('boolean')
@@ -282,7 +284,7 @@ def query_ephys_sessions(aligned=True, behavior_crit=False, n_trials=0, anesthes
 
     # Construct django query string
     DJANGO_STR = ('session__project__name__icontains,serotonin_inference,'
-                 'session__qc__lt,50')
+                  'session__qc__lt,50')
     if aligned:
         # Query all ephys-histology aligned sessions
         DJANGO_STR += ',json__extended_qc__alignment_count__gt,0'
@@ -354,9 +356,9 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
         regions[np.in1d(acronyms, ['ZI'])] = 'ZI'
         regions[np.in1d(acronyms, ['PAG'])] = 'PAG'
         regions[np.in1d(acronyms, ['SSp-bfd'])] = 'BC'
-        #regions[np.in1d(acronyms, ['LGv', 'LGd'])] = 'LG'
+        # regions[np.in1d(acronyms, ['LGv', 'LGd'])] = 'LG'
         regions[np.in1d(acronyms, ['PIR'])] = 'Pir'
-        #regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'SN'
+        # regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'SN'
         regions[np.in1d(acronyms, ['VISa', 'VISam', 'VISp', 'VISpm'])] = 'VIS'
         regions[np.in1d(acronyms, ['AId', 'AIv', 'AIp'])] = 'AI'
         regions[np.in1d(acronyms, ['MEA', 'CEA', 'BLA', 'COAa'])] = 'Amyg'
@@ -383,9 +385,9 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
         regions[np.in1d(acronyms, ['PAG'])] = 'Periaqueductal gray'
         regions[np.in1d(acronyms, ['AId', 'AIv', 'AIp'])] = 'Insular cortex'
         regions[np.in1d(acronyms, ['SSp-bfd'])] = 'Barrel cortex'
-        #regions[np.in1d(acronyms, ['LGv', 'LGd'])] = 'Lateral geniculate'
+        # regions[np.in1d(acronyms, ['LGv', 'LGd'])] = 'Lateral geniculate'
         regions[np.in1d(acronyms, ['PIR'])] = 'Piriform'
-        #regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'Substantia nigra'
+        # regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'Substantia nigra'
         regions[np.in1d(acronyms, ['VISa', 'VISam', 'VISp', 'VISpm'])] = 'Visual cortex'
         regions[np.in1d(acronyms, ['MEA', 'CEA', 'BLA', 'COAa'])] = 'Amygdala'
         regions[np.in1d(acronyms, ['CP', 'STR', 'STRd', 'STRv'])] = 'Striatum'
@@ -402,8 +404,8 @@ def high_level_regions(acronyms, merge_cortex=False, only_vis=False, input_atlas
     cosmos_regions = remap(acronyms, dest='Cosmos')
     regions = np.array(['root'] * len(first_level_regions), dtype=object)
     if merge_cortex:
-        #regions[cosmos_regions == 'Isocortex'] = 'Cortex'
-        #regions[first_level_regions == 'Pir'] = 'Cortex'
+        # regions[cosmos_regions == 'Isocortex'] = 'Cortex'
+        # regions[first_level_regions == 'Pir'] = 'Cortex'
         regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2', 'Pir', 'BC', 'VIS'])] = 'Cortex'
     else:
         regions[np.in1d(first_level_regions, ['mPFC', 'OFC', 'M2'])] = 'Frontal cortex'
@@ -468,8 +470,10 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
         opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'))
         return opto_train_times, opto_on_times
     elif isfile(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia.npy')) & ~force_rerun & anesthesia:
-        opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'))
-        opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'))
+        opto_train_times = np.load(
+            join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'))
+        opto_on_times = np.load(
+            join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'))
         return opto_train_times, opto_on_times
     else:
         # Load in laser pulses
@@ -482,7 +486,8 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
                 '_spikeglx_ephysData_g1_t0.nidq.cbin', '_spikeglx_ephysData_g1_t0.nidq.meta',
                 '_spikeglx_ephysData_g1_t0.nidq.ch'], download_only=True)
         session_path = one.eid2path(eid)
-        nidq_file = glob(str(session_path.joinpath('raw_ephys_data/_spikeglx_ephysData_g*_t0.nidq.cbin')))[-1]
+        nidq_file = glob(str(session_path.joinpath(
+            'raw_ephys_data/_spikeglx_ephysData_g*_t0.nidq.cbin')))[-1]
         sr = spikeglx.Reader(nidq_file)
         if anesthesia_ses & ~anesthesia:
             offset = int(300 * sr.fs)
@@ -507,7 +512,7 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
         # Get the stimulation frequencies
         opto_freqs = np.empty(opto_train_times.shape)
         for i, t_time in enumerate(opto_train_times):
-            #opto_freqs[i] = 1/np.mean(np.diff(opto_on_times[(opto_on_times >= t_time)
+            # opto_freqs[i] = 1/np.mean(np.diff(opto_on_times[(opto_on_times >= t_time)
             #                                                & (opto_on_times <= t_time + 1)]))
             opto_freqs[i] = opto_on_times[(opto_on_times >= t_time)
                                           & (opto_on_times <= t_time + 1)].shape[0]
@@ -532,21 +537,25 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
                 these_on_times = times_chunk[np.concatenate((np.diff(trace_chunk), [0])) > 1]
 
                 # Get the times of the onset of each pulse train
-                these_train_times = these_on_times[np.concatenate(([True], np.diff(these_on_times) > 1))]
+                these_train_times = these_on_times[np.concatenate(
+                    ([True], np.diff(these_on_times) > 1))]
 
                 # Get the stimulation frequencies
                 these_freqs = np.empty(these_train_times.shape)
                 for ii, t_time in enumerate(these_train_times):
-                    these_freqs[ii] = these_on_times[(these_on_times >= t_time) & (these_on_times <= t_time + 1)].shape[0]
+                    these_freqs[ii] = these_on_times[(these_on_times >= t_time) & (
+                        these_on_times <= t_time + 1)].shape[0]
                 these_freqs = these_freqs - these_freqs % 5  # round to 5
                 these_freqs[these_freqs == 0] = 1
-                
+
                 # Get stimulation amplitudes
                 if sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1])).shape[1] > 3:
-                    analog_chunk = sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1]))[:, 3]
+                    analog_chunk = sr.read_sync_analog(
+                        slice(chunk_edges[j], chunk_edges[j+1]))[:, 3]
                     these_amps = np.empty(these_train_times.shape)
                     for ii, t_time in enumerate(these_train_times):
-                        this_amp = np.max(analog_chunk[(times_chunk >= t_time) & (times_chunk <= t_time + 1)])
+                        this_amp = np.max(
+                            analog_chunk[(times_chunk >= t_time) & (times_chunk <= t_time + 1)])
                         if this_amp > 0.6:
                             these_amps[ii] = 1
                         else:
@@ -555,7 +564,8 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
                     these_amps = np.ones(these_train_times.shape)
 
                 # Add the pulse trains of 25 Hz full power to the array
-                opto_train_times.append(these_train_times[(these_freqs == freq) & (these_amps == 1)])
+                opto_train_times.append(
+                    these_train_times[(these_freqs == freq) & (these_amps == 1)])
                 for kk, this_train_time in enumerate(these_train_times[(these_freqs == freq) & (these_amps == 1)]):
                     opto_on_times.append(these_on_times[(these_on_times >= this_train_time)
                                                         & (these_on_times <= this_train_time + 1)])
@@ -566,11 +576,15 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
 
             # Save extracted pulses to disk
             if anesthesia:
-                np.save(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
-                np.save(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
+                np.save(
+                    join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
+                np.save(
+                    join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
             else:
-                np.save(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
-                np.save(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'), opto_on_times)
+                np.save(
+                    join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
+                np.save(
+                    join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'), opto_on_times)
 
             return opto_train_times, opto_on_times
 
@@ -587,10 +601,13 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
 
         # Save extracted pulses to disk
         if anesthesia:
-            np.save(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
-            np.save(join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
+            np.save(
+                join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
+            np.save(
+                join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
         else:
-            np.save(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
+            np.save(
+                join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
             np.save(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'), opto_on_times)
 
         return opto_train_times, opto_on_times
@@ -609,9 +626,11 @@ def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimsi
     trials['signed_contrast'] = trials['contrastRight']
     trials.loc[trials['signed_contrast'].isnull(), 'signed_contrast'] = -trials['contrastLeft']
     if laser_stimulation:
-        trials['laser_stimulation'] = one.load_dataset(eid, dataset='_ibl_trials.laserStimulation.npy')
+        trials['laser_stimulation'] = one.load_dataset(
+            eid, dataset='_ibl_trials.laserStimulation.npy')
         try:
-            trials['laser_probability'] = one.load_dataset(eid, dataset='_ibl_trials.laserProbability.npy')
+            trials['laser_probability'] = one.load_dataset(
+                eid, dataset='_ibl_trials.laserProbability.npy')
             trials['probe_trial'] = ((trials['laser_stimulation'] == 0) & (trials['laser_probability'] == 0.75)
                                      | (trials['laser_stimulation'] == 1) & (trials['laser_probability'] == 0.25)).astype(int)
         except:
@@ -1022,7 +1041,6 @@ def peri_multiple_events_time_histogram(
         raise ValueError('There are NaN or inf values in the list of events passed. '
                          ' Please remove non-finite data points and try again.')
 
-
     # Construct an axis object if none passed
     if ax is None:
         plt.figure()
@@ -1258,7 +1276,6 @@ def non_uniform_savgol(x, y, window, polynom):
     return y_smoothed
 
 
-
 def get_pupil_diameter(XYs):
     """Estimate pupil diameter by taking median of different computations.
 
@@ -1305,7 +1322,6 @@ def get_pupil_diameter(XYs):
     for side in [[t, l], [t, r], [b, l], [b, r]]:
         ds.append(dia_via_circle(side[0], side[1]))
     diam = np.nanmedian(ds, axis=0)
-
 
     return diam
 
@@ -1406,7 +1422,7 @@ def fit_psychfunc(stim_levels, n_trials, proportion):
     #
     # Returns vector pars with [bias, threshold, lapselow, lapsehigh]
     import psychofit as psy
-    assert(stim_levels.shape == n_trials.shape == proportion.shape)
+    assert (stim_levels.shape == n_trials.shape == proportion.shape)
     if stim_levels.max() <= 1:
         stim_levels = stim_levels * 100
 
@@ -1443,9 +1459,9 @@ def plot_psychometric(trials, ax, color='b', linestyle='solid', fraction=True):
 
     # plot datapoints with errorbars on top
     sns.lineplot(x=trials['signed_contrast'], y=trials['right_choice'], ax=ax,
-                     **{**{'err_style':"bars",
-                     'linewidth':0, 'linestyle':'None', 'mew':0.5,
-                     'marker':'o', 'errorbar':'se'}}, color=color)
+                 **{**{'err_style': "bars",
+                       'linewidth': 0, 'linestyle': 'None', 'mew': 0.5,
+                       'marker': 'o', 'errorbar': 'se'}}, color=color)
 
     ax.set(xticks=[-35, -25, -12.5, 0, 12.5, 25, 35], xlim=[-40, 40], ylim=[0, 1.02],
            xlabel='Contrast (%)')
@@ -1456,7 +1472,7 @@ def plot_psychometric(trials, ax, color='b', linestyle='solid', fraction=True):
     else:
         ax.set(yticks=[0, 0.25, 0.5, 0.75, 1], yticklabels=['0', '25', '50', '75', '100'],
                ylabel='Right choices (%)')
-    #break_xaxis()
+    # break_xaxis()
 
 
 def break_xaxis(y=-0.004, **kwargs):
@@ -1502,4 +1518,3 @@ def get_bias(trials):
     bias_left = psy.erf_psycho_2gammas(pars_left, 0)
 
     return bias_right - bias_left
-
