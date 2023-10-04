@@ -27,7 +27,7 @@ fig_path = join(f_path, 'Extra plots', 'State')
 
 # Load in data
 corr_anes_df = pd.read_csv(join(save_path, 'state_correlation_anesthesia.csv'))
-corr_passive_df = pd.read_csv(join(save_path, f'state_correlation_{RANDOM_TIMES}_passive.csv'))
+corr_passive_df = pd.read_csv(join(save_path, f'state_correlation_{RANDOM_TIMES}_passive_cont.csv'))
 corr_task_df = pd.read_csv(join(save_path, f'state_correlation_{N_STATES_SELECT}_task.csv'))
 corr_task_df = corr_task_df[corr_task_df['opto'] != 2]  # exclude probe trials
 
