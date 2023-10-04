@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from stim_functions import paths, figure_style, load_subjects
 
 N_STATES_SELECT = 'global'
-RANDOM_TIMES = 'spont'
+RANDOM_TIMES = 'jitter'
 
 # Plotting
 colors, dpi = figure_style()
