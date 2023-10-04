@@ -26,11 +26,11 @@ one = init_one()
 # Settings
 BIN_SIZE = 0.1  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
-RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
+RANDOM_TIMES = 'jitter'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
-HMM_PRE_TIME = 2  # time window to run HMM on
-HMM_POST_TIME = 5
+HMM_PRE_TIME = 10  # time window to run HMM on
+HMM_POST_TIME = 20
 MIN_NEURONS = 5
 CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
@@ -210,9 +210,9 @@ for i in rec.index.values:
             'region': region, 'subject': subject, 'pid': pid})))
 
         # Save the trial-level P(state) data and zhat matrix
-        np.save(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', 'prob_mat',
+        np.save(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}', 'prob_mat',
                      f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
-        np.save(join(save_path, 'HMM', 'Passive', f'{RANDOM_TIMES}', 'state_mat',
+        np.save(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}', 'state_mat',
                      f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
 
         if PLOT:
