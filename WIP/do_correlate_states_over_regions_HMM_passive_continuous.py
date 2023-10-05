@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from glob import glob
-from itertools import permutations
 from scipy.stats import pearsonr
 from os.path import join, split
 import matplotlib.pyplot as plt
@@ -18,10 +17,9 @@ one = init_one()
 
 # Settings
 CMAP = 'Set2'
-RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1
 POST_TIME = 4
-PLOT = True
+PLOT = False
 ORIG_BIN_SIZE = 0.1  # original bin size
 BIN_SIZE = 0.3  # binning to apply for this analysis
 BIN_SHIFT = 0.1
@@ -225,7 +223,7 @@ for i, this_rec in enumerate(all_rec):
                 'region1': region1, 'region2': region2, 'opto': 0,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date})))
-
+    
             # Plot an example correlation matrix
             if PLOT:
                 f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
@@ -247,6 +245,7 @@ for i, this_rec in enumerate(all_rec):
                 plt.savefig(
                     join(fig_path, f'{subject}_{date}_{region1}-{region2}_null.jpg'), dpi=600)
                 plt.close(f)
+    asd
 
     # Save output
     corr_df.to_csv(join(save_path, f'state_correlation_{RANDOM_TIMES}_passive_cont.csv'))
