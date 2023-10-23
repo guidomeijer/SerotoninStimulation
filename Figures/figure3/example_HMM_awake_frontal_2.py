@@ -25,7 +25,7 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-PID = '32be7608-6d32-4c8e-af5e-beb298ba8c73'
+PID = 'c6a3def0-9bce-4ef9-a57d-0dc2d4ae3d65'
 REGION = 'Frontal cortex'
 BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
@@ -38,7 +38,8 @@ PTRANS_SMOOTH = BIN_SIZE
 PSTATE_SMOOTH = BIN_SIZE
 OVERWRITE = True
 PLOT = False
-N_STATE_SELECT = 'region'
+N_STATE_SELECT = 'global'
+TRIAL = 36
 
 # Paths
 f_path, save_path = paths()
@@ -46,7 +47,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Query sessions
 rec = query_ephys_sessions(one=one)
-asd
+
 # Get significantly modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 
@@ -156,8 +157,6 @@ state_mat = state_mat[:, use_timepoints]
 
 
 # %% Plot example trial
-trial = 38
-
 colors, dpi = figure_style()
 cmap = sns.color_palette(colors['states_light'], n_states)
 f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.25, 2), dpi=dpi, sharex=True)
@@ -165,10 +164,10 @@ f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.25, 2), dpi=dpi, sharex=True)
 ax1.add_patch(Rectangle((0, 0), 1, len(clusters_in_region), color='royalblue', alpha=0.25, lw=0))
 tickedges = np.arange(0, binned_spikes.shape[1]+1)
 for k, n in enumerate(clusters_in_region):
-    idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[trial] - PRE_TIME,
-                         spikes.times[spikes.clusters == n] <= opto_times[trial] + POST_TIME)
+    idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= opto_times[TRIAL] - PRE_TIME,
+                         spikes.times[spikes.clusters == n] <= opto_times[TRIAL] + POST_TIME)
     neuron_spks = spikes.times[spikes.clusters == n][idx]
-    ax1.vlines(neuron_spks - opto_times[trial], tickedges[k + 1], tickedges[k],
+    ax1.vlines(neuron_spks - opto_times[TRIAL], tickedges[k + 1], tickedges[k],
               color='black', lw=0.4, zorder=1)   
 
 ax1.set(yticks=[0, binned_spikes.shape[1]], yticklabels=[1, binned_spikes.shape[1]], 
@@ -176,7 +175,7 @@ ax1.set(yticks=[0, binned_spikes.shape[1]], yticklabels=[1, binned_spikes.shape[
 ax1.set_ylabel('Neurons', labelpad=-12)
 
 for kk in range(n_states):
-    ax2.plot(time_ax, prob_mat[trial, :, kk], color=cmap[kk], lw=0.75)
+    ax2.plot(time_ax, prob_mat[TRIAL, :, kk], color=cmap[kk], lw=0.75)
 
 ax2.set(ylim=[0, 1], yticks=[0, 1])
 ax2.set_ylabel('P(state)', labelpad=-5)
@@ -198,8 +197,8 @@ ax1.add_patch(Rectangle((0, 1), 1, len(opto_times), color='royalblue', alpha=0.2
 ax1.imshow(np.flipud(state_mat), aspect='auto', cmap=ListedColormap(cmap),
            vmin=0, vmax=n_states-1,
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
-ax1.plot([-1, 4], [trial+1, trial+1], color='k', lw=0.5)
-ax1.plot([-1, 4], [trial+2.1, trial+2.1], color='k', lw=0.5)
+ax1.plot([-1, 4], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
+ax1.plot([-1, 4], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
 ax1.plot([0, 2], [0.5, 0.5], lw=0.75, color='k', clip_on=False)
@@ -212,19 +211,19 @@ plt.savefig(join(fig_path, f'hmm_example_session_{REGION}.pdf'))
 # %%
 
 f, ax1 = plt.subplots(figsize=(1.25, 2), dpi=dpi)
-ax1.add_patch(Rectangle((0, -1.5), 1, 1.9, color='royalblue', alpha=0.25, lw=0))
-for i, this_state in enumerate([5, 4, 1, 0, 3, 7, 6, 2]):
+ax1.add_patch(Rectangle((0, -1.7), 1, 2.1, color='royalblue', alpha=0.25, lw=0))
+for i, this_state in enumerate([6, 2, 3, 1, 5, 4, 0]):
     mean_state = (np.mean(prob_mat[:,:,this_state], axis=0)
-                  - np.mean(prob_mat[:,time_ax < 0,this_state])) - (i/6)
+                  - np.mean(prob_mat[:,time_ax < 0,this_state])) - (i/4)
     
     sem_state = np.std(prob_mat[:,:,this_state], axis=0) / np.sqrt(prob_mat.shape[0])
     ax1.plot(time_ax, mean_state, color=cmap[this_state])
     ax1.fill_between(time_ax, mean_state + sem_state, mean_state - sem_state, alpha=0.25,
                      color=cmap[this_state], lw=0)
-ax1.plot([-1.1, -1.1], [-1.5, -1.25], color='k')
-ax1.plot([0, 2], [-1.55, -1.55], color='k')
-ax1.text(-1.4, -1.35, '25%', rotation=90, ha='center', va='center')
-ax1.text(1, -1.63, '2s', ha='center', va='center')
+ax1.plot([-1.1, -1.1], [-1.7, -1.45], color='k')
+ax1.plot([0, 2], [-1.75, -1.75], color='k')
+ax1.text(-1.4, -1.55, '25%', rotation=90, ha='center', va='center')
+ax1.text(1, -1.83, '2s', ha='center', va='center')
 ax1.set(xticks=[], yticks=[])
 ax1.set_ylabel('P(state)', labelpad=0)
 sns.despine(trim=True, left=True, bottom=True)
