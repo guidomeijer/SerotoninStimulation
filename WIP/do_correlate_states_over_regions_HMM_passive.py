@@ -16,10 +16,10 @@ from stim_functions import paths, figure_style
 
 # Settings
 CMAP = 'Set2'
-RANDOM_TIMES = 'jitter'  # spont (spontaneous) or jitter (jittered times during stim period)
+RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1
 POST_TIME = 4
-PLOT = False
+PLOT = True
 ORIG_BIN_SIZE = 0.1  # original bin size
 BIN_SIZE = 0.3  # binning to apply for this analysis
 BIN_SHIFT = 0.1
@@ -154,6 +154,7 @@ for i, this_rec in enumerate(all_rec):
                 sns.despine(trim=True)
                 plt.tight_layout()
                 plt.savefig(join(fig_path, f'{subject}_{date}_{region1}-{region2}.jpg'), dpi=600)
+                plt.savefig(join(fig_path, f'{subject}_{date}_{region1}-{region2}.pdf'))
                 plt.close(f)
 
     # Save output
