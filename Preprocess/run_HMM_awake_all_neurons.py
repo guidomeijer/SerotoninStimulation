@@ -129,7 +129,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     # Fit HMM
     simple_hmm = ssm.HMM(N_STATES, binned_spikes.shape[1], observations='poisson')
     lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
-
+    
     # Loop over trials
     trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
     state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
