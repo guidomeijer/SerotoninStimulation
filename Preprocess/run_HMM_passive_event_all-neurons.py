@@ -5,7 +5,7 @@ Created on Wed Jan 18 11:20:14 2023
 By: Guido Meijer
 """
 
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times, init_one,
                             high_level_regions, figure_style, N_STATES)
 from brainbox.singlecell import calculate_peths
@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from os.path import join
+import pickle
 import ssm
 import numpy as np
 np.random.seed(0)
@@ -50,14 +51,12 @@ rec = query_ephys_sessions(one=one)
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 
 p_state_df = pd.DataFrame()
-
-for i in rec.index.values:
+for i, eid in enumerate(np.unique(rec['eid'])):
 
     # Get session details
-    pid, eid, probe = rec.loc[i, 'pid'], rec.loc[i, 'eid'], rec.loc[i, 'probe']
-    subject, date = rec.loc[i, 'subject'], rec.loc[i, 'date']
-
-    print(f'\nStarting {subject}, {date} ({i+1} of {rec.shape[0]})')
+    subject = one.get_details(eid)['subject']
+    date = one.get_details(eid)['date']
+    print(f'\nStarting {subject}, {date} ({i+1} of {len(np.unique(rec["eid"]))})')
 
     # Load in laser pulse times
     opto_times, _ = load_passive_opto_times(eid, one=one)
@@ -65,18 +64,20 @@ for i in rec.index.values:
         print('Could not load light pulses')
         continue
 
-    # Generate random times during spontaneous activity
-    if RANDOM_TIMES == 'jitter':
-        random_times = np.sort(np.random.uniform(opto_times[0]-HMM_PRE_TIME, opto_times[-1]+HMM_POST_TIME,
-                                                 size=opto_times.shape[0]))
-    elif RANDOM_TIMES == 'spont':
-        random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10,
-                                                 size=opto_times.shape[0]))
+    # Get the insertions from the session
+    pids = rec.loc[rec['eid'] == eid, 'pid'].values
+    probes = rec.loc[rec['eid'] == eid, 'probe'].values
+
+    # Load in laser pulse times
+    opto_times, _ = load_passive_opto_times(eid, one=one)
+    if len(opto_times) == 0:
+        print('Could not load light pulses')
+        continue
 
     # Get data from both probes and merge
     pids = rec.loc[rec['eid'] == eid, 'pid'].values
     probes = rec.loc[rec['eid'] == eid, 'probe'].values
-    binned_spikes = []
+    binned_spikes, neuron_regions, neuron_id, this_probe = [], [], [], []
     spikes, clusters, channels = dict(), dict(), dict()
     for (pid, probe) in zip(pids, probes):
 
@@ -109,6 +110,11 @@ for i in rec.index.values:
         full_time_ax = peth['tscale']
         use_timepoints = (full_time_ax > -PRE_TIME) & (full_time_ax < POST_TIME)
         time_ax = full_time_ax[use_timepoints]
+        
+        # Add regions of neurons
+        neuron_regions.append(clusters[probe].acronym[use_neurons])
+        neuron_id.append(use_neurons)
+        this_probe.append([probe]*use_neurons.shape[0])
 
     # Stack together spike bin matrices from the two recordings
     if len(pids) == 2:
@@ -116,8 +122,11 @@ for i in rec.index.values:
     elif len(pids) == 1:
         binned_spikes = binned_spikes[0]
     binned_spikes = binned_spikes.astype(int)
+    neuron_regions = np.concatenate(neuron_regions)
+    neuron_id = np.concatenate(neuron_id)
+    this_probe = np.concatenate(this_probe)
 
-      
+    # Create time axes
     full_time_ax = peth['tscale']
     use_timepoints = (full_time_ax > -PRE_TIME) & (full_time_ax < POST_TIME)
     time_ax = full_time_ax[use_timepoints]
@@ -128,7 +137,7 @@ for i in rec.index.values:
         trial_data.append(np.transpose(binned_spikes[j, :, :]))
 
     # Initialize HMM
-    simple_hmm = ssm.HMM(N_STATES, binned_spikes.shape[0], observations='poisson')
+    simple_hmm = ssm.HMM(N_STATES, binned_spikes.shape[1], observations='poisson')
     lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
     # Loop over trials
@@ -149,35 +158,15 @@ for i in rec.index.values:
     prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
     state_mat = state_mat[:, use_timepoints]
 
-    # Get P(state)
-    p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
-    for ii in range(N_STATES):
-
-        # Random times
-        # Get P state, first smooth, then crop timewindow
-        this_p_state = np.mean(prob_mat[:random_times.shape[0], :, ii], axis=0)
-        p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
-
-        # Add to dataframe and matrix
-        p_state_mat[ii, :] = this_p_state
-        p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
-            'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
-            'subject': subject, 'pid': pid, 'opto': 0})))
-
-        # Opto times
-        # Get P state, first smooth, then crop timewindow
-        this_p_state = np.mean(prob_mat[opto_times.shape[0]:, :, ii], axis=0)
-        p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
-
-        # Add to dataframe and matrix
-        p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
-            'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
-            'subject': subject, 'pid': pid, 'opto': 1})))
-
     # Save the trial-level P(state) data and zhat matrix
-    np.save(join(save_path, 'HMM', 'PassiveEventAllNeurons', f'{RANDOM_TIMES}', 'prob_mat',
-                 f'{subject}_{date}_{probe}.npy'), prob_mat)
-    np.save(join(save_path, 'HMM', 'PassiveEventAllNeurons', f'{RANDOM_TIMES}', 'state_mat',
-                 f'{subject}_{date}_{probe}.npy'), state_mat)
-    np.save(join(save_path, 'HMM', 'PassiveEventAllNeurons', f'{RANDOM_TIMES}', 'log_lambdas',
-                 f'{subject}_{date}_{probe}.npy'), simple_hmm.observations.log_lambdas)
+    hmm_dict = dict()
+    hmm_dict['prob_mat'] = prob_mat
+    hmm_dict['state_mat'] = state_mat
+    hmm_dict['log_lambdas'] = simple_hmm.observations.log_lambdas
+    hmm_dict['regions'] = neuron_regions
+    hmm_dict['neuron_id'] = neuron_id
+    hmm_dict['probe'] = this_probe
+    with open(join(save_path, 'HMM', 'PassiveEventAllNeurons', f'{subject}_{date}.pickle'),
+              'wb') as fp:
+        pickle.dump(hmm_dict, fp)
+    
