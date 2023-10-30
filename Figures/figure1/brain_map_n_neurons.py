@@ -37,17 +37,21 @@ print(f'{np.unique(all_neurons["pid"]).shape[0]} recordings')
 # Add genotype
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
-    all_neurons.loc[all_neurons['subject'] == nickname, 'expression'] = subjects.loc[subjects['subject'] == nickname, 'expression'].values[0]
-    all_neurons.loc[all_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+    all_neurons.loc[all_neurons['subject'] == nickname,
+                    'expression'] = subjects.loc[subjects['subject'] == nickname, 'expression'].values[0]
+    all_neurons.loc[all_neurons['subject'] == nickname,
+                    'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
 # Get percentage modulated per region
-reg_neurons = ((all_neurons.groupby('region').sum()['modulated'] / all_neurons.groupby('region').size()) * 100).to_frame()
+reg_neurons = ((all_neurons.groupby('region').sum()[
+               'modulated'] / all_neurons.groupby('region').size()) * 100).to_frame()
 reg_neurons = reg_neurons.rename({0: 'percentage'}, axis=1)
-reg_neurons['mod_early'] = all_neurons.groupby('region').median(numeric_only=True)['mod_index_early']
-reg_neurons['mod_late'] = all_neurons.groupby('region').median(numeric_only=True)['mod_index_late']
-reg_neurons['latency'] = all_neurons[all_neurons['modulated'] == 1].groupby('region').median(numeric_only=True)['latency_peak_onset'] * 1000
+reg_neurons['mod_index'] = all_neurons.groupby('region').median(numeric_only=True)['mod_index']
+reg_neurons['latency'] = all_neurons[all_neurons['modulated'] == 1].groupby(
+    'region').median(numeric_only=True)['latency_peak_onset'] * 1000
 reg_neurons['n_neurons'] = all_neurons.groupby(['region']).size()
-reg_neurons['n_mod_neurons'] = all_neurons[all_neurons['modulated'] == 1].groupby(['region']).size()
+reg_neurons['n_mod_neurons'] = all_neurons[all_neurons['modulated'] == 1].groupby([
+                                                                                  'region']).size()
 reg_neurons = reg_neurons.loc[reg_neurons['n_neurons'] >= MIN_NEURONS]
 reg_neurons = reg_neurons.reset_index()
 reg_neurons = reg_neurons[reg_neurons['region'] != 'root']
@@ -123,8 +127,7 @@ f.subplots_adjust(right=0.85)
 cb_ax = f.add_axes([0.88, 0.42, 0.01, 0.2])
 cbar = f.colorbar(mappable=ax1.images[0], cax=cb_ax)
 cbar.ax.set_ylabel('Simultaneously recorded\nneurons (median)', rotation=270, labelpad=16)
-#cbar.ax.set_yticks([0, 1, 2, 3])
-#cbar.ax.set_yticklabels([1, 10, 100, 1000])
+# cbar.ax.set_yticks([0, 1, 2, 3])
+# cbar.ax.set_yticklabels([1, 10, 100, 1000])
 
 plt.savefig(join(fig_path, 'brain_map_n_simultaneous_neurons.pdf'))
-

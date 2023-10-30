@@ -24,7 +24,7 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-N_STATE_SELECT = 'region'
+N_STATE_SELECT = 'global'
 INCL_NEURONS = 'all'
 BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
@@ -73,12 +73,12 @@ for i in rec.index.values:
 
     # Load in trials
     trials = load_trials(eid, one=one)
-   
+
     # Load in spikes
     sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
     spikes, clusters, channels = sl.load_spike_sorting()
     clusters = sl.merge_clusters(spikes, clusters, channels)
-    
+
     # Select neurons to use
     if INCL_NEURONS == 'all':
         use_neurons = light_neurons.loc[light_neurons['pid'] == pid, 'neuron_id'].values
@@ -140,19 +140,19 @@ for i in rec.index.values:
         trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
         prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], n_states))
-        
+
         for t in range(len(trial_data)):
 
             # Get most likely states for this trial
             zhat = simple_hmm.most_likely_states(trial_data[t])
             prob_mat[t, :, :] = simple_hmm.filter(trial_data[t])
-            
+
             # Get state transitions times
             trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
 
             # Add state to state matrix
             state_mat[t, :] = zhat
-        
+
         # Smooth P(state change) over entire period
         p_trans = np.mean(trans_mat, axis=0)
         smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
@@ -182,28 +182,28 @@ for i in rec.index.values:
             'cumsum_trans': np.cumsum(np.sum(trans_mat, axis=0)),
             'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
             'region': region, 'subject': subject, 'pid': pid})))
-        
+
         # Crop timewindow for plotting
         state_mat = state_mat[:, use_timepoints]
-        
+
         # Save the trial-level P(state) data and zhat matrix
         np.save(join(save_path, 'HMM', 'Task', f'{N_STATE_SELECT}', 'prob_mat',
                      f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
         np.save(join(save_path, 'HMM', 'Task', f'{N_STATE_SELECT}', 'state_mat',
                      f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
-        
+
         if PLOT:
             # Plot example trial
             trial = 0
             cmap = sns.color_palette(CMAP, n_states)
             colors, dpi = figure_style()
             f, ax = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
-            
+
             for kk, time_bin in enumerate(time_ax):
                 ax.add_patch(Rectangle((time_bin-BIN_SIZE/2, -1), BIN_SIZE, len(clusters_in_region)+1,
                                        color=cmap[state_mat[trial, kk]],
-                                       alpha=0.25, lw=0)) 
-                
+                                       alpha=0.25, lw=0))
+
             tickedges = np.arange(0, len(clusters_in_region)+1)
             for k, n in enumerate(clusters_in_region):
                 idx = np.bitwise_and(spikes.times[spikes.clusters == n] >= trials['stimOn_times'][trial] - PRE_TIME,
@@ -222,43 +222,37 @@ for i in rec.index.values:
             ax2.set_ylabel('P(state)', rotation=270, labelpad=10)
             sns.despine(trim=True, right=False)
             plt.tight_layout()
-            
+
             plt.savefig(join(fig_path, f'{region}_{subject}_{date}_trial.jpg'), dpi=600)
+            plt.savefig(join(fig_path, f'{region}_{subject}_{date}_trial.pdf'))
             plt.close(f)
-    
+
             # Plot session
             f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi)
             ax1.imshow(state_mat, aspect='auto', cmap=ListedColormap(cmap),
                        vmin=0, vmax=n_states-1,
-                      extent=(-PRE_TIME, POST_TIME, 1, len(trials['stimOn_times'])), interpolation=None)
+                       extent=(-PRE_TIME, POST_TIME, 1, len(trials['stimOn_times'])), interpolation=None)
             ax1.plot([0, 0], [1, len(trials['stimOn_times'])], ls='--', color='k', lw=0.75)
             ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
-                   title=f'{region}')
-    
+                    title=f'{region}')
+
             for ii in range(n_states):
                 ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
             ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
-    
+
             ax3.imshow(trans_mat, aspect='auto', cmap='Greys', interpolation=None,
                        extent=(-PRE_TIME, POST_TIME, 1, len(trials['stimOn_times'])))
             ax32 = ax3.twinx()
             ax32.plot(time_ax, smooth_p_trans)
             ax32.set(ylabel='P(state change)')
             ax3.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4])
-    
-            #sns.despine(trim=True)
+
+            # sns.despine(trim=True)
             plt.tight_layout()
-            plt.savefig(join(
-                fig_path, f'{region}_{subject}_{date}_ses.jpg'),
-                dpi=600)
+            plt.savefig(join(fig_path, f'{region}_{subject}_{date}_ses.jpg'), dpi=600)
+            plt.savefig(join(fig_path, f'{region}_{subject}_{date}_ses.pdf'))
             plt.close(f)
-            
-            
+
         # Save output
         state_trans_df.to_csv(join(save_path, f'state_trans_task_{add_str}.csv'))
         p_state_df.to_csv(join(save_path, f'p_state_task_{add_str}.csv'))
-
-
-
-
-
