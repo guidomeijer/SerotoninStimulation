@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from stim_functions import paths, figure_style, load_subjects
 
 N_STATES_SELECT = 'global'
-RANDOM_TIMES = 'spont'
+RANDOM_TIMES = 'jitter'
 
 # Plotting
 colors, dpi = figure_style()
@@ -75,7 +75,7 @@ sns.lineplot(data=corr_passive_df[corr_passive_df['sert-cre'] == 1], x='time', y
              errorbar='se', hue='opto', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
 ax1.set(xlabel='Time from stimulation start (s)', ylim=[-0.002, 0.01],
-        xticks=[-1, 0, 1, 2, 3, 4], yticks=[-0.002, 0.01], yticklabels=[-0.002, 0.01])
+        xticks=[-1, 0, 1, 2, 3, 4], yticks=[0, 0.01], yticklabels=[0, 0.01])
 # ylim=[-0.001, 0.005], yticks=[0, 0.005],
 # yticklabels=[0, 0.005])
 ax1.set_ylabel('State correlation (r)', labelpad=-5)
@@ -157,7 +157,7 @@ plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_permut.jpg
 
 
 # %% Task mean
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
 ax1.add_patch(Rectangle((0, -0.1), 1, 0.2, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=corr_task_df[corr_task_df['sert-cre'] == 1],
              x='time', y='r_mean', errorbar='se', hue='opto', err_kws={'lw': 0},
@@ -174,6 +174,7 @@ for t, l in zip(g.texts, ['No stim', 'Stim']):
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_task_mean.jpg'), dpi=600)
+plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_task_mean.pdf'))
 
 
 # %% Plot all region pairs together
