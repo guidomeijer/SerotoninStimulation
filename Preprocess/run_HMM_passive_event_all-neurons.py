@@ -166,6 +166,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     hmm_dict['regions'] = neuron_regions
     hmm_dict['neuron_id'] = neuron_id
     hmm_dict['probe'] = this_probe
+    hmm_dict['time_ax'] = time_ax
     with open(join(save_path, 'HMM', 'PassiveEventAllNeurons', f'{subject}_{date}.pickle'),
               'wb') as fp:
         pickle.dump(hmm_dict, fp)

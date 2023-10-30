@@ -17,18 +17,19 @@ from brainbox.plot import peri_event_time_histogram
 from brainbox.singlecell import calculate_peths
 from stim_functions import paths, load_passive_opto_times, figure_style
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
 # Settings
-PATH = 'C:\\Users\\Guido1\\Figures\\5-HT\\SingleNeurons'
+#PATH = 'C:\\Users\\Guido1\\Figures\\5-HT\\SingleNeurons'
+PATH = r'C:\Users\guido\Figures\5HT\Ephys\SingleNeurons\LightModNeurons'
 T_BEFORE = 1  # for plotting
 T_AFTER = 2
 BIN_SIZE = 0.05
 SMOOTHING = 0.025
-PLOT_LATENCY = True
-OVERWRITE = False
+PLOT_LATENCY = False
+OVERWRITE = True
 _, save_path = paths()
 
 # Load in data

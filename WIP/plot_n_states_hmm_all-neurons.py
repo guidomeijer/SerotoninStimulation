@@ -14,7 +14,7 @@ from stim_functions import figure_style, paths, load_subjects, N_STATES
 from os.path import join
 
 BIN_SIZE = 100
-MAX_STATES = 12
+MAX_STATES = 20
 
 # Get paths
 fig_path, save_path = paths()
