@@ -25,8 +25,8 @@ from brainbox.io.spikeglx import spikeglx
 from brainbox.metrics.single_units import spike_sorting_metrics
 from brainbox.io.one import SpikeSortingLoader
 from iblutil.numerical import ismember
-from ibllib.atlas import BrainRegions
-from ibllib.atlas import AllenAtlas
+from iblatlas.regions import BrainRegions
+from iblatlas.atlas import AllenAtlas
 from one.api import ONE
 
 # Whether to use released open-source data
