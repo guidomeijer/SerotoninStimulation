@@ -9,7 +9,7 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.task.closed_loop import roc_single_event
-from zetapy import zetatest
+from zetapy import getZeta
 from brainbox.io.one import SpikeSortingLoader
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
                             remove_artifact_neurons, get_neuron_qc)
@@ -73,7 +73,7 @@ for i in rec.index.values:
 
     # Filter neurons that pass QC
     if NEURON_QC:
-        qc_metrics = get_neuron_qc(pid, one=one)
+        qc_metrics = get_neuron_qc(pid, one=one, force_rerun=True)
         clusters_pass = np.where(qc_metrics['label'] == 1)[0]
     else:
         clusters_pass = np.unique(spikes.clusters)
@@ -93,13 +93,13 @@ for i in rec.index.values:
             print(f'Neuron {n} of {np.unique(spikes.clusters).shape[0]}')
 
         # Perform ZETA test for neural responsiveness
-        p_values[n], _, dRate, vecLatencies = zetatest(spikes.times[spikes.clusters == neuron_id],
-                                                       opto_train_times, intLatencyPeaks=4,
-                                                       tplRestrictRange=(0, 1), dblUseMaxDur=6,
-                                                       boolReturnRate=True)
+        p_values[n], vecLatencies, dRate = getZeta(spikes.times[spikes.clusters == neuron_id],
+                                                   opto_train_times, intLatencyPeaks=4,
+                                                   tplRestrictRange=(0, 1), dblUseMaxDur=6,
+                                                   boolReturnRate=True)
 
         # Get modulation onset
-        latency_peak[n] = dRate['dblPeakTime']
+        latency_peak[n] = vecLatencies[2]
         latency_peak_onset[n] = vecLatencies[3]
 
         # Get firing rate
