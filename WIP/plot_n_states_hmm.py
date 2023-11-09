@@ -19,9 +19,9 @@ BIN_SIZE = 100
 fig_path, save_path = paths()
 
 # Load in data
-# hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
+hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
 # hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_regions_{BIN_SIZE}ms_bins.csv'))
-hmm_ll_df = pd.read_csv(join(save_path, f'hmm_passive_continuous_ll_{BIN_SIZE}ms_bins.csv'))
+# hmm_ll_df = pd.read_csv(join(save_path, f'hmm_passive_continuous_ll_{BIN_SIZE}ms_bins.csv'))
 # hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_all-neurons_{BIN_SIZE}ms_bins.csv'))
 
 # Convert ll
@@ -34,10 +34,10 @@ for i in hmm_ll_df[hmm_ll_df['n_states'] == hmm_ll_df['n_states'].min()].index:
                                                      / hmm_ll_df.loc[i, 'xcorr'])
 
 # Average within mice first
-# ll_mean_df = hmm_ll_df.groupby(['subject', 'n_states', 'region']
-#                               ).mean(numeric_only=True).reset_index()
-ll_mean_df = hmm_ll_df.groupby(['subject', 'n_states']
+ll_mean_df = hmm_ll_df.groupby(['subject', 'n_states', 'region']
                                ).mean(numeric_only=True).reset_index()
+# ll_mean_df = hmm_ll_df.groupby(['subject', 'n_states']
+#                               ).mean(numeric_only=True).reset_index()
 
 # Select only sert-cre mice
 subjects = load_subjects()

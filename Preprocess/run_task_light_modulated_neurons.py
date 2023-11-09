@@ -6,11 +6,13 @@ By: Guido Meijer
 """
 
 import numpy as np
+np.random.seed(42)
 from os.path import join
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 import seaborn as sns
+from zetapy import zetatest2
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from brainbox.io.one import SpikeSortingLoader
@@ -27,7 +29,7 @@ NEURON_QC = True
 PLOT = False
 
 T_BEFORE = 1  # for plotting
-T_AFTER = 2
+T_AFTER = 4
 BIN_SIZE = 0.05
 
 PRE_TIME = [0.5, 0]  # for responsiveness testing
@@ -96,12 +98,14 @@ for i in rec.index.values:
     roc_task = 2 * (roc_task - 0.5)  # Recalculate modulation index
 
     roc_no_opto_task, neuron_ids = roc_single_event(spikes.times, spikes.clusters,
-                                                    trials.loc[trials['laser_stimulation'] == 0, 'goCue_times'],
+                                                    trials.loc[trials['laser_stimulation']
+                                                               == 0, 'goCue_times'],
                                                     pre_time=PRE_TIME, post_time=POST_TIME)
     roc_no_opto_task = 2 * (roc_no_opto_task - 0.5)
 
     roc_opto_task, neuron_ids = roc_single_event(spikes.times, spikes.clusters,
-                                                 trials.loc[trials['laser_stimulation'] == 1, 'goCue_times'],
+                                                 trials.loc[trials['laser_stimulation']
+                                                            == 1, 'goCue_times'],
                                                  pre_time=PRE_TIME, post_time=POST_TIME)
     roc_opto_task = 2 * (roc_opto_task - 0.5)
 
@@ -109,14 +113,16 @@ for i in rec.index.values:
     choice_lr = trials['choice'].values
     choice_lr[choice_lr == -1] = 0
     choice_no_stim_roc = roc_between_two_events(spikes.times, spikes.clusters,
-                                                trials.loc[trials['laser_stimulation'] == 0, 'goCue_times'],
+                                                trials.loc[trials['laser_stimulation']
+                                                           == 0, 'goCue_times'],
                                                 choice_lr[trials['laser_stimulation'] == 0],
                                                 pre_time=POST_TIME[0], post_time=POST_TIME[1])[0]
     choice_no_stim_roc = 2 * (choice_no_stim_roc - 0.5)
 
     if len(np.unique(choice_lr[trials['laser_stimulation'] == 1])) == 2:
         choice_stim_roc = roc_between_two_events(spikes.times, spikes.clusters,
-                                                 trials.loc[trials['laser_stimulation'] == 1, 'goCue_times'],
+                                                 trials.loc[trials['laser_stimulation']
+                                                            == 1, 'goCue_times'],
                                                  choice_lr[trials['laser_stimulation'] == 1],
                                                  pre_time=POST_TIME[0], post_time=POST_TIME[1])[0]
         choice_stim_roc = 2 * (choice_stim_roc - 0.5)
@@ -124,30 +130,43 @@ for i in rec.index.values:
         choice_stim_roc = np.array([np.nan] * roc_opto_task.shape[0])
 
     choice_no_stim_p = differentiate_units(spikes.times, spikes.clusters,
-                                           trials.loc[trials['laser_stimulation'] == 0, 'goCue_times'],
+                                           trials.loc[trials['laser_stimulation']
+                                                      == 0, 'goCue_times'],
                                            choice_lr[trials['laser_stimulation'] == 0],
                                            pre_time=POST_TIME[0], post_time=POST_TIME[1])[2]
 
     choice_stim_p = differentiate_units(spikes.times, spikes.clusters,
-                                        trials.loc[trials['laser_stimulation'] == 1, 'goCue_times'],
+                                        trials.loc[trials['laser_stimulation']
+                                                   == 1, 'goCue_times'],
                                         choice_lr[trials['laser_stimulation'] == 1],
                                         pre_time=POST_TIME[0], post_time=POST_TIME[1])[2]
 
     # Determine stimulus evoked light modulated neurons
     roc_auc, neuron_ids = roc_between_two_events(spikes.times, spikes.clusters, trials['goCue_times'],
-                                                 trials['laser_stimulation'], pre_time=-STIM_TIME[0],
+                                                 trials['laser_stimulation'], pre_time=-
+                                                 STIM_TIME[0],
                                                  post_time=STIM_TIME[1])
     roc_stim_mod = 2 * (roc_auc - 0.5)
-    
-    # Get significantly opto modulated neurons; test 4 different time windows
-    zero_contr_trials = trials[trials['signed_contrast'] == 0]
-    opto_mod_p = differentiate_units(spikes.times, spikes.clusters, zero_contr_trials['goCue_times'],
-                                     zero_contr_trials['laser_stimulation'], pre_time=STIM_TIME[0],
-                                     post_time=STIM_TIME[1])[2]   
-    opto_mod = opto_mod_p < 0.05      
+
+    # Get significantly opto modulated neurons
+    opto_mod_p = np.empty(neuron_ids.shape[0])
+    for n, neuron_id in enumerate(neuron_ids):
+        if np.mod(n, 20) == 0:
+            print(f'Neuron {n} of {neuron_ids.shape[0]}')
+
+        # Perform ZETA test for neural responsiveness
+        zero_contr_trials = trials[trials['signed_contrast'] == 0]
+        opto_mod_p[n], dZETA = zetatest2(
+            spikes.times[spikes.clusters == neuron_id],
+            zero_contr_trials.loc[zero_contr_trials['laser_stimulation'] == 1, 'goCue_times'],
+            spikes.times[spikes.clusters == neuron_id],
+            zero_contr_trials.loc[zero_contr_trials['laser_stimulation'] == 0, 'goCue_times'],
+            dblUseMaxDur=3)
+           
+    opto_mod = opto_mod_p < 0.05
     print(f'{np.sum(opto_mod)} out of {opto_mod.shape[0]} opto modulated neurons '
           f'({np.round((np.sum(opto_mod)/opto_mod.shape[0])*100, 1)}%)')
-    
+
     # Add results to df
     cluster_regions = remap(clusters.acronym[neuron_ids])
     task_neurons = pd.concat((task_neurons, pd.DataFrame(data={
