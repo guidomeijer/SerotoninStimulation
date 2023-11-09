@@ -9,12 +9,10 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.task.closed_loop import roc_single_event
-from zetapy import getZeta
+from zetapy import zetatest
 from brainbox.io.one import SpikeSortingLoader
-from scipy.signal import find_peaks
-from scipy.stats import zscore
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                            remove_artifact_neurons, get_neuron_qc, smooth_interpolate_signal_sg)
+                            remove_artifact_neurons, get_neuron_qc)
 from one.api import ONE
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -23,8 +21,8 @@ one = ONE()
 # Settings
 OVERWRITE = True
 NEURON_QC = True
-PRE_TIME = [0.8, 0]  # for modulation index
-POST_TIME = [0.2, 1]
+PRE_TIME = [0.5, 0]  # for modulation index
+POST_TIME = [0.3, 0.8]
 BIN_SIZE = 0.05
 MIN_FR = 0.1
 _, save_path = paths()
@@ -73,7 +71,7 @@ for i in rec.index.values:
 
     # Filter neurons that pass QC
     if NEURON_QC:
-        qc_metrics = get_neuron_qc(pid, one=one, ba=ba, force_rerun=True)
+        qc_metrics = get_neuron_qc(pid, one=one, ba=ba, force_rerun=False)
         clusters_pass = np.where(qc_metrics['label'] == 1)[0]
     else:
         clusters_pass = np.unique(spikes.clusters)
@@ -93,14 +91,14 @@ for i in rec.index.values:
             print(f'Neuron {n} of {np.unique(spikes.clusters).shape[0]}')
 
         # Perform ZETA test for neural responsiveness
-        p_values[n], vecLatencies, dRate = getZeta(spikes.times[spikes.clusters == neuron_id],
-                                                   opto_train_times, intLatencyPeaks=4,
-                                                   tplRestrictRange=(0, 1), dblUseMaxDur=6,
-                                                   boolReturnRate=True)
+        p_values[n], dZETA, dRate = zetatest(spikes.times[spikes.clusters == neuron_id],
+                                             opto_train_times,
+                                             tplRestrictRange=(0, 1), dblUseMaxDur=6,
+                                             boolReturnRate=True)
 
         # Get modulation onset
-        latency_peak[n] = vecLatencies[2]
-        latency_peak_onset[n] = vecLatencies[3]
+        latency_peak[n] = dZETA['vecLatencies'][2]
+        latency_peak_onset[n] = dZETA['vecLatencies'][3]
 
         # Get firing rate
         firing_rates[n] = (np.sum(spikes.times[spikes.clusters == neuron_id].shape[0])
