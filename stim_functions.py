@@ -145,6 +145,18 @@ def figure_style():
     subject_pal = sns.color_palette(
         np.concatenate((sns.color_palette('tab20'),
                         [matplotlib_colors.to_rgb('maroon'), np.array([0, 0, 0])])))
+    state_dark_pal = sns.color_palette(
+        np.concatenate((sns.color_palette('Dark2')[:7],
+                        [sns.color_palette('tab10')[0],
+                        sns.color_palette('tab10')[3],
+                        sns.color_palette('tab10')[9],
+                        sns.color_palette('tab10')[6]])))
+    state_light_pal = sns.color_palette(
+        np.concatenate((sns.color_palette('Set2')[:7],
+                        [sns.color_palette('tab20')[1],
+                        sns.color_palette('tab20')[7],
+                        sns.color_palette('tab20')[19],
+                        sns.color_palette('tab20')[13]])))
     frontal = sns.color_palette('Dark2')[1]
     sensory = sns.color_palette('Dark2')[5]
     hipp = sns.color_palette('Dark2')[4]
@@ -169,8 +181,8 @@ def figure_style():
               'WS': sns.color_palette('Set2')[1],
               'WS1': sns.color_palette('Set2')[1],
               'WS2': sns.color_palette('Set2')[2],
-              'states': 'Dark2',
-              'states_light': 'Set2',
+              'states': state_dark_pal,
+              'states_light': state_light_pal,
               'main_states': sns.diverging_palette(20, 210, l=55, center='dark'),
               'Frontal cortex': frontal,
               'Sensory cortex': sensory,
