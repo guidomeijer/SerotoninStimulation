@@ -46,7 +46,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Query sessions
 rec = query_ephys_sessions(one=one)
-asd
+
 # Get significantly modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 

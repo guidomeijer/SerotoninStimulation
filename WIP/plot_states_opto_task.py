@@ -61,7 +61,8 @@ for i, this_file in enumerate(all_files):
                cmap=ListedColormap(colors['states_light']),
                vmin=0, vmax=n_states-1,
                extent=(-PRE_TIME, POST_TIME, 1, state_mat.shape[0]), interpolation=None)
-    ax1.set(yticks=[1, state_mat.shape[0]], xticks=[-1, 0, 1, 2, 3, 4], title=f'{region}')
+    ax1.set(yticks=[1, state_mat.shape[0]], xticks=[-1, 0, 1, 2, 3, 4], title=f'{region}',
+            ylabel='Trials')
 
     probe_opto_trials = (trials['probe_trial'] == 1) & (trials['laser_stimulation'] == 1)
     ax2.imshow(state_mat[probe_opto_trials], aspect='auto',
@@ -121,7 +122,7 @@ for i, this_file in enumerate(all_files):
         n_states = prob_mat.shape[2]
 
         # Plot
-        f, axs = plt.subplots(2, 6, figsize=(7, 3.5), dpi=dpi)
+        f, axs = plt.subplots(2, 6, figsize=(7, 2.5), dpi=dpi)
         axs = np.concatenate(axs)
         for j in range(n_states):
             no_opto_mean = np.mean(prob_mat[trials['laser_stimulation'] == 0, :, j], axis=0)
@@ -130,23 +131,23 @@ for i, this_file in enumerate(all_files):
             axs[j].fill_between(time_ax, no_opto_mean - no_opto_sem, no_opto_mean + no_opto_sem,
                                 alpha=0.25, color=colors['no-stim'], lw=0)
             axs[j].plot(time_ax, no_opto_mean, color=colors['no-stim'])
-
-            axs[j].add_patch(Rectangle((0, axs[j].get_ylim()[0]), 1, axs[j].get_ylim()[1],
-                                       color='royalblue', alpha=0.25, lw=0))
-
             opto_mean = np.mean(prob_mat[trials['laser_stimulation'] == 1, :, j], axis=0)
             opto_sem = (np.std(prob_mat[trials['laser_stimulation'] == 1, :, j], axis=0)
                         / np.sqrt(trials['laser_stimulation'].sum()))
             axs[j].fill_between(time_ax, opto_mean - opto_sem, opto_mean + opto_sem, alpha=0.25,
                                 color=colors['states'][j], lw=0)
             axs[j].plot(time_ax, opto_mean, color=colors['states'][j])
-
+            axs[j].plot([0, 0], [0, axs[j].get_ylim()[1]], ls='--', color='grey')
+            axs[j].plot([-PRE_TIME-0.1, -PRE_TIME-0.1], [0, 0.1], color='k')
+            axs[j].plot([-PRE_TIME-0.1, -0.1], [0, 0], color='k')
             axs[j].axis('off')
-            axs[j].set_title(f'State {j+1}', color=colors['states'][j])
+            #axs[j].set_title(f'State {j+1}', color=colors['states'][j])
+        axs[0].text(-1.4, 0.05, '10%', ha='center', va='center', rotation=90)
+        axs[0].text(-0.55, -0.015, '1s', ha='center', va='center')
         axs[-1].axis('off')
         sns.despine(trim=True)
         plt.tight_layout()
-
+        
         plt.savefig(join(fig_path, f'{subject}_{date}_{probe}_{region}_stateprobs.jpg'), dpi=600)
         plt.savefig(join(fig_path, f'{subject}_{date}_{probe}_{region}_stateprobs.pdf'))
 
