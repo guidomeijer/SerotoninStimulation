@@ -36,7 +36,6 @@ MIN_NEURONS = 5
 CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = False
 N_STATE_SELECT = 'global'  # global or region
 
 # Get paths

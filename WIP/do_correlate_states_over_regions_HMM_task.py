@@ -22,11 +22,11 @@ PRE_TIME = 1
 POST_TIME = 4
 PLOT = False
 ORIG_BIN_SIZE = 0.1  # original bin size
-BIN_SIZE = 0.5  # binning to apply for this analysis
+BIN_SIZE = 0.3  # binning to apply for this analysis
 BIN_SHIFT = 0.1
 PRE_TIME = 1
 POST_TIME = 4
-N_STATES_SELECT = 'region'
+N_STATES_SELECT = 'global'
 
 # Plotting
 colors, dpi = figure_style()
