@@ -33,7 +33,7 @@ from one.api import ONE
 OPEN_ONE = False
 
 # Number of states of HMM
-N_STATES = 15
+N_STATES = 7
 N_STATES_TASK = 11
 N_STATES_REGIONS = {'Frontal cortex': 8, 'Amygdala': 6, 'Hippocampus': 7, 'Midbrain': 7,
                     'Sensory cortex': 8, 'Striatum': 7, 'Thalamus': 5}

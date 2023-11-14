@@ -12,7 +12,7 @@ from os.path import join, realpath, dirname, split
 import ibllib.atlas as atlas
 from matplotlib.transforms import Affine2D, offset_copy
 import matplotlib.pyplot as plt
-from atlaselectrophysiology import rendering
+from iblatlas.atlas import rendering
 from stim_functions import query_ephys_sessions, paths, figure_style, load_subjects
 from one.api import ONE
 ba = atlas.AllenAtlas(25)
