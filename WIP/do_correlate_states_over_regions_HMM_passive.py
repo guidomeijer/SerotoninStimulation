@@ -16,10 +16,10 @@ from stim_functions import paths, figure_style
 
 # Settings
 CMAP = 'Set2'
-RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
+RANDOM_TIMES = 'jitter'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1
 POST_TIME = 4
-PLOT = True
+PLOT = False
 ORIG_BIN_SIZE = 0.1  # original bin size
 BIN_SIZE = 0.3  # binning to apply for this analysis
 BIN_SHIFT = 0.1
@@ -74,6 +74,7 @@ for i, this_rec in enumerate(all_rec):
             corr_mean, corr_max = np.empty(bin_centers.shape[0]), np.empty(bin_centers.shape[0])
             corr_min = np.empty(bin_centers.shape[0])
             corr_mean_null, corr_max_null = np.empty(bin_centers.shape[0]), np.empty(bin_centers.shape[0])
+            corr_abs, corr_abs_null = np.empty(bin_centers.shape[0]), np.empty(bin_centers.shape[0])
             corr_min_null = np.empty(bin_centers.shape[0])
             for tb, bin_center in enumerate(bin_centers):
 
@@ -113,7 +114,9 @@ for i, this_rec in enumerate(all_rec):
 
                 # Get mean over entire correlation matrix
                 corr_mean[tb] = np.mean(corr_mats[:, :, tb])
+                corr_abs[tb] = np.mean(np.abs(corr_mats[:, :, tb]))
                 corr_mean_null[tb] = np.mean(corr_mats_null[:, :, tb])
+                corr_abs_null[tb] = np.mean(np.abs(corr_mats_null[:, :, tb]))
 
                 # Get highest state pairs
                 n_states = np.max([rec_region[region1].shape[2], rec_region[region2].shape[2]])
@@ -125,12 +128,12 @@ for i, this_rec in enumerate(all_rec):
             # Add to dataframe
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
                 'time': bin_centers, 'r_mean': corr_mean, 'r_max': corr_max, 'r_min': corr_min,
-                'region1': region1, 'region2': region2, 'opto': 1,
+                'r_abs': corr_abs, 'region1': region1, 'region2': region2, 'opto': 1,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date})))
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
                 'time': bin_centers, 'r_mean': corr_mean_null, 'r_max': corr_max_null,
-                'r_min': corr_min_null,
+                'r_min': corr_min_null, 'r_abs': corr_abs_null,
                 'region1': region1, 'region2': region2, 'opto': 0,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date})))
