@@ -45,7 +45,7 @@ mod_neurons = mod_neurons.groupby('high_level_region').filter(lambda x: len(x) >
 per_mouse_df = light_neurons[light_neurons['sert-cre'] == 1].groupby(
     ['high_level_region', 'subject']).sum(numeric_only=True)
 per_mouse_df['mod_index_late'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(
-    ['high_level_region', 'subject']).median(numeric_only=True)['mod_index_late']
+    ['high_level_region', 'subject']).median(numeric_only=True)['mod_index']
 per_mouse_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(['high_level_region', 'subject']).size()
 per_mouse_df['perc_mod'] = (per_mouse_df['modulated'] / per_mouse_df['n_neurons']) * 100
 per_mouse_df = per_mouse_df[per_mouse_df['n_neurons'] >= MIN_NEURONS_PER_MOUSE]
@@ -101,13 +101,13 @@ plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region_no-color.pdf
 
 PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'color':'none'},
          'whiskerprops':{'color':'none'}, 'capprops':{'color':'none'}}
-ORDER = mod_neurons.groupby('high_level_region').mean(numeric_only=True)['mod_index_late'].sort_values(
+ORDER = mod_neurons.groupby('high_level_region').mean(numeric_only=True)['mod_index'].sort_values(
     ascending=False).reset_index()['high_level_region']
 
 f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
-sns.stripplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
+sns.stripplot(x='mod_index', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
-sns.boxplot(x='mod_index_late', y='high_level_region', ax=ax1, data=mod_neurons, showmeans=True,
+sns.boxplot(x='mod_index', y='high_level_region', ax=ax1, data=mod_neurons, showmeans=True,
             order=ORDER, meanprops={"marker": "|", "markeredgecolor": "red", "markersize": "8"},
             fliersize=0, zorder=2, **PROPS)
 ax1.plot([0, 0], ax1.get_ylim(), ls='--', color='black', zorder=0)

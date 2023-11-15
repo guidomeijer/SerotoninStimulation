@@ -9,16 +9,16 @@ Created on Wed Oct 14 14:40:01 2020
 import numpy as np
 from mayavi import mlab
 from os.path import join, realpath, dirname, split
-import ibllib.atlas as atlas
+from iblatlas import atlas
 from matplotlib.transforms import Affine2D, offset_copy
 import matplotlib.pyplot as plt
-from iblatlas.atlas import rendering
+from atlaselectrophysiology import rendering
 from stim_functions import query_ephys_sessions, paths, figure_style, load_subjects
 from one.api import ONE
 ba = atlas.AllenAtlas(25)
 one = ONE()
 
-RENDER_VIDEO = False
+RENDER_VIDEO = True
 
 # Paths
 f_path, save_path = paths()
