@@ -21,8 +21,6 @@ PRE_TIME = 1
 POST_TIME = 4
 PLOT = True
 ORIG_BIN_SIZE = 0.2  # original bin size
-BIN_SIZE = 0.2  # binning to apply for this analysis
-BIN_SHIFT = 0.1
 PRE_TIME = 1
 POST_TIME = 4
 
@@ -40,7 +38,6 @@ all_files = glob(join(save_path, 'HMM', 'Anesthesia', 'prob_mat', '*.npy'))
 all_rec = np.unique([split(i)[1][:28] for i in all_files])
 
 # Create time axis
-bin_centers = np.arange(-PRE_TIME + BIN_SIZE/2, (POST_TIME - BIN_SIZE/2) + BIN_SHIFT, BIN_SHIFT)
 time_ax = np.arange(-PRE_TIME + ORIG_BIN_SIZE/2, (POST_TIME +
                     ORIG_BIN_SIZE)-ORIG_BIN_SIZE, ORIG_BIN_SIZE)
 
@@ -50,7 +47,7 @@ for i, this_rec in enumerate(all_rec):
 
     # Get all brain regions simultaneously recorded in this recording session
     rec_region_paths = glob(
-        join(save_path, 'HMM', 'Anesthesia', 'prob_mat', f'{this_rec[:20]}*'))
+        join(save_path, 'HMM', 'Anesthesia', 'state_mat', f'{this_rec[:20]}*'))
     rec_region = dict()
     for ii in range(len(rec_region_paths)):
         rec_region[split(rec_region_paths[ii])[1][29:-4]] = np.load(join(rec_region_paths[ii]))
@@ -67,106 +64,35 @@ for i, this_rec in enumerate(all_rec):
                 continue
 
             # Loop over timebins
-            corr_mats = np.empty((rec_region[region1].shape[2], rec_region[region2].shape[2],
-                                  bin_centers.shape[0]))
-            corr_mean = np.empty(bin_centers.shape[0])
-            corr_permut = np.empty(bin_centers.shape[0])
-            for tb, bin_center in enumerate(bin_centers):
-
-                # Correlate each state with each other state
-                this_corr_mat = np.empty(
-                    (rec_region[region1].shape[2], rec_region[region2].shape[2]))
-                for state1 in range(rec_region[region1].shape[2]):
-                    for state2 in range(rec_region[region2].shape[2]):
-
-                        # Bin state probabilities
-                        r1s1 = np.mean(rec_region[region1][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state1],
-                                       axis=1)
-                        r2s2 = np.mean(rec_region[region2][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state2],
-                                       axis=1)
-
-                        # Correlate
-                        corr_mats[state1, state2, tb] = pearsonr(r1s1, r2s2)[0]
-
-                # Get mean over entire correlation matrix
-                corr_mean[tb] = np.max(corr_mats[:, :, tb])
-                # corr_mean[tb] = np.mean(corr_mats[:, :, tb])
-
+            reg_1 = rec_region[region1]
+            reg_2 = rec_region[region2]
+            corr_opto, corr_null = np.empty(time_ax.shape[0]), np.empty(time_ax.shape[0])
+            dist_opto, dist_null = np.empty(time_ax.shape[0]), np.empty(time_ax.shape[0])
+            perc_opto, perc_null = np.empty(time_ax.shape[0]), np.empty(time_ax.shape[0])
+            for tb, bin_center in enumerate(time_ax):
+                
+                corr_opto[tb] = pearsonr(reg_1[int(reg_1.shape[0]/2):, tb],
+                                         reg_2[int(reg_2.shape[0]/2):, tb])[0]
+                dist_opto[tb] = np.linalg.norm(reg_1[int(reg_1.shape[0]/2):, tb]
+                                               - reg_2[int(reg_2.shape[0]/2):, tb])
+                perc_opto[tb] = (np.sum(reg_1[int(reg_1.shape[0]/2):, tb] == reg_2[int(reg_2.shape[0]/2):, tb]) 
+                                 / int(reg_1.shape[0]/2))
+                corr_null[tb] = pearsonr(reg_1[:int(reg_1.shape[0]/2), tb],
+                                         reg_2[:int(reg_2.shape[0]/2), tb])[0]
+                dist_null[tb] = np.linalg.norm(reg_1[:int(reg_1.shape[0]/2), tb]
+                                               - reg_2[:int(reg_2.shape[0]/2), tb])
+                perc_null[tb] = (np.sum(reg_1[:int(reg_1.shape[0]/2), tb] == reg_2[:int(reg_2.shape[0]/2), tb]) 
+                                 / int(reg_1.shape[0]/2))
+                
             # Add to dataframe
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
-                'time': bin_centers, 'r_mean': corr_mean,
+                'time': time_ax, 'r': corr_opto, 'dist': dist_opto, 'perc': perc_opto,
                 'region1': region1, 'region2': region2, 'opto': 1,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date, 'probe': probe})))
-
-            # Plot an example correlation matrix
-            if PLOT:
-                f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
-                pos = ax1.imshow(corr_mats[:, :, 15], clim=[-0.4, 0.4], cmap='coolwarm')
-                f.colorbar(pos, ax=ax1)
-                ax1.set(ylabel=f'States in {region1}', xlabel=f'States in {region2}',
-                        title=f'Time = {np.round(time_ax[15], 2)}s',
-                        yticks=np.arange(rec_region[region1].shape[2]),
-                        yticklabels=np.arange(1, rec_region[region1].shape[2]+1),
-                        xticks=np.arange(rec_region[region2].shape[2]),
-                        xticklabels=np.arange(1, rec_region[region2].shape[2]+1))
-
-                ax2.plot(bin_centers, corr_mean, color='k')
-                ax2.set(ylabel='Correlation (r)', xlabel='Time from stimulation start (s)',
-                        xticks=[-1, 0, 1, 2, 3, 4])
-
-                sns.despine(trim=True)
-                plt.tight_layout()
-                plt.savefig(join(fig_path, f'{subject}_{date}_{region1}-{region2}.jpg'), dpi=600)
-                plt.close(f)
-
-    # Do the same for the random onset times null condition
-    # Get all brain regions simultaneously recorded in this recording session
-    rec_region_paths = glob(
-        join(save_path, 'HMM', 'Anesthesia', 'prob_mat_null', f'{this_rec[:20]}*'))
-    rec_region = dict()
-    for ii in range(len(rec_region_paths)):
-        rec_region[split(rec_region_paths[ii])[1][29:-4]] = np.load(join(rec_region_paths[ii]))
-
-    # Correlate each area with each other area
-    for r1, region1 in enumerate(rec_region.keys()):
-        for r2, region2 in enumerate(list(rec_region.keys())[r1:]):
-            if region1 == region2:
-                continue
-
-            # Loop over timebins
-            corr_mats = np.empty((rec_region[region1].shape[2], rec_region[region2].shape[2],
-                                  bin_centers.shape[0]))
-            corr_mean = np.empty(bin_centers.shape[0])
-            corr_permut = np.empty(bin_centers.shape[0])
-            for tb, bin_center in enumerate(bin_centers):
-
-                # Correlate each state with each other state
-                this_corr_mat = np.empty(
-                    (rec_region[region1].shape[2], rec_region[region2].shape[2]))
-                for state1 in range(rec_region[region1].shape[2]):
-                    for state2 in range(rec_region[region2].shape[2]):
-
-                        # Bin state probabilities
-                        r1s1 = np.mean(rec_region[region1][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state1],
-                                       axis=1)
-                        r2s2 = np.mean(rec_region[region2][:, (time_ax >= bin_center - BIN_SIZE/2)
-                                                           & (time_ax <= bin_center + BIN_SIZE/2), state2],
-                                       axis=1)
-
-                        # Correlate
-                        corr_mats[state1, state2, tb] = pearsonr(r1s1, r2s2)[0]
-
-                # Get mean over entire correlation matrix
-                # corr_mean[tb] = np.mean(corr_mats[:, :, tb])
-                corr_mean[tb] = np.max(corr_mats[:, :, tb])
-
-            # Add to dataframe
+            
             corr_df = pd.concat((corr_df, pd.DataFrame(data={
-                'time': bin_centers, 'r_mean': corr_mean,
+                'time': time_ax, 'r': corr_null, 'dist': dist_null, 'perc': perc_null,
                 'region1': region1, 'region2': region2, 'opto': 0,
                 'region_pair': f'{np.sort([region1, region2])[0]}-{np.sort([region1, region2])[1]}',
                 'subject': subject, 'date': date, 'probe': probe})))
