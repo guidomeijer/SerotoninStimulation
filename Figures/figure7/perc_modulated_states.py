@@ -104,13 +104,7 @@ print(dunn_ph)
 # %%
 f, ax1 = plt.subplots(figsize=(1.2, 1.75), dpi=dpi)
 for i in all_mice[all_mice['state'] == 'anesthetized'].index:
-    if all_mice.loc[i, 'subject'] == 'ZFM-05169':
-        jitter = 0.05
-    elif all_mice.loc[i, 'subject'] == 'ZFM-05492':
-        jitter = -0.05
-    else:
-        jitter = 0
-    ax1.plot(1+jitter, all_mice.loc[i, 'perc_mod'],
+    ax1.plot(1, all_mice.loc[i, 'perc_mod'],
              color='k', marker='o', ms=3,
              markeredgewidth=0.4, markeredgecolor='w')
 for i in all_mice[all_mice['state'] == 'awake'].index:
@@ -129,7 +123,7 @@ ax1.plot([1, 2, 3], all_mice.groupby('state').mean(numeric_only=True)['perc_mod'
          color='tab:red', lw=0, ms=7)
 ax1.plot([1, 3], [82, 82], color='k', lw=0.75)
 ax1.plot([1, 1.95], [80, 80], color='k', lw=0.75)
-ax1.plot([2.05, 3], [80, 80], color='k', lw=0.75)
+#ax1.plot([2.05, 3], [80, 80], color='k', lw=0.75)
 ax1.text(2, 80, '**', fontsize=10, ha='center')
 ax1.set(ylabel='Modulated neurons (%)', xlabel='', yticks=np.arange(0, 81, 20), xlim=[0.75, 3.25])
 ax1.set_xticklabels(['Anesthetized', 'Wakefullness', 'Behaving'], rotation=45, ha='right')
@@ -166,7 +160,7 @@ ax1.plot([1, 2, 3], all_mice.groupby('state').mean(numeric_only=True)['mod_index
 ax1.plot([1, 3], [0.22, 0.22], color='k', lw=0.75)
 ax1.plot([1, 1.95], [0.21, 0.21], color='k', lw=0.75)
 #ax1.plot([2.05, 3], [90, 90], color='k', lw=0.75)
-ax1.text(2, 0.22, '*', fontsize=10, ha='center')
+ax1.text(2, 0.22, '**', fontsize=10, ha='center')
 
 ax1.set(ylabel='Median modulation index', xlabel='', xlim=[0.75, 3.25], yticks=np.arange(-0.3, 0.21, 0.1))
 ax1.set_xticklabels(['Anesthetized', 'Wakefullness', 'Behaving'], rotation=45, ha='right')

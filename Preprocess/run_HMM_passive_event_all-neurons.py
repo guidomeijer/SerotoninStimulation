@@ -25,13 +25,12 @@ ba = AllenAtlas()
 one = init_one()
 
 # Settings
-BIN_SIZE = 0.1  # s
+BIN_SIZE = 0.05  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
-RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1  # final time window to use
-POST_TIME = 4
-HMM_PRE_TIME = 2  # time window to run HMM on
-HMM_POST_TIME = 5
+POST_TIME = 2
+HMM_PRE_TIME = 1  # time window to run HMM on
+HMM_POST_TIME = 2
 MIN_NEURONS = 5
 CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
@@ -154,9 +153,9 @@ for i, eid in enumerate(np.unique(rec['eid'])):
         state_mat[t, :] = zhat
 
     # Select time period to use
-    prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
+    prob_mat = prob_mat[:, use_timepoints, :]
     state_mat = state_mat[:, use_timepoints]
-
+    
     # Save the trial-level P(state) data and zhat matrix
     hmm_dict = dict()
     hmm_dict['prob_mat'] = prob_mat

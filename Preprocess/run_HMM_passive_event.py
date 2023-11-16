@@ -5,7 +5,7 @@ Created on Wed Jan 18 11:20:14 2023
 By: Guido Meijer
 """
 
-from ibllib.atlas import AllenAtlas
+from ibllibatlas.atlas import AllenAtlas
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times, init_one,
                             high_level_regions, figure_style, N_STATES_REGIONS, N_STATES)
 from brainbox.singlecell import calculate_peths

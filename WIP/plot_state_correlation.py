@@ -43,21 +43,21 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
                      'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
 # %% Anesthesia
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-ax1.add_patch(Rectangle((0, 0), 1, 0.5, color='royalblue', alpha=0.25, lw=0))
-sns.lineplot(data=corr_anes_df[corr_anes_df['sert-cre'] == 1], x='time', y='r_mean',
+f, ax1 = plt.subplots(1, 1, figsize=(1.4, 1.75), dpi=dpi)
+ax1.add_patch(Rectangle((0, 0.5), 1, 0.3, color='royalblue', alpha=0.25, lw=0))
+sns.lineplot(data=corr_anes_df[corr_anes_df['sert-cre'] == 1], x='time', y='perc',
              errorbar='se', hue='opto', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
-ax1.set(xlabel='Time from stimulation start (s)', ylim=[0.1, 0.4],
-        xticks=[-1, 0, 1, 2, 3, 4], yticks=[0.1, 0.5], yticklabels=[0.1, 0.5])
-ax1.set_ylabel('State correlation (r)', labelpad=-5)
-g = ax1.legend(title='', bbox_to_anchor=(1.1, 0.5), prop={'size': 5})
+ax1.set(xlabel='Time from stimulation (s)', ylim=[0.5, 0.7],
+        xticks=[-1, 0, 1, 2, 3, 4], yticks=[0.5, 0.7], yticklabels=[0.5, 0.7])
+ax1.set_ylabel('State synchrony (%)', labelpad=-5)
+g = ax1.legend(title='', bbox_to_anchor=(1, 1), prop={'size': 5})
 new_labels = ['label 1', 'label 2']
 for t, l in zip(g.texts, ['No stim', 'Stim']):
     t.set_text(l)
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, 'state_correlation_anesthesia.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'state_synchrony_anesthesia.pdf'), dpi=600)
 
 """
 # %% Plot region pairs seperately
@@ -69,12 +69,12 @@ plt.savefig(
 """
 
 # %% Passive mean
-f, ax1 = plt.subplots(1, 1, figsize=(2.2, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 ax1.add_patch(Rectangle((0, -0.002), 1, 0.1, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=corr_passive_df[corr_passive_df['sert-cre'] == 1], x='time', y='r_mean',
              errorbar='se', hue='opto', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
-ax1.set(xlabel='Time from stimulation start (s)', ylim=[-0.002, 0.01],
+ax1.set(xlabel='Time from stimulation (s)', ylim=[-0.002, 0.01],
         xticks=[-1, 0, 1, 2, 3, 4], yticks=[0, 0.01], yticklabels=[0, 0.01])
 # ylim=[-0.001, 0.005], yticks=[0, 0.005],
 # yticklabels=[0, 0.005])
@@ -177,7 +177,7 @@ plt.savefig(join(fig_path, f'state_correlation_{RANDOM_TIMES}_passive_permut.jpg
 
 
 # %% Task mean
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.4, 1.75), dpi=dpi)
 #ax1.add_patch(Rectangle((0, -0.1), 1, 0.2, color='royalblue', alpha=0.25, lw=0))
 ax1.plot([0, 0], [-0.2, 0.2], ls='--', color='grey')
 sns.lineplot(data=corr_task_df[corr_task_df['sert-cre'] == 1],
@@ -188,7 +188,7 @@ ax1.set(xlabel='Time from trial start (s)', ylim=[-0.002, 0.02],
 # ylim=[-0.001, 0.005], yticks=[0, 0.005],
 # yticklabels=[0, 0.005])
 ax1.set_ylabel('State correlation (r)', labelpad=-5)
-g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.9), prop={'size': 5})
+g = ax1.legend(title='', bbox_to_anchor=(0.4, 0.9), prop={'size': 5})
 new_labels = ['label 1', 'label 2']
 for t, l in zip(g.texts, ['No stim', 'Stim']):
     t.set_text(l)

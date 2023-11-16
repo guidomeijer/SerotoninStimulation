@@ -18,13 +18,13 @@ from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
 from scipy.ndimage import gaussian_filter
 from brainbox.singlecell import calculate_peths
-from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times,
+from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times, load_subjects,
                             figure_style, remap, high_level_regions, combine_regions)
 
 # Settings
 PRE_TIME = 1
-POST_TIME = 4
-MAP = 'beryl'  # combined, high_level or beryl
+POST_TIME = 2
+MAP = 'high_level'  # combined, high_level or beryl
 
 # Get paths
 parent_fig_path, repo_path = paths()
@@ -32,13 +32,18 @@ fig_path = join(parent_fig_path, 'Extra plots', 'State', 'All neurons')
 data_path = join(repo_path, 'HMM', 'PassiveEventAllNeurons')
 rec_files = glob(join(data_path, '*.pickle'))
 
+subjects = load_subjects()
 colors, dpi = figure_style()
 for i, file_path in enumerate(rec_files):
     
+    # Get info
+    subject = split(file_path)[1][:9]
+    if subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0] == 0:
+        continue
+    
     # Load in data
     with open(file_path, 'rb') as handle:
-        hmm_dict = pickle.load(handle)
-        
+        hmm_dict = pickle.load(handle)    
     n_states = hmm_dict['prob_mat'].shape[2]
     
     # Create region map
