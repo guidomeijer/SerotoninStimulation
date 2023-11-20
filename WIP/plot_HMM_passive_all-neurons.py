@@ -34,6 +34,7 @@ rec_files = glob(join(data_path, '*.pickle'))
 
 subjects = load_subjects()
 colors, dpi = figure_style()
+all_regions, all_n_neurons, all_loadings = [], [], []
 for i, file_path in enumerate(rec_files):
     
     # Get info
@@ -62,6 +63,12 @@ for i, file_path in enumerate(rec_files):
         for r, region in enumerate(unique_regions):
             log_lambdas[r, s] = np.mean(hmm_dict['log_lambdas'][s, neuron_regions == region])
     neuron_loadings = -2 * log_lambdas
+    
+    # Get number of neurons per region
+    n_neurons = [np.sum(i == neuron_regions) for i in unique_regions]
+    all_n_neurons.append(n_neurons)
+    all_regions.append(unique_regions)
+    all_loadings.append(np.mean(np.rot90(neuron_loadings), axis=0))
     
     # Plot    
     cmap = sns.color_palette(colors['states_light'], n_states)
@@ -107,4 +114,18 @@ for i, file_path in enumerate(rec_files):
     
     plt.savefig(join(fig_path, split(file_path)[1][:20] + '.jpg'), dpi=600)
     plt.close(f)
+n_neuron_df = pd.DataFrame(data={
+    'n_neurons': np.concatenate(all_n_neurons), 'loading': np.concatenate(all_loadings),
+    'region': np.concatenate(all_regions)})
+    
+    
+# %%
+f, ax1 = plt.subplots(figsize=(2, 2), dpi=dpi)
+sns.scatterplot(data=n_neuron_df, x='n_neurons', y='loading', hue='region')
+g = ax1.legend(title='', bbox_to_anchor=(1, 1), prop={'size': 5})
+ax1.set(xlabel='Number of neurons', ylabel='Mean loading to brain state')
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'n_neurons_loadings.jpg'), dpi=600)
     
