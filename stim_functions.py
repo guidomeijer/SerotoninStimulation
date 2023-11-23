@@ -42,12 +42,16 @@ N_STATES_TASK_REGIONS = {'Frontal cortex': 9, 'Amygdala': 12, 'Hippocampus': 13,
 N_STATES_CONT = 7
 
 
-def init_one(open_one=OPEN_ONE):
+def init_one(local=False, open_one=OPEN_ONE):
+    if local:
+        mode='local'
+    else:
+        mode='auto'
     if open_one:
-        one = ONE(base_url='https://openalyx.internationalbrainlab.org',
+        one = ONE(mode=mode, base_url='https://openalyx.internationalbrainlab.org',
                   password='international', silent=True)
     else:
-        one = ONE()
+        one = ONE(mode=mode)
     return one
 
 

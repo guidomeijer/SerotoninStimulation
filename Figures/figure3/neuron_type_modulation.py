@@ -53,7 +53,7 @@ perc_mod_df = perc_mod_df.groupby(['subject', 'type']).mean().reset_index()
 
 _, p = ttest_rel(perc_mod_df.loc[perc_mod_df['type'] == 'WS', 'perc_mod'],
                  perc_mod_df.loc[perc_mod_df['type'] == 'NS', 'perc_mod'])
-print(f'p = {p:.2f}')
+print(f'p = {p:.3f}')
 
 # %%
 
@@ -68,8 +68,9 @@ for i, subject in enumerate(np.unique(perc_mod_df['subject'])):
             markeredgecolor='w', markerfacecolor=colors['NS'])
     ax.plot(1, ws, marker='o', ms=4, markeredgewidth=0.4,
             markeredgecolor='w', markerfacecolor=colors['WS'])
-ax.text(0.5, 67, '*', fontsize=10, ha='center')
-ax.set(ylabel='Modulated neurons (%)', xlabel='', yticks=np.arange(0, 71, 35), xlim=[-0.25, 1.25],
+#ax.text(0.5, 67, '*', fontsize=10, ha='center')
+ax.text(0.7, 75, 'n.s.', fontsize=7, ha='center')
+ax.set(ylabel='Modulated neurons (%)', xlabel='', yticks=np.arange(0, 81, 40), xlim=[-0.25, 1.25],
        xticks=[0, 1], xticklabels=['NS', 'WS'])
 sns.despine(trim=True)
 plt.tight_layout()
@@ -80,7 +81,7 @@ plt.savefig(join(fig_path, 'neuron_type_perc_mod.pdf'))
 merged_df = merged_df[merged_df['modulated']]
 _, p = ttest_ind(merged_df.loc[merged_df['type'] == 'WS', 'mod_index'],
                  merged_df.loc[merged_df['type'] == 'NS', 'mod_index'])
-print(f'p = {p:.2f}')
+print(f'p = {p:.3f}')
 
 f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1.75), dpi=dpi)
 sns.violinplot(data=merged_df, x='type', y='mod_index', ax=ax1,

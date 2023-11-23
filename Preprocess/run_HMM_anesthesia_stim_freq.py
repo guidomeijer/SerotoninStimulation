@@ -17,11 +17,11 @@ from scipy.ndimage import gaussian_filter
 from brainbox.io.one import SpikeSortingLoader
 from stim_functions import (load_passive_opto_times, get_neuron_qc, paths, query_ephys_sessions,
                             figure_style, load_subjects, remap, high_level_regions,
-                            get_artifact_neurons, calculate_peths)
+                            get_artifact_neurons, calculate_peths, init_one)
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
-one = ONE()
+one = init_one(local=True)
 
 # Settings
 N_STATES = 2
@@ -90,7 +90,18 @@ for i in rec.index.values:
     clusters_regions = clusters['high_level_region'][clusters_pass]
 
     # Loop over stimulation frequencies
+    opto_times = []
+    opto_freqs = []
     for f, freq in enumerate(STIM_FREQS):
+        
+        these_opto_times, _ = load_passive_opto_times(eid, one=one, freq=freq)
+        opto_times.append(opto_times)
+        opto_freqs.append([freq]*opto_times.shape[0])
+    asd
+    """
+        
+        
+        
         print(f'Starting {freq}Hz stimulation')
         
         # Load opto times for this frequency
@@ -243,3 +254,4 @@ for i in rec.index.values:
     up_down_state_df.to_csv(join(save_path, 'updown_states_anesthesia_freqs.csv'))
     up_down_state_null_df.to_csv(join(save_path, 'updown_states_null_anesthesia_freqs.csv'))
 
+"""
