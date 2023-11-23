@@ -5,19 +5,11 @@ Created on Mon Nov 20 09:12:54 2023 by Guido Meijer
 
 
 import numpy as np
-from os.path import join, realpath, dirname, split
-import pandas as pd
+from os.path import join, split
 import pickle
-import seaborn as sns
-import matplotlib.pyplot as plt
 from glob import glob
-from matplotlib.colors import ListedColormap
-from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
-from scipy.ndimage import gaussian_filter
-from brainbox.singlecell import calculate_peths
-from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times, load_subjects,
-                            figure_style, remap, high_level_regions, combine_regions)
+from stim_functions import paths, load_subjects
 from one.api import ONE
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
@@ -30,27 +22,34 @@ data_path = join(repo_path, 'HMM', 'PassiveEventAllNeurons')
 rec_files = glob(join(data_path, '*.pickle'))
 
 subjects = load_subjects()
-colors, dpi = figure_style()
 all_regions, all_n_neurons, all_loadings = [], [], []
 for i, file_path in enumerate(rec_files):
     
     # Get info
     subject = split(file_path)[1][:9]
     date = split(file_path)[1][10:20]
-    if subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0] == 0:
-        continue
+    print(f'Processing session {i} of {len(rec_files)}')
     
     # Load in data
     with open(file_path, 'rb') as handle:
         hmm_dict = pickle.load(handle)    
     n_states = hmm_dict['prob_mat'].shape[2]
     
-    # Load in location information for all neurons
+    # Load in depth along the probe of HMM neurons
+    hmm_dict['depth'] = np.zeros(hmm_dict['neuron_id'].shape).astype(int)
     for p, probe in enumerate(np.unique(hmm_dict['probe'])):
-        
-        pid = one.
+        eid = one.search(subject=subject, date=date)[0]
+        pid = one.eid2pid(eid)[0][p]
         sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
         spikes, clusters, channels = sl.load_spike_sorting()
-    asd
+        clusters = sl.merge_clusters(spikes, clusters, channels)
+        hmm_dict['depth'][hmm_dict['probe'] == probe] = clusters.axial_um[
+            hmm_dict['neuron_id'][hmm_dict['probe'] == probe]]
+    
+    # Save result
+    with open(file_path, 'wb') as fp:
+        pickle.dump(hmm_dict, fp)
+        
+    
     
     

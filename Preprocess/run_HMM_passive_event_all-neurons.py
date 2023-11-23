@@ -75,7 +75,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     # Get data from both probes and merge
     pids = rec.loc[rec['eid'] == eid, 'pid'].values
     probes = rec.loc[rec['eid'] == eid, 'probe'].values
-    binned_spikes, neuron_regions, neuron_id, this_probe = [], [], [], []
+    binned_spikes, neuron_regions, neuron_id, neuron_depth, this_probe = [], [], [], [], []
     spikes, clusters, channels = dict(), dict(), dict()
     for (pid, probe) in zip(pids, probes):
 
@@ -111,6 +111,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
         
         # Add regions of neurons
         neuron_regions.append(clusters[probe].acronym[use_neurons])
+        neuron_depth.append(clusters[probe].axial_um[use_neurons])
         neuron_id.append(use_neurons)
         this_probe.append([probe]*use_neurons.shape[0])
 
@@ -122,6 +123,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     binned_spikes = binned_spikes.astype(int)
     neuron_regions = np.concatenate(neuron_regions)
     neuron_id = np.concatenate(neuron_id)
+    neuron_depth = np.concatenate(neuron_depth)
     this_probe = np.concatenate(this_probe)
 
     # Create time axes
@@ -163,6 +165,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
     hmm_dict['log_lambdas'] = simple_hmm.observations.log_lambdas
     hmm_dict['regions'] = neuron_regions
     hmm_dict['neuron_id'] = neuron_id
+    hmm_dict['neuron_depth'] = neuron_depth
     hmm_dict['probe'] = this_probe
     hmm_dict['time_ax'] = time_ax
     with open(join(save_path, 'HMM', 'PassiveEventAllNeurons', f'{subject}_{date}.pickle'),

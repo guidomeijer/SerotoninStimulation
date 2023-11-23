@@ -62,7 +62,7 @@ for i, file_path in enumerate(rec_files):
     for s in range(n_states):
         for r, region in enumerate(unique_regions):
             log_lambdas[r, s] = np.mean(hmm_dict['log_lambdas'][s, neuron_regions == region])
-    neuron_loadings = -2 * log_lambdas
+    neuron_loadings = np.exp(log_lambdas)
     
     # Get number of neurons per region
     n_neurons = [np.sum(i == neuron_regions) for i in unique_regions]
@@ -108,7 +108,7 @@ for i, file_path in enumerate(rec_files):
             yticklabels=np.arange(n_states, 0, -1),
             ylabel='State')
     ax3.set_xticklabels(unique_regions, rotation=45, ha='right')
-    
+        
     sns.despine(trim=True, bottom=True, left=True)
     plt.tight_layout()
     

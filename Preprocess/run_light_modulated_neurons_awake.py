@@ -119,7 +119,8 @@ for i in rec.index.values:
     cluster_regions = remap(clusters.acronym[cluster_ids])
     light_neurons = pd.concat((light_neurons, pd.DataFrame(data={
         'subject': subject, 'date': date, 'eid': eid, 'probe': probe, 'pid': pid,
-        'region': cluster_regions, 'neuron_id': cluster_ids, 'mod_index': mod_idx,
+        'allen_acronym': clusters.acronym[cluster_ids], 'region': cluster_regions,
+        'neuron_id': cluster_ids, 'mod_index': mod_idx,
         'modulated': p_values < 0.05, 'p_value': p_values, 'firing_rate': firing_rates,
         'latency_peak': latency_peak, 'latency_peak_onset': latency_peak_onset})))
 
