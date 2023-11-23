@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, load_subjects, plot_scalar_on_slice
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas(res_um=10)
 
 # Settings

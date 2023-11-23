@@ -46,6 +46,12 @@ task_neurons = task_neurons[task_neurons['sert-cre'] == 1]
 awake_neurons = awake_neurons[awake_neurons['sert-cre'] == 1]
 anes_neurons = anes_neurons[anes_neurons['sert-cre'] == 1]
 
+# Drop root and void
+task_neurons = task_neurons[(task_neurons['region'] != 'root') & (task_neurons['region'] != 'void')]
+awake_neurons = awake_neurons[(awake_neurons['region'] != 'root') & (awake_neurons['region'] != 'void')]
+anes_neurons = anes_neurons[(anes_neurons['region'] != 'root') & (anes_neurons['region'] != 'void')]
+
+"""
 # Only high level regions
 task_neurons['high_level_region'] = high_level_regions(task_neurons['region'])
 awake_neurons['high_level_region'] = high_level_regions(awake_neurons['region'])
@@ -53,6 +59,7 @@ anes_neurons['high_level_region'] = high_level_regions(anes_neurons['region'])
 task_neurons = task_neurons[task_neurons['high_level_region'] != 'root']
 awake_neurons = awake_neurons[awake_neurons['high_level_region'] != 'root']
 anes_neurons = anes_neurons[anes_neurons['high_level_region'] != 'root']
+"""
 
 # Calculate percentage modulated neurons
 task_mice = ((task_neurons.groupby(['subject', 'subject_nr']).sum()['opto_modulated']

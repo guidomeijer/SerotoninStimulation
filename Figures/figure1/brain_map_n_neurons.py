@@ -28,8 +28,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 awake_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 anes_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons_anesthesia.csv'))
 all_neurons = pd.concat((awake_neurons, anes_neurons))
-# all_neurons = all_neurons[all_neurons['region'] != 'root']
-# all_neurons = all_neurons[all_neurons['region'] != 'void']
+all_neurons = all_neurons[all_neurons['region'] != 'void']
 print(f'{all_neurons.shape[0]} neurons')
 print(f'{np.unique(all_neurons["subject"]).shape[0]} mice')
 print(f'{np.unique(all_neurons["pid"]).shape[0]} recordings')

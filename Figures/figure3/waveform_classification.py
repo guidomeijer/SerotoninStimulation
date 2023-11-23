@@ -16,7 +16,7 @@ from matplotlib.lines import Line2D
 import pandas as pd
 
 # Settings
-SW_CUTOFF = 0.4
+SW_CUTOFF = 0.35
 FEATURES = ['spike_width', 'pt_ratio']
 
 # Get paths
