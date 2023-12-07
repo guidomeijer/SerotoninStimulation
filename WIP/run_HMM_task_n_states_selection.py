@@ -16,7 +16,7 @@ from stim_functions import (paths, remap, query_ephys_sessions, load_trials,
                             get_artifact_neurons, get_neuron_qc, calculate_peths,
                             high_level_regions)
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
