@@ -20,7 +20,7 @@ from brainbox.singlecell import calculate_peths
 from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times,
                             figure_style, N_STATES, N_STATES_REGIONS, remap, high_level_regions)
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
@@ -30,9 +30,9 @@ PID = '5d2acdf4-b7f6-4545-b72c-ee88a64b81c5'
 REGION = 'Hippocampus'
 BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
-POST_TIME = 4
+POST_TIME = 3
 HMM_PRE_TIME = 2  # time window to run HMM on
-HMM_POST_TIME = 5
+HMM_POST_TIME = 4
 MIN_NEURONS = 5
 INCL_NEURONS = 'all'  # all, sig or non-sig
 PTRANS_SMOOTH = BIN_SIZE
