@@ -95,7 +95,7 @@ for i, file_path in enumerate(rec_files):
         ax2.plot(hmm_dict['time_ax'], mean_state, color=cmap[this_state])
         ax2.fill_between(hmm_dict['time_ax'], mean_state + sem_state, mean_state - sem_state, alpha=0.25,
                          color=cmap[this_state], lw=0)
-        ax2.text(4.1, this_state/3, f'{this_state+1}', color=cmap[this_state])
+        ax2.text(POST_TIME+0.1, this_state/3, f'{this_state+1}', color=cmap[this_state])
     ax2.plot([-1.1, -1.1], [0, 0.25], color='k')
     ax2.plot([0, 2], [-0.2, -0.2], color='k')
     ax2.text(-1.4, 0.175, '25%', rotation=90, ha='center', va='center')

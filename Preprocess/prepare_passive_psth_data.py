@@ -15,7 +15,7 @@ from brainbox.singlecell import calculate_peths
 from stim_functions import (paths, load_passive_opto_times, combine_regions, load_subjects,
                             high_level_regions)
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
