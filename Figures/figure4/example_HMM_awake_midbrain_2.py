@@ -20,7 +20,7 @@ from brainbox.singlecell import calculate_peths
 from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times,
                             figure_style, N_STATES, N_STATES_REGIONS, remap, high_level_regions)
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
@@ -29,9 +29,9 @@ PID = '455d9684-12b3-4c40-97a3-5a47b9c31589'
 REGION = 'Midbrain'
 BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
-POST_TIME = 4
+POST_TIME = 3
 HMM_PRE_TIME = 2  # time window to run HMM on
-HMM_POST_TIME = 5
+HMM_POST_TIME = 4
 MIN_NEURONS = 5
 INCL_NEURONS = 'all'  # all, sig or non-sig
 PTRANS_SMOOTH = BIN_SIZE
@@ -197,8 +197,8 @@ ax1.add_patch(Rectangle((0, 1), 1, len(opto_times), color='royalblue', alpha=0.2
 ax1.imshow(np.flipud(state_mat), aspect='auto', cmap=ListedColormap(cmap),
            vmin=0, vmax=n_states-1,
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
-ax1.plot([-1, 4], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
-ax1.plot([-1, 4], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
+ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
+ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
 ax1.plot([0, 2], [0.5, 0.5], lw=0.75, color='k', clip_on=False)
@@ -212,7 +212,7 @@ plt.savefig(join(fig_path, f'hmm_example_session_{REGION}.pdf'))
 
 f, ax1 = plt.subplots(figsize=(1.25, 2), dpi=dpi)
 ax1.add_patch(Rectangle((0, -1.7), 1, 2, color='royalblue', alpha=0.25, lw=0))
-for i, this_state in enumerate([5, 6, 4, 3, 2, 1, 0]):
+for i, this_state in enumerate([1, 5, 6, 0, 4, 3, 2]):
     mean_state = (np.mean(prob_mat[:,:,this_state], axis=0)
                   - np.mean(prob_mat[:,time_ax < 0,this_state])) - (i/4)
     
