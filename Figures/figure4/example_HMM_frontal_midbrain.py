@@ -34,12 +34,10 @@ POST_TIME = 3
 HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 4
 MIN_NEURONS = 5
-PTRANS_SMOOTH = BIN_SIZE
-PSTATE_SMOOTH = BIN_SIZE
 TRIAL = 36
 FRONTAL_STATE = 3
 MIDBRAIN_STATE = 1
-TIME_POINT = 0.5
+TIME_POINT = 0.75
 
 # Paths
 f_path, save_path = paths()
@@ -103,8 +101,7 @@ simple_hmm = ssm.HMM(N_STATES, binned_spikes.shape[1], observations='poisson')
 lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
 # Loop over trials
-trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
+state_mat_front = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
 prob_mat_frontal = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
 for t in range(len(trial_data)):
 
@@ -112,36 +109,15 @@ for t in range(len(trial_data)):
     zhat = simple_hmm.most_likely_states(trial_data[t])
     prob_mat_frontal[t, :, :] = simple_hmm.filter(trial_data[t])
     
-    # Get state transitions times
-    trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
 
     # Add state to state matrix
-    state_mat[t, :] = zhat
-
-# Smooth P(state change) over entire period
-p_trans = np.mean(trans_mat, axis=0)
-smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
+    state_mat_front[t, :] = zhat
 
 # Select time period to use
-trans_mat = trans_mat[:, use_timepoints]
-smooth_p_trans = smooth_p_trans[use_timepoints]
 prob_mat_frontal = prob_mat_frontal[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
-# Get P(state)
-p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
-for ii in range(N_STATES):
-
-    # Get P state, first smooth, then crop timewindow
-    this_p_state = np.mean(state_mat == ii, axis=0)
-    smooth_p_state = gaussian_filter(this_p_state, PSTATE_SMOOTH / BIN_SIZE)
-    smooth_p_state = smooth_p_state[use_timepoints]
-    p_state_bl = smooth_p_state - np.mean(smooth_p_state[time_ax < 0])
-
-    # Add to dataframe and matrix
-    p_state_mat[ii, :] = smooth_p_state
-
 # Crop timewindow for plotting
-state_mat = state_mat[:, use_timepoints]
+state_mat_front = state_mat_front[:, use_timepoints]
 
 
 # %% Plot example trial
@@ -182,11 +158,13 @@ plt.savefig(join(fig_path, 'hmm_example_trial_frontal.pdf'))
 f, ax1 = plt.subplots(1, 1, figsize=(1.25, 2), dpi=dpi)
 
 ax1.add_patch(Rectangle((0, 1), 1, len(opto_times), color='royalblue', alpha=0.25, lw=0))
-ax1.imshow(np.flipud(state_mat), aspect='auto', cmap=ListedColormap(cmap),
+ax1.imshow(np.flipud(state_mat_front), aspect='auto', cmap=ListedColormap(cmap),
            vmin=0, vmax=N_STATES-1,
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
-ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
-ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
+#ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
+#ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
+#ax1.plot([TIME_POINT - BIN_SIZE/2, TIME_POINT - BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
+#ax1.plot([TIME_POINT + BIN_SIZE/2, TIME_POINT + BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
 ax1.plot([0, 2], [0.5, 0.5], lw=0.75, color='k', clip_on=False)
@@ -263,8 +241,7 @@ simple_hmm = ssm.HMM(N_STATES, binned_spikes.shape[1], observations='poisson')
 lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
 # Loop over trials
-trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
+state_mat_mid = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
 prob_mat_mid = np.empty((len(trial_data), full_time_ax.shape[0], N_STATES))
 for t in range(len(trial_data)):
 
@@ -272,36 +249,14 @@ for t in range(len(trial_data)):
     zhat = simple_hmm.most_likely_states(trial_data[t])
     prob_mat_mid[t, :, :] = simple_hmm.filter(trial_data[t])
     
-    # Get state transitions times
-    trans_mat[t, :] = np.concatenate((np.diff(zhat) > 0, [False])).astype(int)
-
     # Add state to state matrix
-    state_mat[t, :] = zhat
-
-# Smooth P(state change) over entire period
-p_trans = np.mean(trans_mat, axis=0)
-smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
+    state_mat_mid[t, :] = zhat
 
 # Select time period to use
-trans_mat = trans_mat[:, use_timepoints]
-smooth_p_trans = smooth_p_trans[use_timepoints]
 prob_mat_mid = prob_mat_mid[:, np.concatenate(([False], use_timepoints[:-1])), :]
 
-# Get P(state)
-p_state_mat = np.empty((N_STATES, time_ax.shape[0]))
-for ii in range(N_STATES):
-
-    # Get P state, first smooth, then crop timewindow
-    this_p_state = np.mean(state_mat == ii, axis=0)
-    smooth_p_state = gaussian_filter(this_p_state, PSTATE_SMOOTH / BIN_SIZE)
-    smooth_p_state = smooth_p_state[use_timepoints]
-    p_state_bl = smooth_p_state - np.mean(smooth_p_state[time_ax < 0])
-
-    # Add to dataframe and matrix
-    p_state_mat[ii, :] = smooth_p_state
-
 # Crop timewindow for plotting
-state_mat = state_mat[:, use_timepoints]
+state_mat_mid = state_mat_mid[:, use_timepoints]
 
 
 # %% Plot example trial
@@ -342,11 +297,13 @@ plt.savefig(join(fig_path, 'hmm_example_trial_midbrain.pdf'))
 f, ax1 = plt.subplots(1, 1, figsize=(1.25, 2), dpi=dpi)
 
 ax1.add_patch(Rectangle((0, 1), 1, len(opto_times), color='royalblue', alpha=0.25, lw=0))
-ax1.imshow(np.flipud(state_mat), aspect='auto', cmap=ListedColormap(cmap),
+ax1.imshow(np.flipud(state_mat_mid), aspect='auto', cmap=ListedColormap(cmap),
            vmin=0, vmax=N_STATES-1,
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
-ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
-ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
+#ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
+#ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
+ax1.plot([TIME_POINT - BIN_SIZE/2, TIME_POINT - BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
+ax1.plot([TIME_POINT + BIN_SIZE/2, TIME_POINT + BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
 ax1.plot([0, 2], [0.5, 0.5], lw=0.75, color='k', clip_on=False)
@@ -380,18 +337,31 @@ plt.savefig(join(fig_path, 'hmm_example_p_states_midbrain.pdf'))
 
 # %% CORRELATE
 
-FRONTAL_STATE = 4
-MIDBRAIN_STATE = 2
+FRONTAL_STATE = 3 - 1
+MIDBRAIN_STATE = 7 - 1
+TIME_POINT = 0.75
 
-corr_mat = np.empty((N_STATES, N_STATES))
-for i, state_front in enumerate(range(N_STATES)):
-    for j, state_mid in enumerate(range(N_STATES)):
-        corr_mat[i, j] = pearsonr(prob_mat_frontal[:, np.argmin(np.abs(time_ax - TIME_POINT)), state_front],
-                                  prob_mat_mid[:, np.argmin(np.abs(time_ax - TIME_POINT)), state_mid])[0]
-
+corr_mat = np.empty((N_STATES, N_STATES, time_ax.shape[0]))
+coact_mat = np.empty((N_STATES, N_STATES, time_ax.shape[0]))
+for t, tb in enumerate(time_ax):
+    for i, state_front in enumerate(range(N_STATES)):
+        for j, state_mid in enumerate(range(N_STATES)):
+            corr_mat[j, i, t] = pearsonr(prob_mat_frontal[:, t, state_front],
+                                      prob_mat_mid[:, t, state_mid])[0]
+            intersection = np.logical_and(state_mat_front[:, t] == state_front,
+                                          state_mat_mid[:, t] == state_mid)
+            union = np.logical_or(state_mat_front[:, t] == state_front,
+                                  state_mat_mid[:, t] == state_mid)
+            if union.sum() == 0:
+                coact_mat[j, i, t] = 0
+            else:
+                coact_mat[j, i, t] = intersection.sum() / float(union.sum())
+      
 f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
 
-pos = ax1.imshow(corr_mat, vmin=-0.5, vmax=0.5, cmap='coolwarm')
+pos = ax1.imshow(corr_mat[:,:,np.argmin(np.abs(time_ax - TIME_POINT))],
+                 vmin=-0.5, vmax=0.5, cmap='coolwarm')
+ax1.plot(FRONTAL_STATE, MIDBRAIN_STATE, marker='.', color='k')
 f.colorbar(pos, ax=ax1)
 ax1.set(ylabel='States in midbrain', xlabel='States in frontal cortex',
         title=f'Time = {TIME_POINT}s',
@@ -402,9 +372,58 @@ ax1.set(ylabel='States in midbrain', xlabel='States in frontal cortex',
 
 ex_frontal = prob_mat_frontal[:, np.argmin(np.abs(time_ax - TIME_POINT)), FRONTAL_STATE]
 ex_midbrain = prob_mat_mid[:, np.argmin(np.abs(time_ax - TIME_POINT)), MIDBRAIN_STATE]
-ax2.scatter(ex_frontal, ex_midbrain)
 
-pearsonr(ex_frontal, ex_midbrain)
+ax2.scatter(ex_frontal, ex_midbrain, color='k', s=2)
+ax2.set(xlabel='P(state) frontal cortex', ylabel='P(state) midbrain', xlim=[0, 1], ylim=[0, 1],
+        title=f'r = {pearsonr(ex_frontal, ex_midbrain)[0]:.2}')
 
+sns.despine(trim=True)
 plt.tight_layout()
+plt.savefig(join(fig_path, 'hmm_example_corr.pdf'))
 
+# %%
+
+FRONTAL_STATE = 1 - 1
+MIDBRAIN_STATE = 5 - 1
+
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
+
+pos = ax1.imshow(coact_mat[:,:,np.argmin(np.abs(time_ax - TIME_POINT))])
+ax1.plot(FRONTAL_STATE, MIDBRAIN_STATE, marker='.', color='k')
+f.colorbar(pos, ax=ax1)
+ax1.set(ylabel='States in midbrain', xlabel='States in frontal cortex',
+        title=f'Time = {TIME_POINT}s',
+        yticks=np.arange(N_STATES),
+        yticklabels=np.arange(1, N_STATES+1),
+        xticks=np.arange(N_STATES),
+        xticklabels=np.arange(1, N_STATES+1))
+
+ex_frontal = prob_mat_frontal[:, np.argmin(np.abs(time_ax - TIME_POINT)), FRONTAL_STATE]
+ex_midbrain = prob_mat_mid[:, np.argmin(np.abs(time_ax - TIME_POINT)), MIDBRAIN_STATE]
+
+ax2.scatter(ex_frontal, ex_midbrain, color='k', s=2)
+ax2.set(xlabel='P(state) frontal cortex', ylabel='P(state) midbrain', xlim=[0, 1], ylim=[0, 1],
+        title=f'r = {pearsonr(ex_frontal, ex_midbrain)[0]:.2}')
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'hmm_example_coact.pdf'))
+
+#%%
+
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
+
+ax1.add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
+ax1.plot(time_ax, coact_mat[1,5,:], color='k')
+ax1.set(ylabel='State coactivation', xlabel='Time (s)', ylim=(0, 0.5),
+        xticks=[-1, 0, 1, 2, 3], title='Frontal 6 Midbrain 2')
+
+ax2.add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
+ax2.plot(time_ax, coact_mat[4,0,:], color='k')
+ax2.set(ylabel='State coactivation', xlabel='Time (s)', ylim=(0, 0.8),
+        xticks=[-1, 0, 1, 2, 3], title='Frontal 1 Midbrain 5')
+
+
+
+sns.despine(trim=True)
+plt.tight_layout()
