@@ -14,13 +14,14 @@ from stim_functions import figure_style, paths, load_subjects
 from os.path import join
 
 BIN_SIZE = 100
+MAX_N_STATES = 12
 
 # Get paths
 fig_path, save_path = paths()
 
 # Load in data
-hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
-# hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_regions_{BIN_SIZE}ms_bins.csv'))
+#hmm_ll_df = pd.read_csv(join(save_path, f'hmm_task_log_likelihood_{BIN_SIZE}ms_bins.csv'))
+hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_regions_{BIN_SIZE}ms_bins.csv'))
 # hmm_ll_df = pd.read_csv(join(save_path, f'hmm_passive_continuous_ll_{BIN_SIZE}ms_bins.csv'))
 # hmm_ll_df = pd.read_csv(join(save_path, f'hmm_log_likelihood_all-neurons_{BIN_SIZE}ms_bins.csv'))
 
@@ -52,37 +53,37 @@ f, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8)) = plt.subplots(2, 4, figsize=(7,
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Frontal'], x='n_states', y='ll_norm',
              estimator=None, units='subject', ax=ax1, marker='o')
 ax1.set(title='Frontal cortex', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Sensory'], x='n_states', y='ll_norm',
              estimator=None, units='subject', ax=ax2, marker='o')
 ax2.set(title='Sensory cortex', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Hippocampus'], x='n_states', y='ll_norm',
              estimator=None, units='subject', ax=ax3, marker='o')
 ax3.set(title='Hippocampus', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Striatum'], x='n_states', y='ll_norm',
              estimator=None, units='subject', ax=ax4, marker='o')
 ax4.set(title='Striatum', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Thalamus'], x='n_states', y='ll_norm',
              estimator=None, units='subject', ax=ax5, marker='o')
 ax5.set(title='Thalamus', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Midbrain'], x='n_states', y='ll_norm',
              estimator=None, units='subject', ax=ax6, marker='o')
 ax6.set(title='Midbrain', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Amygdala'], x='n_states', y='ll_norm',
              estimator=None, units='subject', ax=ax7, marker='o')
 ax7.set(title='Amygdala', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 plt.tight_layout()
 sns.despine(trim=True)
@@ -91,42 +92,42 @@ f, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8)) = plt.subplots(2, 4, figsize=(7,
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Frontal'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax1, marker='o')
 ax1.set(title='Frontal cortex', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Sensory'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax2, marker='o')
 ax2.set(title='Sensory cortex', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Hippocampus'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax3, marker='o')
 ax3.set(title='Hippocampus', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Striatum'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax4, marker='o')
 ax4.set(title='Striatum', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Thalamus'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax5, marker='o')
 ax5.set(title='Thalamus', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Midbrain'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax6, marker='o')
 ax6.set(title='Midbrain', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df[ll_mean_df['region'] == 'Amygdala'], x='n_states', y='ll_norm',
              errorbar='se', ax=ax7, marker='o')
 ax7.set(title='Amygdala', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm',
              errorbar='se', ax=ax8, marker='o')
 ax8.set(title='All', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 plt.tight_layout()
 sns.despine(trim=True)
@@ -136,7 +137,7 @@ f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
 sns.lineplot(data=ll_mean_df, x='n_states', y='ll_norm',
              errorbar='se', err_kws={'lw': 0}, ax=ax1, marker='o')
 ax1.set(title='Quiet wakefullness', ylabel='Normalized log likelihood', xlabel='Number of states',
-        xticks=np.arange(2, 21, 2))
+        xticks=np.arange(2, MAX_N_STATES+1, 2))
 
 plt.tight_layout()
 sns.despine(trim=True)
