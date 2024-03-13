@@ -15,7 +15,7 @@ from stim_functions import paths, query_ephys_sessions, load_subjects, figure_st
 from atlaselectrophysiology.load_histology import download_histology_data
 from matplotlib.colors import ListedColormap
 from pathlib import Path
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 
 # Settings
@@ -26,8 +26,7 @@ EXP_WIN_XY = [190, 130]  # top left point
 CTRL_WIN_XY = [190, 85]
 WIN_WIDTH = 80
 WIN_HEIGHT = 30
-f_path, save_path = paths()
-fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
+fig_path, save_path = paths()
 
 # Query subjects
 rec = query_ephys_sessions(anesthesia='all')
@@ -101,4 +100,4 @@ axs[-1].set(xticklabels=['SERT', 'WT'], ylabel='Relative fluoresence (%)', xlabe
             yticks=[0, 100, 200, 300, 400])
 
 sns.despine(trim=True)
-plt.savefig(join(fig_path, 'supp_fig_expression_levels.pdf'))
+plt.savefig(join(fig_path, 'figure_histology.pdf'))

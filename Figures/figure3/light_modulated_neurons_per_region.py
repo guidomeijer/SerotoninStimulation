@@ -86,7 +86,7 @@ ordered_regions_pm = per_mouse_df.groupby('high_level_region').mean(numeric_only
 colors, dpi = figure_style()
 this_cmap = [colors['subject_palette'][i] for i in np.unique(per_mouse_df['subject_nr'])]
 
-f, ax1 = plt.subplots(1, 1, figsize=(2.3, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
             order=ordered_regions_pm['high_level_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
@@ -98,7 +98,7 @@ ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arang
 #           handletextpad=0.1)
 
 #plt.tight_layout()
-plt.subplots_adjust(left=0.35, bottom=0.2, right=0.95)
+plt.subplots_adjust(left=0.4, bottom=0.2, right=0.95)
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
@@ -126,7 +126,7 @@ PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'co
 ORDER = mod_neurons.groupby('high_level_region').mean(numeric_only=True)['mod_index'].sort_values(
     ascending=False).reset_index()['high_level_region']
 
-f, ax1 = plt.subplots(1, 1, figsize=(2.5, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 1.9), dpi=dpi)
 sns.stripplot(x='mod_index', y='high_level_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
 sns.boxplot(x='mod_index', y='high_level_region', ax=ax1, data=mod_neurons, showmeans=True,

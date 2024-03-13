@@ -18,7 +18,7 @@ from one.api import ONE
 ba = atlas.AllenAtlas(25)
 one = ONE()
 
-RENDER_VIDEO = True
+RENDER_VIDEO = False
 
 # Paths
 f_path, save_path = paths()

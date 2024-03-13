@@ -234,6 +234,23 @@ for r, region in enumerate(pca_fit.keys()):
 plt.tight_layout()
 plt.savefig(join(fig_path, 'pca_all_regions.pdf'))
 
+
+
+# %%
+f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi, sharey=True)
+for r, region in enumerate(dot_prod.keys()):
+    axs[r].fill_between(time_ax,
+                        np.quantile(dot_shuffle[region], 0.05, axis=1),
+                        np.quantile(dot_shuffle[region], 0.95, axis=1),
+                        color='grey', alpha=0.25, lw=0)
+    axs[r].plot(time_ax, dot_prod[region], marker='o', ms=1.5)
+    #axs[r].plot([0, 0], axs[r].get_ylim(), ls='--', color='grey', lw=0.75, zorder=0)
+    axs[r].set(title=f'{region}', yticks=[0, 800], ylim=[-20, 800], xlabel='Time to choice (s)')
+axs[0].set_ylabel('Dot product', labelpad=-10)
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'dot_prod_all_regions.pdf'))
+
 # %% Plot frontal cortex
 
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
@@ -255,21 +272,6 @@ ax.axis('off')
 ax.set_title('Frontal cortex')
 plt.tight_layout()
 plt.savefig(join(fig_path, 'pca_frontal-cortex.pdf'))
-
-# %%
-f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi, sharey=True)
-for r, region in enumerate(dot_prod.keys()):
-    axs[r].fill_between(time_ax,
-                        np.quantile(dot_shuffle[region], 0.05, axis=1),
-                        np.quantile(dot_shuffle[region], 0.95, axis=1),
-                        color='grey', alpha=0.25, lw=0)
-    axs[r].plot(time_ax, dot_prod[region], marker='o', ms=1.5)
-    #axs[r].plot([0, 0], axs[r].get_ylim(), ls='--', color='grey', lw=0.75, zorder=0)
-    axs[r].set(title=f'{region}', yticks=[0, 800], ylim=[-20, 800], xlabel='Time to choice (s)')
-axs[0].set_ylabel('Dot product', labelpad=-10)
-sns.despine(trim=True)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'dot_prod_all_regions.pdf'))
     
     
     
