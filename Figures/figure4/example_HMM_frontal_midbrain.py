@@ -32,12 +32,12 @@ BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
 POST_TIME = 3
 HMM_PRE_TIME = 2  # time window to run HMM on
-HMM_POST_TIME = 4
+HMM_POST_TIME = 5
 MIN_NEURONS = 5
-TRIAL = 36
-FRONTAL_STATE = 3
+TRIAL = 6
+FRONTAL_STATE = 1
 MIDBRAIN_STATE = 1
-TIME_POINT = 0.75
+TIME_POINT = 1.2
 
 # Paths
 f_path, save_path = paths()
@@ -163,8 +163,8 @@ ax1.imshow(np.flipud(state_mat_front), aspect='auto', cmap=ListedColormap(cmap),
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
 #ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
 #ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
-#ax1.plot([TIME_POINT - BIN_SIZE/2, TIME_POINT - BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
-#ax1.plot([TIME_POINT + BIN_SIZE/2, TIME_POINT + BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
+ax1.plot([TIME_POINT - BIN_SIZE/2, TIME_POINT - BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
+ax1.plot([TIME_POINT + BIN_SIZE/2, TIME_POINT + BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
 ax1.plot([0, 2], [0.5, 0.5], lw=0.75, color='k', clip_on=False)
@@ -178,11 +178,12 @@ plt.savefig(join(fig_path, 'hmm_example_session_frontal.pdf'))
 
 f, ax1 = plt.subplots(figsize=(1.25, 2), dpi=dpi)
 ax1.add_patch(Rectangle((0, -1.7), 1, 2.1, color='royalblue', alpha=0.25, lw=0))
-for i, this_state in enumerate([0, 4, 2, 1, 5, 3, 6]):
+for i, this_state in enumerate([6, 3, 2, 1, 5, 4, 0]):
     mean_state = (np.mean(prob_mat_frontal[:,:,this_state], axis=0)
                   - np.mean(prob_mat_frontal[:,time_ax < 0,this_state])) - (i/4)
     
     sem_state = np.std(prob_mat_frontal[:,:,this_state], axis=0) / np.sqrt(prob_mat_frontal.shape[0])
+    ax1.plot([time_ax[0], time_ax[-1]], [-(i/4), -(i/4)], color='grey', lw=0.5, ls='--')
     ax1.plot(time_ax, mean_state, color=cmap[this_state])
     ax1.fill_between(time_ax, mean_state + sem_state, mean_state - sem_state, alpha=0.25,
                      color=cmap[this_state], lw=0)
@@ -317,11 +318,13 @@ plt.savefig(join(fig_path, 'hmm_example_session_midbrain.pdf'))
 
 f, ax1 = plt.subplots(figsize=(1.25, 2), dpi=dpi)
 ax1.add_patch(Rectangle((0, -1.7), 1, 2.1, color='royalblue', alpha=0.25, lw=0))
-for i, this_state in enumerate([4, 3, 6, 0, 2, 1, 5]):
+for i, this_state in enumerate([3, 1, 5, 0, 2, 4, 6]):
     mean_state = (np.mean(prob_mat_mid[:,:,this_state], axis=0)
                   - np.mean(prob_mat_mid[:,time_ax < 0,this_state])) - (i/4)
     
     sem_state = np.std(prob_mat_mid[:,:,this_state], axis=0) / np.sqrt(prob_mat_mid.shape[0])
+    
+    ax1.plot([time_ax[0], time_ax[-1]], [-(i/4), -(i/4)], color='grey', lw=0.5, ls='--')
     ax1.plot(time_ax, mean_state, color=cmap[this_state])
     ax1.fill_between(time_ax, mean_state + sem_state, mean_state - sem_state, alpha=0.25,
                      color=cmap[this_state], lw=0)
@@ -332,14 +335,14 @@ ax1.text(1, -1.83, '2s', ha='center', va='center')
 ax1.set(xticks=[], yticks=[])
 ax1.set_ylabel('P(state)', labelpad=0)
 sns.despine(trim=True, left=True, bottom=True)
-plt.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.98)
+plt.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=1)
 plt.savefig(join(fig_path, 'hmm_example_p_states_midbrain.pdf'))
 
 # %% CORRELATE
 
-FRONTAL_STATE = 3 - 1
-MIDBRAIN_STATE = 7 - 1
-TIME_POINT = 0.75
+FRONTAL_STATE = 5 - 1
+MIDBRAIN_STATE = 5 - 1
+TIME_POINT = 1.2
 
 corr_mat = np.empty((N_STATES, N_STATES, time_ax.shape[0]))
 coact_mat = np.empty((N_STATES, N_STATES, time_ax.shape[0]))
@@ -383,8 +386,8 @@ plt.savefig(join(fig_path, 'hmm_example_corr.pdf'))
 
 # %%
 
-FRONTAL_STATE = 1 - 1
-MIDBRAIN_STATE = 5 - 1
+FRONTAL_STATE = 7 - 1
+MIDBRAIN_STATE = 4 - 1
 
 f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
 
@@ -411,17 +414,28 @@ plt.savefig(join(fig_path, 'hmm_example_coact.pdf'))
 
 #%%
 
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
+f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(3.5, 3.5), dpi=dpi)
 
 ax1.add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
-ax1.plot(time_ax, coact_mat[1,5,:], color='k')
+ax1.plot(time_ax, coact_mat[3,6,:], color='k')
 ax1.set(ylabel='State coactivation', xlabel='Time (s)', ylim=(0, 0.5),
-        xticks=[-1, 0, 1, 2, 3], title='Frontal 6 Midbrain 2')
+        xticks=[-1, 0, 1, 2, 3], title='Frontal 7 Midbrain 4')
 
 ax2.add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
-ax2.plot(time_ax, coact_mat[4,0,:], color='k')
-ax2.set(ylabel='State coactivation', xlabel='Time (s)', ylim=(0, 0.8),
-        xticks=[-1, 0, 1, 2, 3], title='Frontal 1 Midbrain 5')
+ax2.plot(time_ax, coact_mat[6,0,:], color='k')
+ax2.set(ylabel='State coactivation', xlabel='Time (s)', ylim=(0, 0.4),
+        xticks=[-1, 0, 1, 2, 3], title='Frontal 1 Midbrain 7')
+
+ax3.add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
+ax3.plot(time_ax, coact_mat[4, 4,:], color='k')
+ax3.set(ylabel='State coactivation', xlabel='Time (s)', ylim=(0, 1),
+        xticks=[-1, 0, 1, 2, 3], title='Frontal 5 Midbrain 5')
+
+
+ax4.add_patch(Rectangle((0, 0), 1, 1, color='royalblue', alpha=0.25, lw=0))
+ax4.plot(time_ax, coact_mat[2, 5,:], color='k')
+ax4.set(ylabel='State coactivation', xlabel='Time (s)', ylim=(0, 0.25),
+        xticks=[-1, 0, 1, 2, 3], title='Frontal 6 Midbrain 3')
 
 
 

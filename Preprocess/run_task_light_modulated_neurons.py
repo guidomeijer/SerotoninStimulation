@@ -72,12 +72,12 @@ for i in rec.index.values:
     # Load in spikes
     try:
         sl = SpikeSortingLoader(pid=pid, one=one)
-        spikes, clusters, channels = sl.load_spike_sorting()
+        spikes, clusters, channels = sl.load_spike_sorting(dataset_types=['spikes.samples'])
         clusters = sl.merge_clusters(spikes, clusters, channels)
     except Exception as err:
         print(err)
         continue
-
+    asd
     # Filter neurons that pass QC
     if NEURON_QC:
         qc_metrics = get_neuron_qc(pid, one=one)
