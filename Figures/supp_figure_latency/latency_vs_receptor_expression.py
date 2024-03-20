@@ -32,7 +32,7 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 sert_neurons = all_neurons[(all_neurons['sert-cre'] == 1) & (all_neurons['modulated'] == 1)]
 
 # Transform to ms
-sert_neurons['latency'] = sert_neurons['latency_peak_onset'] * 1000
+sert_neurons['latency'] = sert_neurons['latency_peak'] * 1000
 
 # Get mean per area
 sert_neurons['abr_region'] = combine_regions(sert_neurons['region'], abbreviate=True)
