@@ -26,10 +26,10 @@ f_path, save_path = paths()
 fig_path = join(f_path, 'Extra plots', 'State')
 
 # Load in data
-#coact_mean_df = pd.read_csv(join(save_path, f'state_coactivation_mean_{RANDOM_TIMES}_passive.csv'))
-#coact_df = pd.read_csv(join(save_path, f'state_coactivation_{RANDOM_TIMES}_passive.csv'))
-coact_mean_df = pd.read_csv(join(save_path, f'state_coactivation_mean_task.csv'))
-coact_df = pd.read_csv(join(save_path, f'state_coactivation_task.csv'))
+coact_mean_df = pd.read_csv(join(save_path, f'state_coactivation_mean_{RANDOM_TIMES}_passive.csv'))
+coact_df = pd.read_csv(join(save_path, f'state_coactivation_{RANDOM_TIMES}_passive.csv'))
+#coact_mean_df = pd.read_csv(join(save_path, f'state_coactivation_mean_task.csv'))
+#coact_df = pd.read_csv(join(save_path, f'state_coactivation_task.csv'))
 
 # Add genotype
 subjects = load_subjects()
@@ -64,7 +64,7 @@ plt.savefig(join(fig_path, f'state_coactivation_{RANDOM_TIMES}_passive_mean.pdf'
 # %% Passive mean normalized
 f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 ax1.add_patch(Rectangle((0, -0.002), 1, 0.1, color='royalblue', alpha=0.25, lw=0))
-sns.lineplot(data=coact_mean_df[coact_mean_df['sert-cre'] == 1], x='time', y='coact_norm',
+sns.lineplot(data=coact_df[coact_df['sert-cre'] == 1], x='time', y='coact',
              errorbar='se', hue='opto', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
 #ax1.set(xlabel='Time from stimulation (s)', ylim=[0.058, 0.07],

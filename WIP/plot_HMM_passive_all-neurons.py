@@ -57,6 +57,8 @@ for i, file_path in enumerate(rec_files):
     unique_regions = np.unique(neuron_regions)
     unique_regions = unique_regions[unique_regions != 'root']
     
+    sad
+    
     # Calculate mean loading of regions to states
     log_lambdas = np.empty((unique_regions.shape[0], n_states))
     for s in range(n_states):
