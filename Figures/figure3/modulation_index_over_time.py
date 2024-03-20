@@ -45,15 +45,22 @@ for i, region in enumerate(np.unique(mod_idx_df['full_region'])):
 
 # %% Plot
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.6, 1.75), dpi=dpi)
 ax1.add_patch(Rectangle((0, -0.1), 1, 0.2, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(x='time', y='mod_idx', data=mod_long_df[(mod_long_df['region'] == 'mPFC')],
              errorbar='se', ax=ax1, color='k', err_kws={'lw': 0})
-ax1.set(xlim=[-1, 3], ylim=[-0.04, 0.101], ylabel='Modulation index', xlabel='Time (s)')
+ax1.set(xlim=[-1, 3], xlabel='', xticks=[], title='Frontal cortex',
+        yticks=[-0.025, 0, 0.1], yticklabels=[-0.025, 0, 0.1], ylim=[-0.03, 0.1])
+ax1.set_ylabel('Modulation index', labelpad=-10)
+
+ax1.plot([0, 1], [ax1.get_ylim()[0]-0.001, ax1.get_ylim()[0]-0.001], color='k', lw=0.75, clip_on=False)
+ax1.text(0.5, ax1.get_ylim()[0]-0.005, '1s', ha='center', va='top')
+ax1.text(1.3, 0.05,
+         f'n = {np.unique(mod_idx_df.loc[(mod_idx_df["full_region"] == "mPFC"), "subject"]).shape[0]} mice')
 #leg = ax1.legend(title='', bbox_to_anchor=(0.9, 0.45, 0.2, 0.4), prop={'size': 5})
 #leg.get_frame().set_linewidth(0.0)
 
-sns.despine(trim=True)
+sns.despine(trim=True, bottom=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'modulation_index_over_time.pdf'))
 
