@@ -41,7 +41,7 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 # %% Passive over time
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 #ax1.add_patch(Rectangle((0, 0), 1, 0.6, color='royalblue', alpha=0.25, lw=0))
-sns.lineplot(data=coact_df[coact_df['sert-cre'] == 1], x='time', y='r_mean',
+sns.lineplot(data=coact_df[coact_df['sert-cre'] == 1], x='time', y='coact',
              errorbar='se', hue='opto', err_kws={'lw': 0},
              hue_order=[0, 1], palette=[colors['no-stim'], colors['stim']])
 #ax1.set(xlabel='Time from stimulation start (s)', ylim=[0.3, 0.5],
