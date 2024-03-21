@@ -12,7 +12,7 @@ from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, combine_regions, load_subjects, remap
 
 # Settings
-MIN_NEURONS = 5
+MIN_NEURONS = 0
 
 # Get paths
 f_path, save_path = paths()
@@ -31,8 +31,8 @@ light_neurons['cortical_layer'] = light_neurons['cortical_layer'].replace({
     '3': '2/3', 'a': '6', 'b': '6'})
 
 # Drop layer 1 and 4
-light_neurons = light_neurons[((light_neurons['cortical_layer'] != '1') 
-                               & (light_neurons['cortical_layer'] != '4'))]
+#light_neurons = light_neurons[((light_neurons['cortical_layer'] != '1') 
+#                               & (light_neurons['cortical_layer'] != '4'))]
 
 # Get summary stats
 summary_df = light_neurons.groupby(['pid', 'cortical_layer']).size().to_frame()
@@ -50,7 +50,7 @@ f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.75, 1.75), dpi=dpi)
 #sns.swarmplot(data=summary_df, y='cortical_layer', x='perc_mod', ax=ax1, size=2,
 #              order=['2/3', '5', '6'])
 sns.barplot(data=summary_df, y='cortical_layer', x='perc_mod', ax=ax1, 
-            order=['2/3', '5', '6'], errorbar='se', color='grey')
+            order=['2/3', '4', '5', '6'], errorbar='se', color='grey')
 ax1.set(ylabel='Layer', xlim=[0, 0.3], xticks=[0, 0.15, 0.3],
         xticklabels=[0, 15, 30])
 ax1.set_xlabel('Modulated neurons (%)', labelpad=1)

@@ -198,15 +198,15 @@ def figure_style():
               'OFC': sns.color_palette('Dark2')[0],
               'mPFC': sns.color_palette('Dark2')[1],
               'M2': sns.color_palette('Dark2')[2],
-              'Amyg': sns.color_palette('Dark2')[3],
-              'Hipp': sns.color_palette('Dark2')[4],
+              'Amyg.': sns.color_palette('Dark2')[3],
+              'HPC': sns.color_palette('Dark2')[4],
               'VIS': sns.color_palette('Dark2')[5],
-              'Pir': sns.color_palette('Dark2')[6],
+              'Pir.': sns.color_palette('Dark2')[6],
               'SC': sns.color_palette('Dark2')[7],
-              'Thal': sns.color_palette('tab10')[9],
+              'Thal.': sns.color_palette('tab10')[9],
               'PAG': sns.color_palette('Set1')[7],
               'BC': sns.color_palette('Accent')[0],
-              'Str': sns.color_palette('Accent')[1],
+              'Str.': sns.color_palette('Accent')[1],
               'MRN': sns.color_palette('Accent')[2],
               'OLF': sns.color_palette('tab10')[8],
               'Orbitofrontal cortex': sns.color_palette('Dark2')[0],
@@ -365,7 +365,7 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
             regions[np.in1d(acronyms, ['RT'])] = 'RT'
             regions[np.in1d(acronyms, ['VAL'])] = 'VAL'
         else:
-            regions[np.in1d(acronyms, ['PO', 'LP', 'LD', 'RT', 'VAL'])] = 'Thal'
+            regions[np.in1d(acronyms, ['PO', 'LP', 'LD', 'RT', 'VAL'])] = 'Thal.'
         regions[np.in1d(acronyms, ['SCm', 'SCs', 'SCig', 'SCsg', 'SCdg'])] = 'SC'
         regions[np.in1d(acronyms, ['RSPv', 'RSPd'])] = 'RSP'
         regions[np.in1d(acronyms, ['MRN'])] = 'MRN'
@@ -373,14 +373,14 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
         regions[np.in1d(acronyms, ['PAG'])] = 'PAG'
         regions[np.in1d(acronyms, ['SSp-bfd'])] = 'BC'
         # regions[np.in1d(acronyms, ['LGv', 'LGd'])] = 'LG'
-        regions[np.in1d(acronyms, ['PIR'])] = 'Pir'
+        regions[np.in1d(acronyms, ['PIR'])] = 'Pir.'
         # regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'SN'
         regions[np.in1d(acronyms, ['VISa', 'VISam', 'VISp', 'VISpm'])] = 'VIS'
         regions[np.in1d(acronyms, ['AId', 'AIv', 'AIp'])] = 'AI'
-        regions[np.in1d(acronyms, ['MEA', 'CEA', 'BLA', 'COAa'])] = 'Amyg'
+        regions[np.in1d(acronyms, ['MEA', 'CEA', 'BLA', 'COAa'])] = 'Amyg.'
         regions[np.in1d(acronyms, ['AON', 'TTd', 'DP'])] = 'OLF'
-        regions[np.in1d(acronyms, ['CP', 'STR', 'STRd', 'STRv'])] = 'Str'
-        regions[np.in1d(acronyms, ['CA1', 'CA3', 'DG'])] = 'Hipp'
+        regions[np.in1d(acronyms, ['CP', 'STR', 'STRd', 'STRv'])] = 'Str.'
+        regions[np.in1d(acronyms, ['CA1', 'CA3', 'DG'])] = 'HPC'
     else:
         regions[np.in1d(acronyms, ['ILA', 'PL', 'ACAd', 'ACAv'])] = 'Medial prefrontal cortex'
         regions[np.in1d(acronyms, ['MOs'])] = 'Secondary motor cortex'
