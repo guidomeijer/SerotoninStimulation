@@ -1118,6 +1118,25 @@ def peri_multiple_events_time_histogram(
     return ax
 
 
+def calculate_mi(spike_counts_A, spike_counts_B):
+       
+    # Calculate joint probability distribution
+    joint_hist, _, _ = np.histogram2d(spike_counts_A, spike_counts_B, bins=spike_counts_A.shape[0])
+    joint_prob = joint_hist / np.sum(joint_hist)
+    
+    # Calculate marginal probabilities
+    marg_prob_A = np.sum(joint_prob, axis=1)
+    marg_prob_B = np.sum(joint_prob, axis=0)
+    
+    # Calculate mutual information
+    non_zero_indices = joint_prob > 0
+    mutual_info = np.sum(joint_prob[non_zero_indices] * \
+                         np.log2(joint_prob[non_zero_indices] / \
+                                 (np.outer(marg_prob_A, marg_prob_B))[non_zero_indices]))
+    
+    return mutual_info
+
+
 def get_dlc_XYs(one, eid, view='left', likelihood_thresh=0.9):
     ses_details = one.get_details(eid)
     subject = ses_details['subject']

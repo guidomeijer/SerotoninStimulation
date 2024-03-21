@@ -5,16 +5,15 @@ Created on Wed Jan 18 11:20:14 2023
 By: Guido Meijer
 """
 
-from iblatlas.atlas import AllenAtlas
+from ibllibatlas.atlas import AllenAtlas
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times, init_one,
-                            combine_regions, figure_style, N_STATES_REGIONS, N_STATES)
+                            high_level_regions, figure_style, N_STATES_REGIONS, N_STATES)
 from brainbox.singlecell import calculate_peths
 from scipy.ndimage import gaussian_filter
 from brainbox.io.one import SpikeSortingLoader
 from matplotlib.patches import Rectangle
 from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
-import pickle
 import seaborn as sns
 import pandas as pd
 from os.path import join
@@ -27,6 +26,7 @@ one = init_one()
 # Settings
 BIN_SIZE = 0.1  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
+RANDOM_TIMES = 'jitter'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
@@ -35,18 +35,32 @@ MIN_NEURONS = 5
 CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = True
+PLOT = False
 N_STATE_SELECT = 'global'  # global or region
+
+# Create text to add to save files
+add_str = f'{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}_{RANDOM_TIMES}-nstates'
 
 # Get paths
 f_path, save_path = paths()
-fig_path = join(f_path, 'Extra plots', 'State', 'Awake')
+fig_path = join(f_path, 'Extra plots', 'State', 'Awake',
+                f'{INCL_NEURONS}', f'{int(BIN_SIZE*1000)}ms')
 
 # Query sessions
 rec = query_ephys_sessions(one=one)
 
 # Get significantly modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+
+if OVERWRITE:
+    state_trans_df, p_state_df = pd.DataFrame(), pd.DataFrame()
+    state_trans_null_df, p_state_null_df = pd.DataFrame(), pd.DataFrame()
+else:
+    state_trans_df = pd.read_csv(join(save_path, f'state_trans_{add_str}.csv'))
+    p_state_df = pd.read_csv(join(save_path, f'p_state_{add_str}.csv'))
+    p_state_null_df = pd.read_csv(join(save_path, f'p_state_null_{add_str}.csv'))
+    state_trans_null_df = pd.read_csv(join(save_path, f'state_trans_null_{add_str}.csv'))
+    rec = rec[~rec['pid'].isin(state_trans_df['pid'])]
 
 for i in rec.index.values:
 
@@ -61,6 +75,14 @@ for i in rec.index.values:
     if len(opto_times) == 0:
         print('Could not load light pulses')
         continue
+
+    # Generate random times during spontaneous activity
+    if RANDOM_TIMES == 'jitter':
+        random_times = np.sort(np.random.uniform(opto_times[0]-HMM_PRE_TIME, opto_times[-1]+HMM_POST_TIME,
+                                                 size=opto_times.shape[0]))
+    elif RANDOM_TIMES == 'spont':
+        random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10,
+                                                 size=opto_times.shape[0]))
 
     # Load in spikes
     try:
@@ -88,11 +110,11 @@ for i in rec.index.values:
 
     # Get regions from Beryl atlas
     clusters['region'] = remap(clusters['acronym'], combine=True)
-    clusters['full_region'] = combine_regions(clusters['acronym'], abbreviate=True)
-    clusters_regions = clusters['full_region'][use_neurons]
+    clusters['high_level_region'] = high_level_regions(clusters['acronym'])
+    clusters_regions = clusters['high_level_region'][use_neurons]
 
     # Loop over regions
-    for r, region in enumerate(np.unique(clusters['full_region'])):
+    for r, region in enumerate(np.unique(clusters['high_level_region'])):
         if region == 'root':
             continue
 
@@ -112,7 +134,7 @@ for i in rec.index.values:
 
         # Get binned spikes centered at stimulation onset
         peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region,
-                                              opto_times,
+                                              np.concatenate((random_times, opto_times)),
                                               pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME,
                                               bin_size=BIN_SIZE, smoothing=0, return_fr=False)
         binned_spikes = binned_spikes.astype(int)
@@ -155,19 +177,47 @@ for i in rec.index.values:
         prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
         state_mat = state_mat[:, use_timepoints]
 
+        # Get P(state)
+        p_state_mat = np.empty((n_states, time_ax.shape[0]))
+        for ii in range(n_states):
+
+            # Random times
+            # Get P state, first smooth, then crop timewindow
+            this_p_state = np.mean(prob_mat[:random_times.shape[0], :, ii], axis=0)
+            p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
+
+            # Add to dataframe and matrix
+            p_state_mat[ii, :] = this_p_state
+            p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
+                'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
+                'subject': subject, 'pid': pid, 'region': region, 'opto': 0})))
+
+            # Opto times
+            # Get P state, first smooth, then crop timewindow
+            this_p_state = np.mean(prob_mat[opto_times.shape[0]:, :, ii], axis=0)
+            p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
+
+            # Add to dataframe and matrix
+            p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
+                'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
+                'subject': subject, 'pid': pid, 'region': region, 'opto': 1})))
+
+        # Add state change PSTH to dataframe
+        state_trans_df = pd.concat((state_trans_df, pd.DataFrame(data={
+            'time': time_ax, 'p_trans': smooth_p_trans,
+            'cumsum_trans': np.cumsum(np.sum(trans_mat, axis=0)),
+            'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
+            'region': region, 'subject': subject, 'pid': pid})))
+
         # Save the trial-level P(state) data and zhat matrix
-        hmm_dict = dict()
-        hmm_dict['prob_mat'] = prob_mat
-        hmm_dict['state_mat'] = state_mat
-        hmm_dict['time_ax'] = time_ax
-        with open(join(save_path, 'HMM', 'PassiveEvent', f'{subject}_{date}_{region}.pickle'),
-                  'wb') as fp:
-            pickle.dump(hmm_dict, fp)
-    
+        np.save(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}', 'prob_mat',
+                     f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
+        np.save(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}', 'state_mat',
+                     f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
 
         if PLOT:
             # Plot example trial
-            trial = 10
+            trial = random_times.shape[0]+10
             cmap = sns.color_palette(CMAP, n_states)
             colors, dpi = figure_style()
             f, ax = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
@@ -209,7 +259,7 @@ for i in rec.index.values:
                     title=f'{region}')
 
             for ii in range(n_states):
-                ax2.plot(time_ax, np.mean(prob_mat[:, :, ii], axis=0), color=cmap[ii])
+                ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
             ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
 
             ax3.imshow(trans_mat, aspect='auto', cmap='Greys', interpolation=None,
@@ -226,4 +276,8 @@ for i in rec.index.values:
                 dpi=600)
             plt.close(f)
 
-  
+    # Save output
+    state_trans_df.to_csv(join(save_path, f'state_trans_{add_str}.csv'))
+    p_state_df.to_csv(join(save_path, f'p_state_{add_str}.csv'))
+    state_trans_null_df.to_csv(join(save_path, f'state_trans_null_{add_str}.csv'))
+    p_state_null_df.to_csv(join(save_path, f'p_state_null_{add_str}.csv'))
