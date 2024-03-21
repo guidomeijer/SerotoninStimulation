@@ -47,7 +47,11 @@ for i, file_path in enumerate(rec_files):
     for s in range(n_states):
         bl_counts = np.sum(state_mat[:, (time_ax > PRE_TIME[0]) & (time_ax < PRE_TIME[1])] == s, axis=1)
         stim_counts = np.sum(state_mat[:, (time_ax > POST_TIME[0]) & (time_ax < POST_TIME[1])] == s, axis=1)
-        _, p_values[s] = stats.ranksums(bl_counts, stim_counts)
+        if np.sum(bl_counts) == np.sum(stim_counts):
+            p_values[s] = 1
+            state_sign[s] = 0
+            continue
+        _, p_values[s] = stats.wilcoxon(bl_counts, stim_counts)
         if np.sum(bl_counts) > np.sum(stim_counts):
             state_sign[s] = -1
         else:
@@ -57,3 +61,5 @@ for i, file_path in enumerate(rec_files):
     state_sig_df = pd.concat((state_sig_df, pd.DataFrame(data={
         'p': p_values, 'sign': state_sign, 'region': region})))
    
+#state_sig_df = state_sig_df[state_sig_df['p'] < 0.05]
+    
