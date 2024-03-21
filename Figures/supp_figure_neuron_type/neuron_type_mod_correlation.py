@@ -33,6 +33,7 @@ merged_df['full_region'] = combine_regions(merged_df['region'], abbreviate=True)
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     merged_df.loc[merged_df['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+merged_df = merged_df[merged_df['sert-cre'] == 1]
 
 # Get percentage modulated per region
 per_region_df = merged_df.groupby('full_region').mean(numeric_only=True)['mod_index'].to_frame()
@@ -63,8 +64,8 @@ for i in per_region_df.index:
              per_region_df.loc[i, 'full_region'],
              ha='center', va='center',
              color=per_region_df.loc[i, 'color'], fontsize=4.5, fontweight='bold')
-ax1.set(yticks=[0, 25, 50], xticks=[-0.06, 0, 0.06], xticklabels=[-0.06, 0, 0.06],
-        xlim=[-0.06, 0.06], ylabel='Modulated inhibitory neurons (%)', xlabel='Modulation index')
+ax1.set(yticks=[0, 30, 60], xticks=[-0.1, 0, 0.1], xticklabels=[-0.06, 0, 0.06],
+        xlim=[-0.1, 0.1], ylabel='Modulated inhibitory neurons (%)', xlabel='Modulation index')
 r, p = pearsonr(per_region_df['mod_index'], per_region_df['perc_mod_NS'])
 #ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
 #ax1.text(0, 50, 'n.s.', fontsize=7, ha='center')
