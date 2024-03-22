@@ -176,8 +176,8 @@ plt.savefig(join(fig_path, 'hmm_example_session_mpfc.pdf'))
 # %%
 
 f, ax1 = plt.subplots(figsize=(1.25, 2), dpi=dpi)
-ax1.add_patch(Rectangle((0, -1.7), 1, 2.1, color='royalblue', alpha=0.25, lw=0))
-for i, this_state in enumerate([6, 3, 2, 1, 5, 4, 0]):
+ax1.add_patch(Rectangle((0, -1.7), 1, 1.9, color='royalblue', alpha=0.25, lw=0))
+for i, this_state in enumerate([0, 5, 6, 1, 2, 4, 3]):
     mean_state = (np.mean(prob_mat_frontal[:,:,this_state], axis=0)
                   - np.mean(prob_mat_frontal[:,time_ax < 0,this_state])) - (i/4)
     
