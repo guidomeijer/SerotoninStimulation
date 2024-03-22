@@ -87,8 +87,8 @@ for i in rec.index.values:
     use_neurons = use_neurons[np.isin(use_neurons, np.unique(spikes.clusters))]
 
     # Get regions from Beryl atlas
-    clusters['region'] = remap(clusters['acronym'], combine=True)
-    clusters['full_region'] = combine_regions(clusters['acronym'], abbreviate=True)
+    clusters['region'] = remap(clusters['acronym'])
+    clusters['full_region'] = combine_regions(clusters['region'], abbreviate=True)
     clusters_regions = clusters['full_region'][use_neurons]
 
     # Loop over regions
@@ -103,7 +103,7 @@ for i in rec.index.values:
 
         # Select spikes and clusters in this brain region
         clusters_in_region = use_neurons[clusters_regions == region]
-
+        print(f'Region {region}, {clusters_in_region.shape[0]} neurons')
         if len(clusters_in_region) < MIN_NEURONS:
             continue
 
