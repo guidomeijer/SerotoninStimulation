@@ -349,7 +349,7 @@ def remap(acronyms, source='Allen', dest='Beryl', combine=False, split_thalamus=
         return remapped_acronyms
 
 
-def combine_regions(acronyms, split_thalamus=False, abbreviate=False):
+def combine_regions(acronyms, split_thalamus=False, abbreviate=True):
     """
     Combines regions into groups, input Beryl atlas acronyms: use remap function first
     """
