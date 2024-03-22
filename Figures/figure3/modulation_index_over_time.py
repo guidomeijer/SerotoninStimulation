@@ -15,6 +15,7 @@ from stim_functions import paths, load_subjects, figure_style, combine_regions
 
 # Settings
 MIN_NEURONS = 10
+MIN_REC = 3
 
 # Get paths
 f_path, save_path = paths()
@@ -88,7 +89,10 @@ plt.savefig(join(fig_path, 'modulation_index_over_time_hpc.pdf'))
 # %%
 mod_mean_df = mod_long_df.groupby(['region', 'time']).mean(numeric_only=True).reset_index()
 mod_matrix = pd.pivot(mod_mean_df, columns='time', index='region', values='mod_idx')
-mod_matrix['order'] = np.mean(mod_matrix, axis=1)
+
+
+
+mod_matrix['order'] = np.min(mod_matrix.iloc[:, 14:22], axis=1)
 mod_matrix = mod_matrix.sort_values(by='order', axis=0)
 mod_matrix.drop('order', axis=1, inplace=True)
 
@@ -106,22 +110,3 @@ plt.tight_layout()
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'modulation_index_over_time_regions.pdf'))
 
-# %%
-mod_long_df['mod_idx_abs'] = mod_long_df['mod_idx'].abs()
-mod_mean_df = mod_long_df.groupby(['region', 'time']).mean(numeric_only=True).reset_index()
-mod_matrix = pd.pivot(mod_mean_df, columns='time', index='region', values='mod_idx_abs')
-mod_matrix['order'] = np.mean(mod_matrix, axis=1)
-mod_matrix = mod_matrix.sort_values(by='order', axis=0)
-mod_matrix.drop('order', axis=1, inplace=True)
-
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
-im_mod = ax1.imshow(np.flipud(mod_matrix), aspect='auto', extent=[-1, 3, 0, mod_matrix.shape[0]],
-                    interpolation='none')
-ax1.set(yticks=np.arange(mod_matrix.shape[0])+0.5, yticklabels=mod_matrix.index,
-        xticks=[-1, 0, 1, 2, 3], xlabel='Time from stimulation onset (s)')
-cbar = plt.colorbar(im_mod)
-cbar.ax.set_ylabel('Modulation index', rotation=270)
-
-plt.tight_layout()
-sns.despine(trim=True)
-plt.savefig(join(fig_path, 'modulation_index_over_time_regions_abs.pdf'))
