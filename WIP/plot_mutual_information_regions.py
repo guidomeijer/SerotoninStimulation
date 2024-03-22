@@ -16,7 +16,7 @@ colors, dpi = figure_style()
     
 # Load in data
 fig_path, save_path = paths()
-mi_df = pd.read_csv(join(save_path, 'region_mutual_information.csv'))
+mi_df = pd.read_csv(join(save_path, 'region_mutual_information_pairwise.csv'))
 mi_df = mi_df[mi_df['sert-cre'] == 1]
 
 f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
