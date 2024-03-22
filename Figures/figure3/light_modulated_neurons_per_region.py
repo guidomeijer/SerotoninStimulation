@@ -16,7 +16,7 @@ from stim_functions import paths, figure_style, combine_regions, load_subjects
 MIN_NEURONS_POOLED = 5
 MIN_NEURONS_PER_MOUSE = 10
 MIN_MOD_NEURONS = 20
-MIN_REC = 2
+MIN_REC = 3
 
 # Get paths
 f_path, save_path = paths()
@@ -110,7 +110,7 @@ sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df,
 sns.swarmplot(x='perc_mod', y='full_region', data=per_mouse_df,
               order=ordered_regions_pm['full_region'],
               color='k', ax=ax1, size=2, legend=None)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 102], xticks=np.arange(0, 101, 20))
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 82], xticks=np.arange(0, 81, 20))
 #ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
 #           handletextpad=0.1)
 
