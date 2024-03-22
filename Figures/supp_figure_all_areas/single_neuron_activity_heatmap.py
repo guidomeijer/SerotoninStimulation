@@ -43,9 +43,9 @@ for i in range(all_peth.shape[0]):
 # %%
 # Plot per region
 colors, dpi = figure_style()
-f, ((ax_pag, ax_mpfc, ax_orb, ax_str, ax_mrn),
-    (ax_sc, ax_rsp, ax_am, ax_m2, ax_vis),
-    (ax_th, ax_pir, ax_hc, ax_olf, ax_cb)) = plt.subplots(3, 5, figsize=(7, 3.5), sharex=True, dpi=dpi)
+f, ((ax_pag, ax_mpfc, ax_orb, ax_str, ax_sc),
+    (ax_rsp, ax_am, ax_vis, ax_m2, ax_th),
+    (ax_pir, ax_olf, ax_hc, ax_cb, ax_none)) = plt.subplots(3, 5, figsize=(7, 3.5), sharex=True, dpi=dpi)
 title_font = 7
 cmap = 'PRGn'
 
@@ -138,12 +138,14 @@ ax_sc.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_sc.set_title('Superior colliculus', fontsize=title_font)
 ax_sc.add_patch(Rectangle((0, -1.25), 1, 2.5, color='royalblue', alpha=0.25, lw=0))
 
+"""
 these_peths = norm_peth[peths_df['region'] == 'Midbrain reticular nucleus']
 img = ax_mrn.imshow(these_peths, cmap=cmap,
                  vmin=VMIN, vmax=VMAX, extent=[-T_BEFORE, T_AFTER, -1, 1], interpolation='none')
 ax_mrn.set(yticks=[1], yticklabels=[these_peths.shape[0]])
 ax_mrn.set_title('Midbrain reticular nucleus', fontsize=title_font)
 ax_mrn.add_patch(Rectangle((0, -1.25), 1, 2.5, color='royalblue', alpha=0.25, lw=0))
+"""
 
 these_peths = norm_peth[peths_df['region'] == 'Retrosplenial cortex']
 img = ax_rsp.imshow(these_peths, cmap=cmap,
@@ -169,6 +171,7 @@ ax_snr.plot([0, 0], [-1, 1], ls='--', color='k')
 """
 
 ax_cb.axis('off')
+ax_none.axis('off')
 
 f.text(0.01, 0.5, 'Number of significantly modulated neurons', va='center', rotation='vertical')
 f.text(0.45, 0.02, 'Time from stimulation start (s)', ha='center')
