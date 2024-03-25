@@ -21,8 +21,9 @@ from stim_functions import (paths, remap, query_ephys_sessions, load_trials, fig
                             get_artifact_neurons, init_one, calculate_peths)
 
 # Settings
-PRE_TIME = 0
-POST_TIME = 0.3
+PRE_TIME = 0.3
+POST_TIME = 0
+EVENT = 'firstMovement_times'
 MIN_NEURONS = 5
 
 # Initialize
@@ -84,29 +85,39 @@ for i in rec.index.values:
     
         # Decode stimulated trials
         stim_trials = trials[(trials['laser_probability'] == 0.75) & (trials['laser_stimulation'] == 1)]
-        stim_intervals = np.vstack((stim_trials['stimOn_times'] + PRE_TIME,
-                                    stim_trials['stimOn_times'] + POST_TIME)).T
+        stim_intervals = np.vstack((stim_trials[EVENT] + PRE_TIME,
+                                    stim_trials[EVENT] + POST_TIME)).T
         spike_counts, neuron_ids = get_spike_counts_in_bins(region_spikes, region_clusters, stim_intervals)
-        stim_accuracy, _, _ = classify(spike_counts.T,
-                                       trials.loc[stim_trials.index - 1, 'stim_side'].values,
-                                       rf_classifier,
-                                       cross_validation=k_fold)
+        if np.sum(spike_counts) == 0:
+            continue
+        stim_prev, _, _ = classify(spike_counts.T,
+                                   trials.loc[stim_trials.index - 1, 'choice'].values,
+                                   rf_classifier,
+                                   cross_validation=k_fold)
+        stim_this, _, _ = classify(spike_counts.T,
+                                   trials.loc[stim_trials.index, 'choice'].values,
+                                   rf_classifier,
+                                   cross_validation=k_fold)
         
         # Decode non-stimulated trials
         no_stim_trials = trials[(trials['laser_probability'] == 0.25) & (trials['laser_stimulation'] == 0)]
-        no_stim_intervals = np.vstack((no_stim_trials['stimOn_times'] + PRE_TIME,
-                                       no_stim_trials['stimOn_times'] + POST_TIME)).T
+        no_stim_intervals = np.vstack((no_stim_trials[EVENT] + PRE_TIME,
+                                       no_stim_trials[EVENT] + POST_TIME)).T
         spike_counts, neuron_ids = get_spike_counts_in_bins(region_spikes, region_clusters, no_stim_intervals)
-        no_stim_accuracy, _, _ = classify(spike_counts.T,
-                                          trials.loc[no_stim_trials.index - 1, 'stim_side'].values,
-                                          rf_classifier,
-                                          cross_validation=k_fold)
+        no_stim_prev, _, _ = classify(spike_counts.T,
+                                      trials.loc[no_stim_trials.index - 1, 'choice'].values,
+                                      rf_classifier,
+                                      cross_validation=k_fold)
+        no_stim_this, _, _ = classify(spike_counts.T,
+                                      trials.loc[no_stim_trials.index, 'choice'].values,
+                                      rf_classifier,
+                                      cross_validation=k_fold)
         
         # Add to dataframe
         decoding_df = pd.concat((decoding_df, pd.DataFrame(index=[decoding_df.shape[0]], data={
-            'stim_accuracy': stim_accuracy, 'no_stim_accuracy': no_stim_accuracy,
-            'stim_over_no_stim': stim_accuracy - no_stim_accuracy,
+            'stim_this_trial': stim_this, 'stim_prev_trial': stim_prev,
+            'no_stim_this_trial': no_stim_this, 'no_stim_prev_trial': no_stim_prev,
             'region': region, 'subject': subject, 'sert-cre': sert_cre,
             'probe': probe, 'date': date, 'eid': eid, 'pid': pid})))
-        decoding_df.to_csv(join(save_path, 'decoding_prev_stim_side.csv'), index=False)
+        decoding_df.to_csv(join(save_path, 'decoding_prev_choice.csv'), index=False)
     
