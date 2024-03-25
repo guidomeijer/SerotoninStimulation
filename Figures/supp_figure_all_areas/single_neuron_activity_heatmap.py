@@ -47,7 +47,8 @@ f, ((ax_pag, ax_mpfc, ax_orb, ax_str, ax_sc),
     (ax_rsp, ax_am, ax_vis, ax_m2, ax_th),
     (ax_pir, ax_olf, ax_hc, ax_cb, ax_none)) = plt.subplots(3, 5, figsize=(7, 3.5), sharex=True, dpi=dpi)
 title_font = 7
-cmap = 'PRGn'
+#cmap = 'PRGn'
+cmap = 'coolwarm'
 
 these_peths = norm_peth[peths_df['region'] == 'Medial prefrontal cortex']
 img = ax_mpfc.imshow(these_peths, cmap=cmap,
@@ -180,7 +181,7 @@ f.text(0.45, 0.02, 'Time from stimulation start (s)', ha='center')
 #plt.tight_layout()
 plt.subplots_adjust(left=0.06, bottom=0.05, right=0.98, top=0.95, wspace=0.3, hspace=0)
 
-cb_ax = f.add_axes([0.82, 0.1, 0.01, 0.2])
+cb_ax = f.add_axes([0.62, 0.1, 0.01, 0.2])
 cbar = f.colorbar(mappable=ax_mpfc.images[0], cax=cb_ax)
 cbar.ax.set_ylabel('FR / baseline', rotation=270, labelpad=10)
 cbar.ax.set_yticks([0, 1, 2])
