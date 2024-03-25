@@ -77,7 +77,7 @@ for i in rec.index.values:
     except Exception as err:
         print(err)
         continue
-    asd
+    
     # Filter neurons that pass QC
     if NEURON_QC:
         qc_metrics = get_neuron_qc(pid, one=one)
