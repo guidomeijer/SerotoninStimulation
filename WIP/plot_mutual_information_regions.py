@@ -26,5 +26,5 @@ sns.lineplot(data=mi_df,
 ax1.set(xlim=[-0.5, 1])
 
 
-g = sns.FacetGrid(mi_df, col='region_pair', col_wrap=8)
+g = sns.FacetGrid(mi_df, col='region_pair', col_wrap=16)
 g.map(sns.lineplot, 'time', 'mi_over_baseline', errorbar='se')
