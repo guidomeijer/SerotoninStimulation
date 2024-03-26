@@ -21,10 +21,11 @@ from stim_functions import (paths, remap, query_ephys_sessions, load_trials, fig
                             get_artifact_neurons, init_one, calculate_peths)
 
 # Settings
-PRE_TIME = 0.3
-POST_TIME = 0
-EVENT = 'firstMovement_times'
+PRE_TIME = 0
+POST_TIME = 0.5
+EVENT = 'stimOn_times'
 MIN_NEURONS = 5
+MIN_TRIALS = 5
 
 # Initialize
 one = init_one()
@@ -88,8 +89,13 @@ for i in rec.index.values:
         stim_intervals = np.vstack((stim_trials[EVENT] + PRE_TIME,
                                     stim_trials[EVENT] + POST_TIME)).T
         spike_counts, neuron_ids = get_spike_counts_in_bins(region_spikes, region_clusters, stim_intervals)
+        
+        # Check if session is ok to run
         if np.sum(spike_counts) == 0:
             continue
+        if (np.sum(stim_trials['choice'] == 1) < MIN_TRIALS) | (np.sum(stim_trials['choice'] == -1) < MIN_TRIALS):
+            continue
+        
         stim_prev, _, _ = classify(spike_counts.T,
                                    trials.loc[stim_trials.index - 1, 'choice'].values,
                                    rf_classifier,
@@ -119,5 +125,5 @@ for i in rec.index.values:
             'no_stim_this_trial': no_stim_this, 'no_stim_prev_trial': no_stim_prev,
             'region': region, 'subject': subject, 'sert-cre': sert_cre,
             'probe': probe, 'date': date, 'eid': eid, 'pid': pid})))
-        decoding_df.to_csv(join(save_path, 'decoding_prev_choice.csv'), index=False)
+        decoding_df.to_csv(join(save_path, f'decoding_prev_choice_{EVENT}.csv'), index=False)
     
