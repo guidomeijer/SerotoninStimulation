@@ -17,7 +17,9 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
-decoding_df = pd.read_csv(join(save_path, 'decoding_prev_choice_stimOn_times.csv'))
+decoding_df = pd.read_csv(join(save_path, 'decoding_all_trials_prev_choice_firstMovement_times.csv'))
+#decoding_df = pd.read_csv(join(save_path, 'decoding_prev_choice_feedback_times.csv'))
+#decoding_df = pd.read_csv(join(save_path, 'decoding_prev_choice_stimOn_times.csv'))
 decoding_df = decoding_df[decoding_df['sert-cre'] == 1]
 
 # Get comparisons
@@ -29,6 +31,6 @@ decoding_df['trial_vs_stim'] = decoding_df['this_vs_prev_stim'] - decoding_df['t
 
 # Plot
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-sns.barplot(data=decoding_df, x='no_stim_this_trial', y='region',
+sns.barplot(data=decoding_df, x='rel_prev_trial', y='region',
             errorbar='se', color='grey', ax=ax1)
 plt.tight_layout()
