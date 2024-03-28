@@ -16,7 +16,7 @@ one = init_one()
 colors, dpi = figure_style()
 _, data_path = paths()
 
-import strategymodels
+import stim_strategymodels
 from Functions.set_Beta_prior import set_priors
 from Functions.update_strategy_posterior_probability import update_strategy_posterior_probability
 from Functions.Summaries_of_Beta_distribution import summaries_of_Beta_Distribution
@@ -25,8 +25,7 @@ from Functions.interpolate_null_trials import interpolate_null_trials
 
 
 # SETTINGS
-STRATEGIES = ['go_cued', 'sticky', 'win_stay_cued', 'lose_shift_cued', 'win_stay_spatial',
-              'lose_shift_spatial']   
+STRATEGIES = ['go_cued', 'repeat_choice', 'win_stay_lose_shift', 'integration_window']   
 PRIOR_TYPE = 'Uniform' 
 DECAY_RATE = 0.9
 
@@ -85,7 +84,7 @@ for i, subject in enumerate(np.unique(rec['subject'])):
         for index_strategy in range(len(STRATEGIES)):
             
            # run current strategy model on data up to current trial 
-           strategy_fcn = getattr(strategymodels, STRATEGIES[index_strategy])  
+           strategy_fcn = getattr(stim_strategymodels, STRATEGIES[index_strategy])  
            trial_type = strategy_fcn(rows_of_data)   
          
            # update probability of strategy
