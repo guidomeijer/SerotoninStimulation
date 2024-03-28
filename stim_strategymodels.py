@@ -54,10 +54,11 @@ def repeat_choice(rows):
 
 def integration_window(rows):
     # checks if the subject made the choice that they most made in the last 10 trials
+    nWindow = 12
     nTrials = len(rows)
-    if nTrials <= 10:
+    if nTrials <= nWindow:
          trial_type = "null" # undefined on first 10 trials
-    elif rows.at[nTrials-1,'Choice'] == rows.loc[nTrials-11:nTrials-2, 'Choice'].value_counts().index[0]:
+    elif rows.at[nTrials-1,'Choice'] == rows.loc[nTrials-(nWindow+1):nTrials-2, 'Choice'].value_counts().index[0]:
         trial_type = "success"
     else:
         trial_type = "failure"
