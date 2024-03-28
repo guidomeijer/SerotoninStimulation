@@ -299,7 +299,7 @@ def query_ephys_sessions(aligned=True, behavior_crit=False, n_trials=0, anesthes
         one = ONE()
 
     # Construct django query string
-    DJANGO_STR = ('session__project__name__icontains,serotonin_inference,'
+    DJANGO_STR = ('session__projects__name__icontains,serotonin_inference,'
                   'session__qc__lt,50')
     if aligned:
         # Query all ephys-histology aligned sessions
