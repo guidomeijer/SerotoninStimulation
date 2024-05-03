@@ -7,7 +7,7 @@ By: Guido Meijer
 
 from iblatlas.atlas import AllenAtlas
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times, init_one,
-                            high_level_regions, figure_style, N_STATES_REGIONS, N_STATES)
+                            combine_regions, figure_style, N_STATES_REGIONS, N_STATES)
 from brainbox.singlecell import calculate_peths
 from scipy.ndimage import gaussian_filter
 from brainbox.io.one import SpikeSortingLoader
@@ -98,7 +98,7 @@ for i in rec.index.values:
 
     # Get regions from Beryl atlas
     clusters['region'] = remap(clusters['acronym'], combine=True)
-    clusters['high_level_region'] = high_level_regions(clusters['acronym'])
+    clusters['high_level_region'] = combine_regions(remap(clusters['acronym']))
     clusters_regions = clusters['high_level_region'][use_neurons]
 
     # Loop over regions

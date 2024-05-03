@@ -26,17 +26,15 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-PID_FRONT = 'c6a3def0-9bce-4ef9-a57d-0dc2d4ae3d65'
+PID_FRONT = '32be7608-6d32-4c8e-af5e-beb298ba8c73'
+#PID_FRONT = 'c6a3def0-9bce-4ef9-a57d-0dc2d4ae3d65'
 BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
 POST_TIME = 3
-HMM_PRE_TIME = 2  # time window to run HMM on
-HMM_POST_TIME = 5
+HMM_PRE_TIME = 1.5  # time window to run HMM on
+HMM_POST_TIME = 3.5
 MIN_NEURONS = 5
 TRIAL = 6
-FRONTAL_STATE = 1
-MIDBRAIN_STATE = 1
-TIME_POINT = 1.2
 
 # Paths
 f_path, save_path = paths()
@@ -121,7 +119,7 @@ state_mat_front = state_mat_front[:, use_timepoints]
 
 # %% Plot example trial
 colors, dpi = figure_style()
-cmap = sns.color_palette(colors['states_light'], N_STATES)
+cmap = sns.color_palette(colors['states'], N_STATES)
 f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.25, 2), dpi=dpi, sharex=True)
 
 ax1.add_patch(Rectangle((0, 0), 1, len(clusters_in_region), color='royalblue', alpha=0.25, lw=0))
@@ -152,18 +150,15 @@ sns.despine(trim=True, bottom=True)
 plt.subplots_adjust(hspace=0.15, left=0.2, right=0.99, top=0.95, bottom=0.1)
 plt.savefig(join(fig_path, 'hmm_example_trial_mpfc.pdf'))
 
-
-# %%
 f, ax1 = plt.subplots(1, 1, figsize=(1.25, 1.98), dpi=dpi)
 
+cmap = sns.color_palette(colors['states_light'], N_STATES)
 ax1.add_patch(Rectangle((0, 1), 1, len(opto_times), color='royalblue', alpha=0.25, lw=0))
 ax1.imshow(np.flipud(state_mat_front), aspect='auto', cmap=ListedColormap(cmap),
            vmin=0, vmax=N_STATES-1,
            extent=(-PRE_TIME, POST_TIME, 1, len(opto_times)+1), interpolation=None)
 ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+1, TRIAL+1], color='k', lw=0.5)
 ax1.plot([-PRE_TIME, POST_TIME], [TRIAL+2.1, TRIAL+2.1], color='k', lw=0.5)
-#ax1.plot([TIME_POINT - BIN_SIZE/2, TIME_POINT - BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
-#ax1.plot([TIME_POINT + BIN_SIZE/2, TIME_POINT + BIN_SIZE/2], [1, len(opto_times)+1], color='k', lw=0.5)
 ax1.set(xticks=[], yticks=np.array([1, 50]) + 0.5, yticklabels=np.array([1, 50]))
 ax1.set_ylabel('Trials', labelpad=-10)
 ax1.plot([0, 2], [0.5, 0.5], lw=0.75, color='k', clip_on=False)
@@ -173,23 +168,22 @@ sns.despine(trim=True, bottom=True)
 plt.subplots_adjust(left=0.2, top=0.97, bottom=0.05)
 plt.savefig(join(fig_path, 'hmm_example_session_mpfc.pdf'))
 
-# %%
-
+cmap = sns.color_palette(colors['states'], N_STATES)
 f, ax1 = plt.subplots(figsize=(1.25, 2), dpi=dpi)
-ax1.add_patch(Rectangle((0, -1.7), 1, 1.9, color='royalblue', alpha=0.25, lw=0))
-for i, this_state in enumerate([0, 5, 6, 1, 2, 4, 3]):
+ax1.add_patch(Rectangle((0, -1.5), 1, 1.8, color='royalblue', alpha=0.25, lw=0))
+for i, this_state in enumerate([4, 0, 3, 2, 6, 1, 5]):
     mean_state = (np.mean(prob_mat_frontal[:,:,this_state], axis=0)
-                  - np.mean(prob_mat_frontal[:,time_ax < 0,this_state])) - (i/4)
+                  - np.mean(prob_mat_frontal[:,time_ax < 0,this_state])) - (i/5)
     
     sem_state = np.std(prob_mat_frontal[:,:,this_state], axis=0) / np.sqrt(prob_mat_frontal.shape[0])
-    ax1.plot([time_ax[0], time_ax[-1]], [-(i/4), -(i/4)], color='grey', lw=0.5, ls='--')
+    ax1.plot([time_ax[0], time_ax[-1]], [-(i/5), -(i/5)], color='grey', lw=0.5, ls='--')
     ax1.plot(time_ax, mean_state, color=cmap[this_state])
     ax1.fill_between(time_ax, mean_state + sem_state, mean_state - sem_state, alpha=0.25,
                      color=cmap[this_state], lw=0)
-ax1.plot([-1.1, -1.1], [-1.7, -1.45], color='k')
-ax1.plot([0, 2], [-1.75, -1.75], color='k')
-ax1.text(-1.4, -1.55, '25%', rotation=90, ha='center', va='center')
-ax1.text(1, -1.83, '2s', ha='center', va='center')
+ax1.plot([-1.1, -1.1], [-1.5, -1.25], color='k')
+ax1.plot([0, 2], [-1.55, -1.55], color='k')
+ax1.text(-1.4, -1.35, '25%', rotation=90, ha='center', va='center')
+ax1.text(1, -1.63, '2s', ha='center', va='center')
 ax1.set(xticks=[], yticks=[])
 ax1.set_ylabel('P(state)', labelpad=0)
 sns.despine(trim=True, left=True, bottom=True)
