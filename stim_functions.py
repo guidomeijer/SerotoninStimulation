@@ -149,18 +149,27 @@ def figure_style():
     subject_pal = sns.color_palette(
         np.concatenate((sns.color_palette('tab20'),
                         [matplotlib_colors.to_rgb('maroon'), np.array([0, 0, 0])])))
+    state_dark_pal = sns.color_palette('Dark2')
+    state_light_pal = sns.color_palette('Set2')
+   
+    """
     state_dark_pal = sns.color_palette(
-        np.concatenate((sns.color_palette('Dark2')[:7],
-                        [sns.color_palette('tab10')[0],
+        np.concatenate((sns.color_palette('Dark2')[:5],
+                        [sns.color_palette('Dark2')[6],
+                         sns.color_palette('Dark2')[7],
+                         sns.color_palette('tab10')[0],
                         sns.color_palette('tab10')[3],
                         sns.color_palette('tab10')[9],
                         sns.color_palette('tab10')[6]])))
     state_light_pal = sns.color_palette(
-        np.concatenate((sns.color_palette('Set2')[:7],
-                        [sns.color_palette('tab20')[1],
+        np.concatenate((sns.color_palette('Set2')[:5],
+                        [sns.color_palette('Set2')[6],
+                         sns.color_palette('Set2')[7],
+                         sns.color_palette('tab20')[1],
                         sns.color_palette('tab20')[7],
                         sns.color_palette('tab20')[19],
                         sns.color_palette('tab20')[13]])))
+    """
     frontal = sns.color_palette('Dark2')[1]
     sensory = sns.color_palette('Dark2')[5]
     hipp = sns.color_palette('Dark2')[4]
