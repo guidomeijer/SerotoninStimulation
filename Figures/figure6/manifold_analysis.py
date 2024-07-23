@@ -13,7 +13,8 @@ from glob import glob
 from matplotlib.patches import Rectangle
 import pandas as pd
 import matplotlib as mpl
-from stim_functions import figure_style, paths, load_subjects, high_level_regions
+from stim_functions import (figure_style, paths, load_subjects, high_level_regions,
+                            remap, combine_regions)
 from sklearn.decomposition import PCA
 
 N_DIM = 10
@@ -68,7 +69,8 @@ for i, ses_path in enumerate(ses_paths):
     L_no_opto_choice_shuf = np.vstack((L_no_opto_choice_shuf, this_dict['choice_shuffle']['L_no_opto']))
     R_no_opto_choice_shuf = np.vstack((R_no_opto_choice_shuf, this_dict['choice_shuffle']['R_no_opto']))
     
-    regions = np.concatenate((regions, high_level_regions(this_dict['region'], input_atlas='Beryl')))
+    #regions = np.concatenate((regions, high_level_regions(this_dict['region'], input_atlas='Beryl')))
+    regions = np.concatenate((regions, combine_regions(remap(this_dict['region']))))
 
 # Get Eucledian distances in neural space between opto and no opto
 print('Calculating Eucledian distances..')
@@ -132,8 +134,10 @@ for r, region in enumerate(np.unique(regions)):
     # Do PCA on all splits simultaneously to get them in the same PCA space
     all_splits = np.vstack((L_opto[regions == region].T, R_opto[regions == region].T,
                             L_no_opto[regions == region].T, R_no_opto[regions == region].T))
+    if all_splits.shape[1] < N_DIM:
+        continue
     pca_fit[region] = pca.fit_transform(all_splits) 
-    
+           
     # Do PCA for shuffles
     this_pca = np.empty((all_splits.shape[0], N_DIM, 0))
     for ii in range(this_dict['n_shuffles']):
@@ -149,6 +153,51 @@ for r, region in enumerate(np.unique(regions)):
 split_ids = np.concatenate((['L_opto'] * n_timepoints, ['R_opto'] * n_timepoints,
                             ['L_no_opto'] * n_timepoints, ['R_no_opto'] * n_timepoints))
 
+"""
+# Calculate dot product between opto and stim vectors
+# Collapse pca onto choice and opto dimensions
+dot_prod, dot_shuffle = dict(), dict()
+for r, region in enumerate(pca_fit.keys()):
+
+    # Get the dot product between the two vectors
+    dot_prod[region] = np.empty(n_timepoints)
+    for t in range(n_timepoints):
+        choice_L_vec = (pca_fit[region][split_ids == 'L_no_opto'][t, :]
+                        - pca_fit[region][split_ids == 'R_no_opto'][t, :])
+        opto_L_vec = (pca_fit[region][split_ids == 'L_no_opto'][t, :]
+                      - pca_fit[region][split_ids == 'L_opto'][t, :])
+        dot_prod_L = np.abs(np.dot(choice_L_vec, opto_L_vec))
+        
+        choice_R_vec = (pca_fit[region][split_ids == 'R_no_opto'][t, :]
+                        - pca_fit[region][split_ids == 'L_no_opto'][t, :])
+        opto_R_vec = (pca_fit[region][split_ids == 'R_no_opto'][t, :]
+                      - pca_fit[region][split_ids == 'R_opto'][t, :])
+        dot_prod_R = np.abs(np.dot(choice_R_vec, opto_R_vec))
+        
+        #dot_prod[region][t] = np.mean([dot_prod_L, dot_prod_R])
+        dot_prod[region][t] = dot_prod_L
+                
+    # Do the same for all the shuffles
+    dot_shuffle[region] = np.empty((n_timepoints, pca_shuffle[region].shape[2]))
+    for ii in range(pca_shuffle[region].shape[2]):
+        
+        for t in range(n_timepoints):
+            choice_L_vec = (pca_shuffle[region][split_ids == 'L_no_opto'][t, :, ii]
+                            - pca_shuffle[region][split_ids == 'R_no_opto'][t, :, ii])
+            opto_L_vec = (pca_shuffle[region][split_ids == 'L_no_opto'][t, :, ii]
+                          - pca_shuffle[region][split_ids == 'L_opto'][t, :, ii])
+            dot_prod_L = np.abs(np.dot(choice_L_vec, opto_L_vec))
+            
+            choice_R_vec = (pca_shuffle[region][split_ids == 'R_no_opto'][t, :, ii]
+                            - pca_shuffle[region][split_ids == 'L_no_opto'][t, :, ii])
+            opto_R_vec = (pca_shuffle[region][split_ids == 'R_no_opto'][t, :, ii]
+                          - pca_shuffle[region][split_ids == 'R_opto'][t, :, ii])
+            dot_prod_R = np.abs(np.dot(choice_R_vec, opto_R_vec))
+            
+            #dot_shuffle[region][t, ii] = np.mean([dot_prod_L, dot_prod_R])
+            dot_shuffle[region][t, ii] = dot_prod_L
+"""
+        
 # Calculate dot product between opto and stim vectors
 # Collapse pca onto choice and opto dimensions
 dot_prod, dot_shuffle = dict(), dict()
@@ -181,9 +230,10 @@ for r, region in enumerate(pca_fit.keys()):
             choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
             opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
             dot_shuffle[region][t, ii] = np.abs(np.dot(choice_vec, opto_vec))
+                
                    
 # %% Plot Eucledian distance of all regions
-f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi)
+f, axs = plt.subplots(1, len(dist_opto.keys()), figsize=(7, 1.75), dpi=dpi)
 for r, region in enumerate(dist_opto.keys()):
     axs[r].fill_between(time_ax,
                         np.nanquantile(dist_opto_shuffle[region], 0.05, axis=1),
@@ -197,7 +247,7 @@ plt.tight_layout()
 plt.savefig(join(fig_path, 'eu_dist_opto.pdf'))
 
 # %% Eucledian distance choice
-f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi)
+f, axs = plt.subplots(1, len(dist_opto.keys()), figsize=(7, 1.75), dpi=dpi)
 for r, region in enumerate(dist_opto.keys()):
     axs[r].fill_between(time_ax,
                         np.nanquantile(dist_choice_shuffle[region], 0.05, axis=1),
@@ -211,9 +261,9 @@ plt.tight_layout()
 plt.savefig(join(fig_path, 'eu_dist_choice.pdf'))
 
 # %% Plot PCA of all regions
-fig = plt.figure(figsize=(7, 1.75), dpi=dpi)
+fig = plt.figure(figsize=(len(dist_opto.keys()), 1.75), dpi=dpi)
 axs = []
-gs = fig.add_gridspec(1, 7)
+gs = fig.add_gridspec(1, len(dist_opto.keys()))
 for r, region in enumerate(pca_fit.keys()):
     axs.append(fig.add_subplot(gs[0, r], projection='3d'))
     axs[r].view_init(elev=-140, azim=200)
@@ -237,7 +287,7 @@ plt.savefig(join(fig_path, 'pca_all_regions.pdf'))
 
 
 # %%
-f, axs = plt.subplots(1, 7, figsize=(7, 1.75), dpi=dpi, sharey=True)
+f, axs = plt.subplots(1, len(dist_opto.keys()), figsize=(7, 1.75), dpi=dpi, sharey=True)
 for r, region in enumerate(dot_prod.keys()):
     axs[r].fill_between(time_ax,
                         np.quantile(dot_shuffle[region], 0.05, axis=1),
@@ -259,17 +309,17 @@ ax.view_init(elev=-140, azim=220)
 for sp in SPLITS:
     cmap = mpl.colormaps.get_cmap(CMAPS[sp])
     col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
-    ax.plot(pca_fit['Frontal cortex'][split_ids == sp, 0],
-            pca_fit['Frontal cortex'][split_ids == sp, 1],
-            pca_fit['Frontal cortex'][split_ids == sp, 2],
+    ax.plot(pca_fit['mPFC'][split_ids == sp, 0],
+            pca_fit['mPFC'][split_ids == sp, 1],
+            pca_fit['mPFC'][split_ids == sp, 2],
             color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
-    ax.scatter(pca_fit['Frontal cortex'][split_ids == sp, 0],
-               pca_fit['Frontal cortex'][split_ids == sp, 1],
-               pca_fit['Frontal cortex'][split_ids == sp, 2],
+    ax.scatter(pca_fit['mPFC'][split_ids == sp, 0],
+               pca_fit['mPFC'][split_ids == sp, 1],
+               pca_fit['mPFC'][split_ids == sp, 2],
                color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
-ax.grid('off')
-ax.axis('off')
-ax.set_title('Frontal cortex')
+#ax.grid('off')
+#ax.axis('off')
+ax.set(title='Frontal cortex')
 plt.tight_layout()
 plt.savefig(join(fig_path, 'pca_frontal-cortex.pdf'))
     

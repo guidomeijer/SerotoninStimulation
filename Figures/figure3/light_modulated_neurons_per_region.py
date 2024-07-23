@@ -13,8 +13,7 @@ from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, combine_regions, load_subjects
 
 # Settings
-MIN_NEURONS_POOLED = 5
-MIN_NEURONS_PER_MOUSE = 10
+MIN_NEURONS_PER_MOUSE = 5
 MIN_MOD_NEURONS = 20
 MIN_REC = 3
 

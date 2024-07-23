@@ -13,10 +13,9 @@ from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
-MIN_NEURONS_POOLED = 1
-MIN_NEURONS_PER_MOUSE = 1
-MIN_MOD_NEURONS = 1
-MIN_REC = 2
+MIN_NEURONS_PER_MOUSE = 5
+MIN_MOD_NEURONS = 20
+MIN_REC = 3
 
 # Get paths
 f_path, save_path = paths()
@@ -102,14 +101,14 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
 # %%
-f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
             order=ordered_regions_pm['high_level_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
 sns.swarmplot(x='perc_mod', y='high_level_region', data=per_mouse_df,
               order=ordered_regions_pm['high_level_region'],
               color='k', ax=ax1, size=2, legend=None)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 60], xticks=np.arange(0, 61, 20))
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arange(0, 81, 20))
 #ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
 #           handletextpad=0.1)
 

@@ -16,7 +16,7 @@ from brainbox.task.closed_loop import generate_pseudo_blocks
 from stim_functions import (paths, combine_regions, load_subjects,
                             high_level_regions, load_trials, calculate_peths)
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
@@ -95,7 +95,6 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
                                            T_BEFORE, T_AFTER,
                                            BIN_SIZE, SMOOTHING)
     
-
     for split in SPLITS:
         
         # Split trials and get mean spike rate per split
