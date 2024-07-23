@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import tkinter as tk
 from scipy.stats import binned_statistic
-from scipy.signal import gaussian, convolve
+from scipy.signal import convolve
+from scipy.signal.windows import gaussian
 import pathlib
 from brainbox import singlecell
 from os.path import join, realpath, dirname, isfile

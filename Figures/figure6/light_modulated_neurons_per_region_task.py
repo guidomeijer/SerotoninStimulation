@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
-from stim_functions import paths, figure_style, load_subjects, high_level_regions
+from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
 MIN_NEURONS_POOLED = 1
@@ -31,7 +31,7 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
     light_neurons.loc[light_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
 # Merge regions
-light_neurons['high_level_region'] = high_level_regions(light_neurons['region'], input_atlas='Beryl')
+light_neurons['high_level_region'] = combine_regions(light_neurons['region'])
 
 # Drop root and void
 light_neurons = light_neurons.reset_index(drop=True)
