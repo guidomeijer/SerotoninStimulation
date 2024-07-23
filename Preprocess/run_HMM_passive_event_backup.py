@@ -14,6 +14,7 @@ from brainbox.io.one import SpikeSortingLoader
 from matplotlib.patches import Rectangle
 from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
+import pickle
 import seaborn as sns
 import pandas as pd
 from os.path import join
@@ -26,7 +27,7 @@ one = init_one()
 # Settings
 BIN_SIZE = 0.1  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
-RANDOM_TIMES = 'jitter'  # spont (spontaneous) or jitter (jittered times during stim period)
+RANDOM_TIMES = 'spont'  # spont (spontaneous) or jitter (jittered times during stim period)
 PRE_TIME = 1  # final time window to use
 POST_TIME = 4
 HMM_PRE_TIME = 2  # time window to run HMM on
@@ -43,24 +44,13 @@ add_str = f'{int(BIN_SIZE*1000)}msbins_{INCL_NEURONS}_{RANDOM_TIMES}-nstates'
 
 # Get paths
 f_path, save_path = paths()
-fig_path = join(f_path, 'Extra plots', 'State', 'Awake',
-                f'{INCL_NEURONS}', f'{int(BIN_SIZE*1000)}ms')
+fig_path = join(f_path, 'Extra plots', 'State', 'Awake', f'{RANDOM_TIMES}')
 
 # Query sessions
 rec = query_ephys_sessions(one=one)
 
 # Get significantly modulated neurons
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
-
-if OVERWRITE:
-    state_trans_df, p_state_df = pd.DataFrame(), pd.DataFrame()
-    state_trans_null_df, p_state_null_df = pd.DataFrame(), pd.DataFrame()
-else:
-    state_trans_df = pd.read_csv(join(save_path, f'state_trans_{add_str}.csv'))
-    p_state_df = pd.read_csv(join(save_path, f'p_state_{add_str}.csv'))
-    p_state_null_df = pd.read_csv(join(save_path, f'p_state_null_{add_str}.csv'))
-    state_trans_null_df = pd.read_csv(join(save_path, f'state_trans_null_{add_str}.csv'))
-    rec = rec[~rec['pid'].isin(state_trans_df['pid'])]
 
 for i in rec.index.values:
 
@@ -177,43 +167,15 @@ for i in rec.index.values:
         prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
         state_mat = state_mat[:, use_timepoints]
 
-        # Get P(state)
-        p_state_mat = np.empty((n_states, time_ax.shape[0]))
-        for ii in range(n_states):
-
-            # Random times
-            # Get P state, first smooth, then crop timewindow
-            this_p_state = np.mean(prob_mat[:random_times.shape[0], :, ii], axis=0)
-            p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
-
-            # Add to dataframe and matrix
-            p_state_mat[ii, :] = this_p_state
-            p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
-                'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
-                'subject': subject, 'pid': pid, 'region': region, 'opto': 0})))
-
-            # Opto times
-            # Get P state, first smooth, then crop timewindow
-            this_p_state = np.mean(prob_mat[opto_times.shape[0]:, :, ii], axis=0)
-            p_state_bl = this_p_state - np.mean(this_p_state[time_ax < 0])
-
-            # Add to dataframe and matrix
-            p_state_df = pd.concat((p_state_df, pd.DataFrame(data={
-                'p_state': this_p_state, 'p_state_bl': p_state_bl, 'state': ii, 'time': time_ax,
-                'subject': subject, 'pid': pid, 'region': region, 'opto': 1})))
-
-        # Add state change PSTH to dataframe
-        state_trans_df = pd.concat((state_trans_df, pd.DataFrame(data={
-            'time': time_ax, 'p_trans': smooth_p_trans,
-            'cumsum_trans': np.cumsum(np.sum(trans_mat, axis=0)),
-            'p_trans_bl': smooth_p_trans - np.mean(smooth_p_trans[time_ax < 0]),
-            'region': region, 'subject': subject, 'pid': pid})))
-
         # Save the trial-level P(state) data and zhat matrix
-        np.save(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}', 'prob_mat',
-                     f'{subject}_{date}_{probe}_{region}.npy'), prob_mat)
-        np.save(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}', 'state_mat',
-                     f'{subject}_{date}_{probe}_{region}.npy'), state_mat)
+        hmm_dict = dict()
+        hmm_dict['prob_mat'] = prob_mat
+        hmm_dict['state_mat'] = state_mat
+        hmm_dict['time_ax'] = time_ax
+        with open(join(save_path, 'HMM', 'PassiveEvent', '{RANDOM_TIMES}',
+                       f'{subject}_{date}_{region}.pickle'),
+                  'wb') as fp:
+            pickle.dump(hmm_dict, fp)
 
         if PLOT:
             # Plot example trial
@@ -257,7 +219,8 @@ for i in rec.index.values:
             ax1.plot([0, 0], [1, len(opto_times)], ls='--', color='k', lw=0.75)
             ax1.set(ylabel='Trials', xlabel='Time (s)', xticks=[-1, 0, 1, 2, 3, 4],
                     title=f'{region}')
-
+            
+            p_sta
             for ii in range(n_states):
                 ax2.plot(time_ax, p_state_mat[ii, :], color=cmap[ii])
             ax2.set(xlabel='Time (s)', ylabel='P(state)', xticks=[-1, 0, 1, 2, 3, 4])
@@ -275,9 +238,3 @@ for i in rec.index.values:
                 fig_path, f'{region}_{subject}_{date}_ses.jpg'),
                 dpi=600)
             plt.close(f)
-
-    # Save output
-    state_trans_df.to_csv(join(save_path, f'state_trans_{add_str}.csv'))
-    p_state_df.to_csv(join(save_path, f'p_state_{add_str}.csv'))
-    state_trans_null_df.to_csv(join(save_path, f'state_trans_null_{add_str}.csv'))
-    p_state_null_df.to_csv(join(save_path, f'p_state_null_{add_str}.csv'))

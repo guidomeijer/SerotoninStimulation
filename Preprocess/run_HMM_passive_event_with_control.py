@@ -15,6 +15,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
 import pickle
+import gzip
 import seaborn as sns
 import pandas as pd
 from os.path import join
@@ -34,7 +35,7 @@ HMM_PRE_TIME = 2  # time window to run HMM on
 HMM_POST_TIME = 5
 MIN_NEURONS = 5
 CMAP = 'Set2'
-PLOT = True
+PLOT = False
 N_STATE_SELECT = 'global'  # global or region
 
 # Create text to add to save files
@@ -71,6 +72,10 @@ for i in rec.index.values:
     elif RANDOM_TIMES == 'spont':
         random_times = np.sort(np.random.uniform(opto_times[0]-360, opto_times[0]-10,
                                                  size=opto_times.shape[0]))
+        
+    # Concatenate time vectors
+    all_times = np.concatenate((random_times, opto_times))
+    event_ids = np.concatenate((np.zeros(random_times.shape[0]), np.ones(opto_times.shape[0])))
 
     # Load in spikes
     try:
@@ -121,8 +126,8 @@ for i in rec.index.values:
         simple_hmm = ssm.HMM(n_states, clusters_in_region.shape[0], observations='poisson')
 
         # Get binned spikes centered at stimulation onset
-        peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region,
-                                              np.concatenate((random_times, opto_times)),
+        peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters,
+                                              clusters_in_region, all_times,
                                               pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME,
                                               bin_size=BIN_SIZE, smoothing=0, return_fr=False)
         binned_spikes = binned_spikes.astype(int)
@@ -160,8 +165,10 @@ for i in rec.index.values:
         hmm_dict['prob_mat'] = prob_mat
         hmm_dict['state_mat'] = state_mat
         hmm_dict['time_ax'] = time_ax
-        with open(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}',
-                       f'{subject}_{date}_{region}.pickle'),
+        hmm_dict['event_times'] = all_times
+        hmm_dict['event_ids'] = event_ids
+        with gzip.open(join(save_path, 'HMM', 'PassiveEvent', f'{RANDOM_TIMES}',
+                            f'{subject}_{date}_{region}.pickle'),
                   'wb') as fp:
             pickle.dump(hmm_dict, fp)
 

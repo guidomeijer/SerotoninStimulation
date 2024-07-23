@@ -18,7 +18,7 @@ one = ONE()
 # Settings
 MIN_TRIALS = 400
 SINGLE_TRIALS = [2, 10]
-TRIAL_BINS = np.arange(-15, 41, 15)
+TRIAL_BINS = np.arange(-15, 41, 5)
 trial_bin_size = np.unique(np.diff(TRIAL_BINS))[0]
 trial_bin_labels = TRIAL_BINS[:-1] + (np.diff(TRIAL_BINS) / 2)
 
@@ -290,6 +290,7 @@ ax1.set(ylabel='P[repeat choice] (%)', xlabel='Trials since start of stim. block
         yticks=np.arange(-2, 7, 2))
 plt.tight_layout()
 sns.despine(trim=True)
+plt.savefig(join(fig_path, 'prev_choice_opto_block.jpg'), dpi=600)
 
 # %%
 f, (ax1, ax2) = plt.subplots(2, 1, figsize=(1.5, 2), dpi=dpi, sharex=True)

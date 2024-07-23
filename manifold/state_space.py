@@ -4,7 +4,6 @@ from manifold import loading
 from ibllib.atlas import AllenAtlas
 from ibllib.atlas.regions import BrainRegions
 import ibllib
-from ibllib.atlas.flatmaps import plot_swanson_vector 
 
 from scipy import signal
 import pandas as pd
@@ -1572,115 +1571,6 @@ def get_cmap(split):
 
     return LinearSegmentedColormap.from_list("mycmap", dc[split])
    
-    
-def plot_swanson_supp(splits = None, curve = 'euc',
-                      show_legend = False, bina=False):
- 
-    '''
-    swanson maps for maxes
-    '''
-    
-    if splits is None:
-        splits0 = ['stim', 'choice', 'fback','block']
-        splits = [x+'_restr' for x in splits0]
-    
-    nrows = 2  # one for amplitudes, one for latencies
-    ncols = len(splits)  # one per variable
-
-
-    fig, axs = plt.subplots(nrows, ncols, figsize=(14, 11)) 
-    
-    if show_legend:
-        '''
-        plot Swanson flatmap with labels and colors
-        '''
-        fig0, ax0 = plt.subplots()
-        plot_swanson_vector(annotate=True, ax=ax0)
-        ax0.axis('off')
-   
-    '''
-    max dist_split onto swanson flat maps
-    (only regs with p < sigl)
-    '''
-    
-    k = 0  # panel counter
-    c = 0  # column counter
-    
-    sws = []
-    for split in splits:
-
-        d = np.load(Path(pth_res, f'{split}.npy'),
-                    allow_pickle=True).flat[0]
-                    
-        # get significant regions only
-        acronyms = [reg for reg in d
-                if d[reg][f'p_{curve}'] < sigl]
-                
-        print(split, len(acronyms), 'sig out of', len(d))        
-
-        # plot amplitudes
-        if bina:
-            # set all significant regions to 1, others zero
-            amps = np.array([1 for x in acronyms])
-        
-        else:
-            amps = np.array([d[x][f'amp_{curve}_can'] for x in acronyms])
-            
-        plot_swanson_vector(np.array(acronyms), np.array(amps), 
-                            cmap=get_cmap(split), 
-                            ax=axs[0,c], br=br, 
-                            orientation='portrait',
-                            linewidth=0.1)
-                            
-        # add colorbar
-        clevels = (np.nanmin(amps), np.nanmax(amps))
-        norm = mpl.colors.Normalize(vmin=clevels[0], 
-                                    vmax=clevels[1])
-                                    
-        cbar = fig.colorbar(mpl.cm.ScalarMappable(
-                                norm=norm, 
-                                cmap=get_cmap(split)), 
-                                ax=axs[0,c])
-    
-        cbar.set_label('effect size [spikes/second]')
-
-                            
-        axs[0,c].axis('off')
-        axs[0,c].set_title(f'{split} \n {len(acronyms)}/{len(d)} sig.')
-        put_panel_label(axs[0,c], k)
-        k += 1
-
-        # plot latencies (cmap reversed, dark is early)    
-        lats = np.array([d[x][f'lat_{curve}'] for x in acronyms]) 
-        plot_swanson_vector(np.array(acronyms),np.array(lats), 
-                     cmap=get_cmap(split).reversed(), 
-                     ax=axs[1,c], br=br, orientation='portrait')
-
-        clevels = (np.nanmin(lats), np.nanmax(lats))
-        norm = mpl.colors.Normalize(vmin=clevels[0], 
-                                    vmax=clevels[1])
-                                    
-        cbar = fig.colorbar(mpl.cm.ScalarMappable(
-                                norm=norm, 
-                                cmap=get_cmap(split).reversed()), 
-                                ax=axs[1,c])
-        cbar.set_label('latency [second]')
-
-
-        axs[1,c].axis('off')
-        axs[1,c].set_title(f'{split}')
-        put_panel_label(axs[1,c], k)
-        
-        
-        #print(split, acronyms, amps, lats)        
-        
-        k += 1
-        c += 1
-
-    fig.tight_layout()
-    
-
-
 
 def plot_corr(splits=None, curve='euc',
               x='nclus', y='f-rate'):
@@ -1771,7 +1661,7 @@ def plot_grand_traj(split, curve='euc'):
      for a given region, plot 3d trajectory and 
      line plot below
      '''
-     df, palette = get_allen_info()
+     #df, palette = get_allen_info()
      
      
      fig = plt.figure(figsize=(1.75, 1.75))
