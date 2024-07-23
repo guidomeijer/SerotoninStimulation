@@ -26,7 +26,6 @@ one = ONE()
 
 # Settings
 PID_FRONT = 'c6a3def0-9bce-4ef9-a57d-0dc2d4ae3d65'
-PID_MID = '455d9684-12b3-4c40-97a3-5a47b9c31589'
 BIN_SIZE = 0.1  # s
 PRE_TIME = 1  # final time window to use
 POST_TIME = 3
@@ -51,7 +50,7 @@ rec = query_ephys_sessions(one=one)
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 
 # Get session details
-eid = one.PID_FRONT2eid(PID_FRONT)[0]
+eid = one.pid2eid(PID_FRONT)[0]
 subject = one.get_details(eid)['subject']
 date = one.get_details(eid)['date']
 
@@ -59,18 +58,18 @@ date = one.get_details(eid)['date']
 opto_times, _ = load_passive_opto_times(eid, one=one)
 
 # Load in spikes
-sl = SpikeSortingLoader(PID_FRONT=PID_FRONT, one=one, atlas=ba)
+sl = SpikeSortingLoader(pid=PID_FRONT, one=one, atlas=ba)
 spikes, clusters, channels = sl.load_spike_sorting()
 clusters = sl.merge_clusters(spikes, clusters, channels)
 
 # Select neurons to use
 if INCL_NEURONS == 'all':
-    use_neurons = light_neurons.loc[light_neurons['PID_FRONT'] == PID_FRONT, 'neuron_id'].values
+    use_neurons = light_neurons.loc[light_neurons['pid'] == PID_FRONT, 'neuron_id'].values
 elif INCL_NEURONS == 'sig':
-    use_neurons = light_neurons.loc[(light_neurons['PID_FRONT'] == PID_FRONT) & light_neurons['modulated'],
+    use_neurons = light_neurons.loc[(light_neurons['pid'] == PID_FRONT) & light_neurons['modulated'],
                                     'neuron_id'].values
 elif INCL_NEURONS == 'non-sig':
-    use_neurons = light_neurons.loc[(light_neurons['PID_FRONT'] == PID_FRONT) & ~light_neurons['modulated'],
+    use_neurons = light_neurons.loc[(light_neurons['pid'] == PID_FRONT) & ~light_neurons['modulated'],
                                     'neuron_id'].values
 
 # Select QC pass neurons
@@ -180,7 +179,7 @@ ax2.add_patch(Rectangle((0, 0), 1, 2, color='royalblue', alpha=0.25, lw=0))
 
 sns.despine(trim=True, bottom=True)
 plt.subplots_adjust(hspace=0.15, left=0.2, right=0.99, top=0.95, bottom=0.1)
-plt.savefig(join(fig_path, f'hmm_example_trial_{REGION}.pdf'))
+plt.savefig(join(fig_path, f'hmm_example_trial_frontal.pdf'))
 
 
 # %%
@@ -199,7 +198,7 @@ ax1.text(1, -1.5, '2s', ha='center', va='center')
 
 sns.despine(trim=True, bottom=True)
 plt.subplots_adjust(left=0.2, top=0.97, bottom=0.05)
-plt.savefig(join(fig_path, f'hmm_example_session_{REGION}.pdf'))
+plt.savefig(join(fig_path, 'hmm_example_session_frontal.pdf'))
 
 # %%
 
@@ -221,5 +220,5 @@ ax1.set(xticks=[], yticks=[])
 ax1.set_ylabel('P(state)', labelpad=0)
 sns.despine(trim=True, left=True, bottom=True)
 plt.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.98)
-plt.savefig(join(fig_path, f'hmm_example_p_states_{REGION}.pdf'))
+plt.savefig(join(fig_path, 'hmm_example_p_states_frontal.pdf'))
 

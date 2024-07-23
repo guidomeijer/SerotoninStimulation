@@ -25,7 +25,8 @@ from Functions.interpolate_null_trials import interpolate_null_trials
 
 
 # SETTINGS
-STRATEGIES = ['go_cued', 'repeat_choice', 'win_stay_lose_shift', 'integration_window']   
+STRATEGIES = ['go_cued', 'repeat_choice', 'win_stay_lose_shift', 'integration_window',
+              'lose_shift', 'win_stay', 'lose_shift_cued', 'win_stay_cued']   
 PRIOR_TYPE = 'Uniform' 
 DECAY_RATE = 0.9
 
@@ -58,9 +59,9 @@ for i, subject in enumerate(np.unique(rec['subject'])):
         'TrialIndex': trials_df.index,
         'SessionIndex': trials_df['session'],
         'TargetRule': trials_df['laser_stimulation'].replace({1: 'stim on', 0: 'stim off'}),
-        'Choice': trials_df['choice'].replace({-1: 'left', 1: 'right'}),
+        'Choice': trials_df['choice'].replace({-1: 'right', 1: 'left'}),
         'CuePosition': trials_df['stim_side'].replace({-1: 'left', 1: 'right'}),
-        'Reward': trials_df['feedbackType'].replace({-1: 'no', 1: 'yes'}),
+        'Reward': trials_df['correct'].replace({0: 'no', 1: 'yes'}),
         'RuleChangeTrials': np.concatenate(([0], (np.diff(trials_df['laser_stimulation']) != 0).astype(int))),
         'NewSessionTrials': np.concatenate(([0], (np.diff(trials_df['session']) != 0).astype(int)))
         })

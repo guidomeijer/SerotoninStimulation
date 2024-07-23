@@ -54,10 +54,11 @@ def repeat_choice(rows):
 
 def integration_window(rows):
     # checks if the subject made the choice that they most made in the last 10 trials
+    nWindow = 12
     nTrials = len(rows)
-    if nTrials <= 10:
+    if nTrials <= nWindow:
          trial_type = "null" # undefined on first 10 trials
-    elif rows.at[nTrials-1,'Choice'] == rows.loc[nTrials-11:nTrials-2, 'Choice'].value_counts().index[0]:
+    elif rows.at[nTrials-1,'Choice'] == rows.loc[nTrials-(nWindow+1):nTrials-2, 'Choice'].value_counts().index[0]:
         trial_type = "success"
     else:
         trial_type = "failure"
@@ -80,3 +81,74 @@ def win_stay_lose_shift(rows):
             
     return trial_type
     
+
+def lose_shift(rows):
+    # checks if the subject shifted spatial choice on this trial after not being rewarded on the previous one
+    trial_type = "null"   # default is that trial does not meet criterion for lose-shift
+    
+    nTrials = len(rows)
+     # "at" selects the value at the row/column location in the dataframe
+     # check that the previous trial was not rewarded ('lose')
+    if nTrials > 1 and rows.at[nTrials-2,'Reward'] == "no":   
+        # now check if the subject shifted their spatial choice
+        if rows.at[nTrials-1,'Choice'] != rows.at[nTrials-2,'Choice']: 
+            trial_type = "success"
+        else:
+            trial_type = "failure"
+            
+    return trial_type
+
+
+def win_stay(rows):
+    # checks if the subject made the same spatial choice on this trial after being rewarded on the previous one
+    trial_type = "null"   # default is that trial does not meet criterion for win-stay
+    
+    nTrials = len(rows)
+     # "at" selects the value at the row/column location in the dataframe
+     # check that the previous trial was rewarded ('win')
+    if nTrials > 1 and rows.at[nTrials-2,'Reward'] == "yes":   
+        # now check if the subject stayed with the same spatial choice
+        if rows.at[nTrials-1,'Choice'] == rows.at[nTrials-2,'Choice']: 
+            trial_type = "success"
+        else:
+            trial_type = "failure"
+            
+    return trial_type
+
+
+def win_stay_cued(rows):
+    # checks if the subject made the same cue-driven choice on this trial after being rewarded on the previous one
+    trial_type = "null"   # default is that this trial does not meet criterion for win-stay
+    
+    nTrials = len(rows)
+     # "at" selects the value at the row/column location in the dataframe
+     # check that the previous trial was rewarded ('win')
+    if nTrials > 1 and rows.at[nTrials-2,'Reward'] == "yes":   
+        # now check if the subject stayed with the cued-based choice
+        if rows.at[nTrials-2,'Choice'] == rows.at[nTrials-2,'CuePosition'] and rows.at[nTrials-1,'Choice'] == rows.at[nTrials-1,'CuePosition']:
+            trial_type = "success"  # made the same cued choice
+        elif rows.at[nTrials-2,'Choice'] != rows.at[nTrials-2,'CuePosition'] and rows.at[nTrials-1,'Choice'] != rows.at[nTrials-1,'CuePosition']:
+            trial_type = "success" # made the same uncued choice
+        else:
+            trial_type = "failure"
+            
+    return trial_type
+
+
+def lose_shift_cued(rows):
+    # checks if the subject shifted their cue-based choice on this trial after not being rewarded on the previous one
+    trial_type = "null"   # default is that this trial does not meet criterion for win-stay
+    
+    nTrials = len(rows)
+     # "at" selects the value at the row/column location in the dataframe
+     # check that the previous trial was not rewarded ('lose')
+    if nTrials > 1 and rows.at[nTrials-2,'Reward'] == "no":   
+        # now check if the subject shifted their cued-based choice
+        if rows.at[nTrials-2,'Choice'] == rows.at[nTrials-2,'CuePosition'] and rows.at[nTrials-1,'Choice'] != rows.at[nTrials-1,'CuePosition']:
+            trial_type = "success"  # shifted from cued to uncued choice
+        elif rows.at[nTrials-2,'Choice'] != rows.at[nTrials-2,'CuePosition'] and rows.at[nTrials-1,'Choice'] == rows.at[nTrials-1,'CuePosition']:
+            trial_type = "success" # shifted from uncued to cued chpice
+        else:
+            trial_type = "failure"
+            
+    return trial_type

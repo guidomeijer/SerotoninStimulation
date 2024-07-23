@@ -150,18 +150,27 @@ def figure_style():
     subject_pal = sns.color_palette(
         np.concatenate((sns.color_palette('tab20'),
                         [matplotlib_colors.to_rgb('maroon'), np.array([0, 0, 0])])))
+    state_dark_pal = sns.color_palette('Dark2')
+    state_light_pal = sns.color_palette('Set2')
+   
+    """
     state_dark_pal = sns.color_palette(
-        np.concatenate((sns.color_palette('Dark2')[:7],
-                        [sns.color_palette('tab10')[0],
+        np.concatenate((sns.color_palette('Dark2')[:5],
+                        [sns.color_palette('Dark2')[6],
+                         sns.color_palette('Dark2')[7],
+                         sns.color_palette('tab10')[0],
                         sns.color_palette('tab10')[3],
                         sns.color_palette('tab10')[9],
                         sns.color_palette('tab10')[6]])))
     state_light_pal = sns.color_palette(
-        np.concatenate((sns.color_palette('Set2')[:7],
-                        [sns.color_palette('tab20')[1],
+        np.concatenate((sns.color_palette('Set2')[:5],
+                        [sns.color_palette('Set2')[6],
+                         sns.color_palette('Set2')[7],
+                         sns.color_palette('tab20')[1],
                         sns.color_palette('tab20')[7],
                         sns.color_palette('tab20')[19],
                         sns.color_palette('tab20')[13]])))
+    """
     frontal = sns.color_palette('Dark2')[1]
     sensory = sns.color_palette('Dark2')[5]
     hipp = sns.color_palette('Dark2')[4]
@@ -196,16 +205,16 @@ def figure_style():
               'Thalamus': thalamus,
               'Hippocampus': hipp,
               'Striatum': striatum,
-              'OFC': sns.color_palette('Dark2')[0],
+              'OFC': sns.color_palette('Set1')[7],
               'mPFC': sns.color_palette('Dark2')[1],
               'M2': sns.color_palette('Dark2')[2],
-              'Amyg.': sns.color_palette('Dark2')[3],
-              'HPC': sns.color_palette('Dark2')[4],
+              'Amyg.': sns.color_palette('Dark2')[6],
+              'HPC': sns.color_palette('Dark2')[3],
               'VIS': sns.color_palette('Dark2')[5],
-              'Pir.': sns.color_palette('Dark2')[6],
+              'Pir.': sns.color_palette('Dark2')[4],
               'SC': sns.color_palette('Dark2')[7],
               'Thal.': sns.color_palette('tab10')[9],
-              'PAG': sns.color_palette('Set1')[7],
+              'PAG': sns.color_palette('Dark2')[0],
               'BC': sns.color_palette('Accent')[0],
               'Str.': sns.color_palette('Accent')[1],
               'MRN': sns.color_palette('Accent')[2],
