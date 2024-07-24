@@ -12,11 +12,12 @@ from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
 from stim_functions import (paths, remap, load_passive_opto_times, figure_style, init_one,
                             load_trials, peri_multiple_events_time_histogram)
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = init_one()
 
 # Settings
+"""
 TITLE = 'Frontal cortex (ACA)'
 SUBJECT = 'ZFM-02600'
 DATE = '2021-08-25'
@@ -31,7 +32,7 @@ DATE = '2022-12-08'
 PROBE = 'probe00'
 NEURON = 395
 SCALEBAR = 15
-"""
+
 
 T_BEFORE = 1  # for plotting
 T_AFTER = 2
@@ -72,7 +73,7 @@ print(f'p value task: {p_task.values[0]}')
 
 # %% Plot PSTH
 colors, dpi = figure_style()
-p, ax1 = plt.subplots(1, 1, figsize=(1.2, 2), dpi=dpi)
+p, ax1 = plt.subplots(1, 1, figsize=(1.5, 2), dpi=dpi)
 
 #ax1.add_patch(Rectangle((0, -100), 1, 200, color='royalblue', alpha=0.25, lw=0))
 ax1.plot([0, 0], [-100, 100], color='k', ls='--', lw=0.5)
@@ -89,7 +90,7 @@ peri_multiple_events_time_histogram(
     eventline_kwargs={'lw': 0}, include_raster=True)
 ax1.plot([-1.05, -1.05], [0, SCALEBAR], color='k', lw=0.75, clip_on=False)
 ax1.text(-1.05, SCALEBAR/2, f'{SCALEBAR} sp s$^{-1}$', ha='right', va='center', rotation=90)
-ax1.plot([0.2, 1], [ax1.get_ylim()[1]-0.5, ax1.get_ylim()[1]-0.5], lw=0.5, color='k')
+#ax1.plot([0.2, 1], [ax1.get_ylim()[1]-0.5, ax1.get_ylim()[1]-0.5], lw=0.5, color='k')
 ax1.text(0.6, ax1.get_ylim()[1]-0.5, '***', ha='center', va='center', fontsize=10)
 ax1.plot([0, 1], [ax1.get_ylim()[0]-0.5, ax1.get_ylim()[0]-0.5], color='k', lw=0.75, clip_on=False)
 ax1.text(0.5, ax1.get_ylim()[0]-2, '1s', ha='center', va='top')
