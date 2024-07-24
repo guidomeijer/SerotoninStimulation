@@ -16,17 +16,18 @@ from brainbox.task.closed_loop import generate_pseudo_blocks
 from stim_functions import (paths, combine_regions, load_subjects,
                             high_level_regions, load_trials, calculate_peths)
 from one.api import ONE
-from iblatlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
 # Settings
+SPLIT_ON = 'stim_side'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
-CENTER_ON = 'firstMovement_times'
+CENTER_ON = 'stimOn_times'
 BIN_SIZE = 0.0125
 SMOOTHING = 0.02
-T_BEFORE = 0.2
-T_AFTER = 0
+T_BEFORE = 0
+T_AFTER = 0.2
 MIN_FR = 0.1
 MIN_RT = 0.1
 MAX_RT = 1
@@ -36,9 +37,9 @@ N_SHUFFLES = 500
 # Set paths
 # These data are too large to put on the repo so will be saved in the one cache dir
 _, s_path = paths(save_dir='cache')
-if not isdir(join(s_path, 'manifold')):
-    mkdir(join(s_path, 'manifold'))
-save_path = join(s_path, 'manifold')
+if not isdir(join(s_path, 'manifold', SPLIT_ON)):
+    mkdir(join(s_path, 'manifold', SPLIT_ON))
+save_path = join(s_path, 'manifold', SPLIT_ON)
 _, load_path = paths(save_dir='repo')
 
 # Load in light modulated neurons
@@ -81,10 +82,10 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
     trials = trials[(trials['reaction_times'] <= MAX_RT) & (trials['reaction_times'] >= MIN_RT)]
     
     # Check if there are enough trials for each split
-    if ((trials[(trials['choice'] == -1) & (trials['laser_stimulation'] == 1)].shape[0] < MIN_TRIALS)
-        | (trials[(trials['choice'] == 1) & (trials['laser_stimulation'] == 1)].shape[0] < MIN_TRIALS)
-        | (trials[(trials['choice'] == -1) & (trials['laser_stimulation'] == 0)].shape[0] < MIN_TRIALS)
-        | (trials[(trials['choice'] == 1) & (trials['laser_stimulation'] == 0)].shape[0] < MIN_TRIALS)):
+    if ((trials[(trials[SPLIT_ON] == -1) & (trials['laser_stimulation'] == 1)].shape[0] < MIN_TRIALS)
+        | (trials[(trials[SPLIT_ON] == 1) & (trials['laser_stimulation'] == 1)].shape[0] < MIN_TRIALS)
+        | (trials[(trials[SPLIT_ON] == -1) & (trials['laser_stimulation'] == 0)].shape[0] < MIN_TRIALS)
+        | (trials[(trials[SPLIT_ON] == 1) & (trials['laser_stimulation'] == 0)].shape[0] < MIN_TRIALS)):
         print('Not enough trials for one of the splits')
         continue
 
@@ -100,32 +101,37 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         # Split trials and get mean spike rate per split
         if split == 'L_opto':
             peth_dict[split] = np.mean(binned_spikes[
-                (trials['choice'] == -1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
+                (trials[SPLIT_ON] == -1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
         elif split == 'R_opto':
             peth_dict[split] = np.mean(binned_spikes[
-                (trials['choice'] == 1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
+                (trials[SPLIT_ON] == 1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
         elif split == 'L_no_opto':
             peth_dict[split] = np.mean(binned_spikes[
-                (trials['choice'] == -1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
+                (trials[SPLIT_ON] == -1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
         elif split == 'R_no_opto':
             peth_dict[split] = np.mean(binned_spikes[
-                (trials['choice'] == 1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
+                (trials[SPLIT_ON] == 1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
         
     # Get shuffled data
     for ii in range(N_SHUFFLES):
         
-        # Shuffle choices within pLeft block and stim side
-        # get real block labels and stim sides
+        # Generate pseudo trials
         y_ = trials['probabilityLeft'].values
-        stis = trials['contrastLeft'].values
-
-        # block/stim classes
-        c0 = np.bitwise_and(y_ == 0.8, np.isnan(stis))
-        c1 = np.bitwise_and(y_ != 0.8, np.isnan(stis))
-        c2 = np.bitwise_and(y_ == 0.8, ~np.isnan(stis))
-        c3 = np.bitwise_and(y_ != 0.8, ~np.isnan(stis))
-
-        tr_c = trials['choice']  # true choices
+        if SPLIT_ON == 'choice':
+            # Permute choice labels among trials with the same block and stimulus side
+            stis = trials['contrastLeft'].values
+            c0 = np.bitwise_and(y_ == 0.8, np.isnan(stis))
+            c1 = np.bitwise_and(y_ != 0.8, np.isnan(stis))
+            c2 = np.bitwise_and(y_ == 0.8, ~np.isnan(stis))
+            c3 = np.bitwise_and(y_ != 0.8, ~np.isnan(stis))
+        elif SPLIT_ON == 'stim_side':
+            # Permute stimulus side labels among trials with the same block and choice
+            stis = trials['choice'].values
+            c0 = np.bitwise_and(y_ == 0.8, stis == 1)
+            c1 = np.bitwise_and(y_ != 0.8, stis == 1)
+            c2 = np.bitwise_and(y_ == 0.8, stis == -1)
+            c3 = np.bitwise_and(y_ != 0.8, stis == -1)
+        tr_c = trials[SPLIT_ON]  # true split
         tr_c2 = deepcopy(tr_c)
 
         # shuffle choices within each class
@@ -164,16 +170,16 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
             # Split trials
             if split == 'L_opto':
                 this_peth = np.mean(binned_spikes[
-                    (trials['choice'] == -1) & (opto_pseudo == 1), :, :], axis=0)
+                    (trials[SPLIT_ON] == -1) & (opto_pseudo == 1), :, :], axis=0)
             elif split == 'R_opto':
                 this_peth = np.mean(binned_spikes[
-                    (trials['choice'] == 1) & (opto_pseudo == 1), :, :], axis=0)
+                    (trials[SPLIT_ON] == 1) & (opto_pseudo == 1), :, :], axis=0)
             elif split == 'L_no_opto':
                 this_peth = np.mean(binned_spikes[
-                    (trials['choice'] == -1) & (opto_pseudo == 0), :, :], axis=0)
+                    (trials[SPLIT_ON] == -1) & (opto_pseudo == 0), :, :], axis=0)
             elif split == 'R_no_opto':
                 this_peth = np.mean(binned_spikes[
-                    (trials['choice'] == 1) & (opto_pseudo == 0), :, :], axis=0)
+                    (trials[SPLIT_ON] == 1) & (opto_pseudo == 0), :, :], axis=0)
     
             # Add to 3d array
             if ii == 0:
@@ -193,6 +199,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
     peth_dict['eid'] = eid
     peth_dict['n_shuffles'] = N_SHUFFLES
     peth_dict['center_on'] = CENTER_ON
+    peth_dict['split_on'] = SPLIT_ON
     
     np.save(join(save_path, f'{pid}.npy'), peth_dict)
 
