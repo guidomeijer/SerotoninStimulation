@@ -18,8 +18,9 @@ from stim_functions import (figure_style, paths, load_subjects, high_level_regio
 from sklearn.decomposition import PCA
 
 N_DIM = 10
-SPLIT_ON = 'stim_side'
-#SPLIT_ON = 'choice'
+#SPLIT_ON = 'stim_side'
+SPLIT_ON = 'choice'
+T_BEFORE = 0.03  #s
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
 CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r', 'R_no_opto': 'Blues_r',
               'L_collapsed': 'Reds_r', 'R_collapsed': 'Purples_r', 'no_opto_collapsed': 'Oranges_r', 'opto_collapsed': 'Blues_r'})
@@ -124,7 +125,7 @@ for r, region in enumerate(np.unique(regions)):
                                           - R_no_opto_choice_shuf[regions == region, t, ii])
             this_dist[t, ii] = np.mean([opto_dist, no_opto_dist])
     dist_choice_shuffle[region] = this_dist
-               
+                   
 # Do PCA
 print('Fitting PCA..')
 pca_fit, pca_shuffle = dict(), dict()
@@ -200,9 +201,9 @@ for r, region in enumerate(pca_fit.keys()):
             dot_shuffle[region][t, ii] = dot_prod_L
 """
         
-# Calculate dot product between opto and stim vectors
+# Calculate dot product between opto and stim vectors in PCA space
 # Collapse pca onto choice and opto dimensions
-dot_prod, dot_shuffle = dict(), dict()
+dot_pca, dot_pca_shuffle = dict(), dict()
 for r, region in enumerate(pca_fit.keys()):
     pca_l_col = (pca_fit[region][split_ids == 'L_opto'] + pca_fit[region][split_ids == 'L_no_opto']) / 2
     pca_r_col = (pca_fit[region][split_ids == 'R_opto'] + pca_fit[region][split_ids == 'R_no_opto']) / 2
@@ -210,14 +211,14 @@ for r, region in enumerate(pca_fit.keys()):
     pca_no_opto_col = (pca_fit[region][split_ids == 'L_no_opto'] + pca_fit[region][split_ids == 'R_no_opto']) / 2
 
     # Get the dot product between the two vectors
-    dot_prod[region] = np.empty(n_timepoints)
+    dot_pca[region] = np.empty(n_timepoints)
     for t in range(n_timepoints):
         choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
         opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
-        dot_prod[region][t] = np.abs(np.dot(choice_vec, opto_vec))
+        dot_pca[region][t] = np.abs(np.dot(choice_vec, opto_vec))
         
     # Do the same for all the shuffles
-    dot_shuffle[region] = np.empty((n_timepoints, pca_shuffle[region].shape[2]))
+    dot_pca_shuffle[region] = np.empty((n_timepoints, pca_shuffle[region].shape[2]))
     for ii in range(pca_shuffle[region].shape[2]):
         pca_l_col = (pca_shuffle[region][split_ids == 'L_opto', :, ii]
                      + pca_shuffle[region][split_ids == 'L_no_opto', :, ii]) / 2
@@ -231,8 +232,38 @@ for r, region in enumerate(pca_fit.keys()):
         for t in range(n_timepoints):
             choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
             opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
-            dot_shuffle[region][t, ii] = np.abs(np.dot(choice_vec, opto_vec))
-                
+            dot_pca_shuffle[region][t, ii] = np.abs(np.dot(choice_vec, opto_vec))
+                   
+# %% Get summary per region over the last couple of points before the choice
+
+summary_df = pd.DataFrame(data={
+    'region': dot_pca.keys(),
+    'dot_prod': [np.mean(dot_pca[i][time_ax > -T_BEFORE]) for i in dot_pca.keys()],
+    'dot_shuffle': [np.mean(np.nanquantile(dot_pca_shuffle[i], 0.05, axis=1)[
+        time_ax > -T_BEFORE]) for i in dot_pca.keys()],
+    'choice': [np.mean(dist_choice[i][time_ax > -T_BEFORE]) for i in dot_pca.keys()],
+    'choice_shuffle': [np.mean(np.nanquantile(dist_choice_shuffle[i], 0.95, axis=1)[
+        time_ax > -T_BEFORE]) for i in dot_pca.keys()],
+    'opto': [np.mean(dist_opto[i][time_ax > -T_BEFORE]) for i in dot_pca.keys()],
+    'opto_shuffle': [np.mean(np.nanquantile(dist_opto_shuffle[i], 0.95, axis=1)[
+        time_ax > -T_BEFORE]) for i in dot_pca.keys()],
+    })            
+summary_df['dot_over_chance'] = summary_df['dot_shuffle'] - summary_df['dot_prod']
+summary_df['choice_over_chance'] = summary_df['choice'] - summary_df['choice_shuffle']
+summary_df['opto_over_chance'] = summary_df['opto'] - summary_df['opto_shuffle']
+summary_df = summary_df.sort_values(by='choice_over_chance', ascending=False)
+
+f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(5.25, 1.75), dpi=dpi,
+                                  sharey=True)
+sns.barplot(data=summary_df, x='choice_over_chance', y='region', ax=ax1)
+ax1.set(ylabel='')
+
+sns.barplot(data=summary_df, x='opto_over_chance', y='region', ax=ax2)
+
+sns.barplot(data=summary_df, x='dot_over_chance', y='region', ax=ax3)
+
+sns.despine(trim=True)
+plt.tight_layout()
                    
 # %% Plot Eucledian distance of all regions
 f, axs = plt.subplots(1, len(dist_opto.keys()), figsize=(7, 1.75), dpi=dpi)
@@ -286,22 +317,20 @@ for r, region in enumerate(pca_fit.keys()):
 plt.tight_layout()
 plt.savefig(join(fig_path, 'pca_all_regions.pdf'))
 
-
-
 # %%
 f, axs = plt.subplots(1, len(dist_opto.keys()), figsize=(7, 1.75), dpi=dpi, sharey=True)
-for r, region in enumerate(dot_prod.keys()):
+for r, region in enumerate(dot_pca.keys()):
     axs[r].fill_between(time_ax,
-                        np.quantile(dot_shuffle[region], 0.05, axis=1),
-                        np.quantile(dot_shuffle[region], 0.95, axis=1),
+                        np.quantile(dot_pca_shuffle[region], 0.05, axis=1),
+                        np.quantile(dot_pca_shuffle[region], 0.95, axis=1),
                         color='grey', alpha=0.25, lw=0)
-    axs[r].plot(time_ax, dot_prod[region], marker='o', ms=1.5)
+    axs[r].plot(time_ax, dot_pca[region], marker='o', ms=1.5)
     #axs[r].plot([0, 0], axs[r].get_ylim(), ls='--', color='grey', lw=0.75, zorder=0)
     axs[r].set(title=f'{region}', yticks=[0, 800], ylim=[-20, 800], xlabel='Time to choice (s)')
 axs[0].set_ylabel('Dot product', labelpad=-10)
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, 'dot_prod_all_regions.pdf'))
+plt.savefig(join(fig_path, 'dot_prod_pca_all_regions.pdf'))
 
 # %% Plot frontal cortex
 
@@ -324,6 +353,10 @@ for sp in SPLITS:
 ax.set(title='Frontal cortex')
 plt.tight_layout()
 plt.savefig(join(fig_path, 'pca_frontal-cortex.pdf'))
+
+# %%
+
+
     
     
     

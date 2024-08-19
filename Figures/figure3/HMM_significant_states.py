@@ -9,7 +9,7 @@ Created on Mon Oct 30 13:26:54 2023
 import numpy as np
 from os.path import join, realpath, dirname, split
 import pandas as pd
-import pickle
+import pickle, gzip
 import seaborn as sns
 import matplotlib.pyplot as plt
 from glob import glob
@@ -26,7 +26,7 @@ MIN_REC = 3
 # Get paths
 f_path, repo_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
-data_path = join(repo_path, 'HMM', 'PassiveEvent')
+data_path = join(repo_path, 'HMM', 'PassiveEvent', 'spont')
 rec_files = glob(join(data_path, '*.pickle'))
 
 subjects = load_subjects()
@@ -39,7 +39,7 @@ for i, file_path in enumerate(rec_files):
         continue
     
     # Load in data    
-    with open(file_path, 'rb') as handle:
+    with gzip.open(file_path, 'rb') as handle:
         hmm_dict = pickle.load(handle)    
     state_mat, time_ax = hmm_dict['state_mat'], hmm_dict['time_ax']
     n_states = hmm_dict['prob_mat'].shape[2]
