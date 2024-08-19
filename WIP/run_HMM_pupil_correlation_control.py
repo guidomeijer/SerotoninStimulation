@@ -7,9 +7,10 @@ Created on Mon Oct 30 13:26:54 2023
 
 
 import numpy as np
-from os.path import join, split, isfile
+from os.path import join, realpath, dirname, split
 import pandas as pd
 import pickle
+import gzip
 import seaborn as sns
 import matplotlib.pyplot as plt
 from glob import glob
@@ -20,19 +21,18 @@ from stim_functions import (paths, query_ephys_sessions, load_passive_opto_times
 one = init_one()
 
 # Settings
-OVERWITE = True
+OVERWITE = False
 
 # Get paths
 parent_fig_path, repo_path = paths()
-_, cache_path = paths(save_dir='cache')
-data_path = join(repo_path, 'HMM', 'PassiveEvent')
+data_path = join(repo_path, 'HMM', 'PassiveEvent', 'spont')
 rec_files = glob(join(data_path, '*.pickle'))
 subjects = load_subjects()
 
 if OVERWITE:
     state_pupil_df = pd.DataFrame()
 else:
-    state_pupil_df = pd.read_csv(join(repo_path, 'state_pupil_corr_baseline.csv'))
+    state_pupil_df = pd.read_csv(join(repo_path, 'state_pupil_corr.csv'))
 
 for i, file_path in enumerate(rec_files):
     
@@ -44,42 +44,37 @@ for i, file_path in enumerate(rec_files):
         continue
     
     # Load in data    
-    with open(file_path, 'rb') as handle:
+    with gzip.open(file_path, 'rb') as handle:
         hmm_dict = pickle.load(handle)    
     prob_mat, time_ax = hmm_dict['prob_mat'], hmm_dict['time_ax']
     bin_size = np.mean(np.diff(time_ax))
     n_states = hmm_dict['prob_mat'].shape[2]
+    event_times, event_ids = hmm_dict['event_times'], hmm_dict['event_ids']
     region = split(file_path)[-1].split('_')[-1].split('.')[0]
-    bl_time_ax = time_ax[time_ax < 0]
-
-    # Load in pupil diameter
-    if not isfile(join(repo_path, 'PupilDiameter', f'{hmm_dict["eid"]}.npy')):
-        print('Loading and smoothing pupil trace..')
-        eid = one.search(subject=subject, date=date)[0]
-        video_times, XYs = get_dlc_XYs(one, eid)
-        if XYs is None:
-            continue
-        _, diameter = get_raw_smooth_pupil_diameter(XYs)
-        np.save(join(cache_path, 'PupilDiameter', f'{hmm_dict["eid"]}_diameter.npy'), diameter)
-        np.save(join(cache_path, 'PupilDiameter', f'{hmm_dict["eid"]}_times.npy'), video_times)
-    else:
-        diameter = np.load(join(cache_path, f'{eid}_diameter.npy'))
-        video_times = np.load(join(cache_path, f'{eid}_times.npy'))
+    prob_mat = prob_mat[event_ids == 0, :, :]
     
-        
+    # Load in pupil diameter
+    print('Loading and smoothing pupil trace..')
+    eid = one.search(subject=subject, date=date)[0]
+    video_times, XYs = get_dlc_XYs(one, eid)
+    if XYs is None:
+        continue
+    _, diameter = get_raw_smooth_pupil_diameter(XYs)
+    
     # Get average pupil diameter during states of passive events
-    state_pupil = np.empty((hmm_dict['event_times'].shape[0], bl_time_ax.shape[0]))
-    for i_e, this_event in enumerate(hmm_dict['event_times']):
-        this_diameter = np.empty(bl_time_ax.shape[0])
-        for i_tb, this_bin in enumerate(bl_time_ax + this_event):
+    state_pupil = np.empty((np.sum(event_ids == 0), time_ax.shape[0]))
+    for i_e, this_event in enumerate(event_times[event_ids == 0]):
+        this_diameter = np.empty(time_ax.shape[0])
+        for i_tb, this_bin in enumerate(time_ax + this_event):
             this_diameter[i_tb] = np.nanmean(diameter[(video_times > this_bin - (bin_size/2)) & 
                                                       (video_times <= this_bin + (bin_size/2))])
         state_pupil[i_e, :] = this_diameter
-    
+            
     # Correlate pupil with state probability
     r_state, p_state = np.empty(n_states), np.empty(n_states)
     for this_state in range(n_states):
-        this_prob = prob_mat[:, time_ax < 0, this_state].flatten()
+        
+        this_prob = prob_mat[:, :, this_state].flatten()
         this_pupil = state_pupil.flatten()
         if this_pupil[~np.isnan(this_pupil)].shape[0] < 10:
             continue
@@ -95,7 +90,7 @@ for i, file_path in enumerate(rec_files):
         'state': np.arange(n_states), 'r': r_state, 'p': p_state,
         'subject': subject, 'date': date, 'region': region,
         'file_name': file_name})))
-    state_pupil_df.to_csv(join(repo_path, 'state_pupil_corr_baseline.csv'), index=False)
+    state_pupil_df.to_csv(join(repo_path, 'state_pupil_corr.csv'), index=False)
         
         
             

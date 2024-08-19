@@ -27,15 +27,13 @@ one = init_one()
 # Settings
 BIN_SIZE = 0.1  # s
 INCL_NEURONS = 'all'  # all, sig or non-sig
-PRE_TIME = 1  # final time window to use
-POST_TIME = 4
-HMM_PRE_TIME = 2  # time window to run HMM on
-HMM_POST_TIME = 5
+PRE_TIME = 2  # time window to run HMM on
+POST_TIME = 5
 MIN_NEURONS = 5
 CMAP = 'Set2'
 PTRANS_SMOOTH = BIN_SIZE
 OVERWRITE = True
-PLOT = True
+PLOT = False
 N_STATE_SELECT = 'global'  # global or region
 
 # Get paths
@@ -113,12 +111,10 @@ for i in rec.index.values:
         # Get binned spikes centered at stimulation onset
         peth, binned_spikes = calculate_peths(spikes.times, spikes.clusters, clusters_in_region,
                                               opto_times,
-                                              pre_time=HMM_PRE_TIME, post_time=HMM_POST_TIME,
+                                              pre_time=PRE_TIME, post_time=POST_TIME,
                                               bin_size=BIN_SIZE, smoothing=0, return_fr=False)
         binned_spikes = binned_spikes.astype(int)
-        full_time_ax = peth['tscale']
-        use_timepoints = (full_time_ax > -PRE_TIME) & (full_time_ax < POST_TIME)
-        time_ax = full_time_ax[use_timepoints]
+        time_ax = peth['tscale']
 
         # Create list of (time_bins x neurons) per stimulation trial
         trial_data = []
@@ -129,9 +125,9 @@ for i in rec.index.values:
         lls = simple_hmm.fit(trial_data, method='em', transitions='sticky')
 
         # Loop over trials
-        trans_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-        state_mat = np.empty((len(trial_data), full_time_ax.shape[0])).astype(int)
-        prob_mat = np.empty((len(trial_data), full_time_ax.shape[0], n_states))
+        trans_mat = np.empty((len(trial_data), time_ax.shape[0])).astype(int)
+        state_mat = np.empty((len(trial_data), time_ax.shape[0])).astype(int)
+        prob_mat = np.empty((len(trial_data), time_ax.shape[0], n_states))
 
         for t in range(len(trial_data)):
 
@@ -149,17 +145,14 @@ for i in rec.index.values:
         p_trans = np.mean(trans_mat, axis=0)
         smooth_p_trans = gaussian_filter(p_trans, PTRANS_SMOOTH / BIN_SIZE)
 
-        # Select time period to use
-        trans_mat = trans_mat[:, use_timepoints]
-        smooth_p_trans = smooth_p_trans[use_timepoints]
-        prob_mat = prob_mat[:, np.concatenate(([False], use_timepoints[:-1])), :]
-        state_mat = state_mat[:, use_timepoints]
-
         # Save the trial-level P(state) data and zhat matrix
         hmm_dict = dict()
         hmm_dict['prob_mat'] = prob_mat
         hmm_dict['state_mat'] = state_mat
         hmm_dict['time_ax'] = time_ax
+        hmm_dict['event_times'] = opto_times
+        hmm_dict['eid'] = eid
+        hmm_dict['pid'] = pid
         with open(join(save_path, 'HMM', 'PassiveEvent', f'{subject}_{date}_{region}.pickle'),
                   'wb') as fp:
             pickle.dump(hmm_dict, fp)
