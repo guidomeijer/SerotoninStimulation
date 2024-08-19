@@ -18,7 +18,7 @@ ba = AllenAtlas()
 # Settings
 T_BEFORE = 1
 T_AFTER = 4
-BIN_SIZE = 0.05
+BIN_SIZE = 0.2
 OVERWRITE = True
 
 # Query sessions
@@ -115,4 +115,4 @@ for i, eid in enumerate(np.unique(rec['eid'])[1:]):
                 'eid': eid, 'date': date, 'sert-cre': sert_cre})), ignore_index=True)
 
     # Save to disk
-    mi_df.to_csv(join(save_path, 'region_mutual_information.csv'), index=False)
+    mi_df.to_csv(join(save_path, f'region_mutual_information_{int(BIN_SIZE*1000)}ms.csv'), index=False)

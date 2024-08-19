@@ -11,17 +11,18 @@ from scipy.stats import pearsonr
 from brainbox.io.one import SpikeSortingLoader
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
                             get_artifact_neurons, get_neuron_qc, init_one,
-                            calculate_peths, combine_regions, load_subjects)
-from ibllib.atlas import AllenAtlas
+                            calculate_peths, combine_regions, load_subjects,
+                            high_level_regions)
+from iblatlas.atlas import AllenAtlas
 one = init_one()
 ba = AllenAtlas()
 
 # Settings
 T_BEFORE = 1
-T_AFTER = 4
-BIN_SIZE = 0.1
+T_AFTER = 3
+BIN_SIZE = 0.2
 SMOOTHING = 0
-SUBTRACT_MEAN = False
+SUBTRACT_MEAN = True
 OVERWRITE = True
 
 # Query sessions
@@ -69,7 +70,7 @@ for i, eid in enumerate(np.unique(rec['eid'])):
         clusters_pass = np.where(qc_metrics['label'] == 1)[0]
         clusters_pass = clusters_pass[~np.isin(clusters_pass, artifact_neurons.loc[
             artifact_neurons['pid'] == pid, 'neuron_id'].values)]
-        clusters['region'] = combine_regions(remap(clusters['acronym']))
+        clusters['region'] = high_level_regions(clusters['acronym'])
 
         # Get binned spike counts per region
         for j, region in enumerate(np.unique(clusters['region'])):
