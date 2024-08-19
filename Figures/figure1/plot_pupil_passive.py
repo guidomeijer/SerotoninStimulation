@@ -23,7 +23,7 @@ pupil_df = pupil_df[pupil_df['expression'] == 1]
 
 # Plot
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(figsize=(1.6, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(figsize=(1.4, 1.6), dpi=dpi)
 ax1.add_patch(Rectangle((0, -4), 1, 11, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=pupil_df, x='time', y='baseline_subtracted', 
              errorbar='se', ax=ax1, err_kws={'lw': 0}, color='k')

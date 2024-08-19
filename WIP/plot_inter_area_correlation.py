@@ -16,7 +16,7 @@ from stim_functions import paths, figure_style
 import networkx as nx
 
 # Settings
-BIN_SIZE = 100
+BIN_SIZE = 200
 MIN_SUBJECTS = 2
 TIME_WIN = [0.2, 0.8]
 
@@ -35,7 +35,7 @@ sert_df = corr_df[corr_df['sert-cre'] == 1]
 # Get time axis extend
 time_min = np.min(sert_df['time']) - (BIN_SIZE/1000)/2
 time_max = np.max(sert_df['time']) + (BIN_SIZE/1000)/2
-xticks = [time_min, 0, 1, time_max]
+xticks = [-1, 0, 1, 2, 3]
 
 # Plot all region pairs
 colors, dpi = figure_style()
@@ -65,12 +65,12 @@ for r1, region_1 in enumerate(all_regions[:-1]):
         f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
         ax1.add_patch(Rectangle((0, -1), 1, 2, color='royalblue', alpha=0.25, lw=0))
         ax1.plot([time_min, time_max], [0, 0], color='grey', ls='--')
-        sns.lineplot(x='time', y='r', data=slice_df, legend=None, errorbar='se',
+        sns.lineplot(x='time', y='r', data=slice_df[slice_df['sert-cre'] == 1], legend=None, errorbar='se',
                      color='k', err_kws={'lw': 0})
         n_sert = np.unique(slice_df.loc[slice_df['sert-cre'] == 1, 'subject']).shape[0]
         ax1.set(xlabel='Time (s)', ylabel='Baseline subtracted \n pairwise correlation (r)',
                 title=f'{region_1} - {region_2} (n={n_sert})', xticks=xticks,
-                ylim=[-0.02, 0.05])
+                xlim=[np.min(xticks), np.max(xticks)], ylim=[-0.02, 0.05])
       
         sns.despine(trim=True)
         plt.tight_layout()
@@ -81,14 +81,11 @@ for r1, region_1 in enumerate(all_regions[:-1]):
 # %%
 f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
 ax1.add_patch(Rectangle((0, -1), 1, 2, color='royalblue', alpha=0.25, lw=0))
-sns.lineplot(data=corr_df, x='time', y='r', ax=ax1, errorbar='se', hue='sert-cre',
-             err_kws={'lw': 0}, hue_order=[0, 1], palette=[colors['wt'], colors['sert']])
-ax1.set(ylabel='Correlation (r)', xlabel='Time from stimulation start (s)', ylim=[0, 0.02],
-        yticks=[0, 0.02], xticks=xticks)
-g = ax1.legend(title='', bbox_to_anchor=(0.6, 0.25), prop={'size': 5})
-new_labels = ['label 1', 'label 2']
-for t, l in zip(g.texts, ['WT', 'SERT']):
-    t.set_text(l)
+sns.lineplot(data=corr_df[corr_df['sert-cre'] == 1], x='time', y='r_baseline', ax=ax1,
+             errorbar='se', err_kws={'lw': 0}, color='k')
+ax1.set(xlabel='Time from stimulation start (s)', ylim=[-0.005, 0.01], title='All region pairs',
+        yticks=[-0.005, 0.01], xticks=xticks, xlim=[np.min(xticks), np.max(xticks)])
+ax1.set_ylabel('Baseline subtracted \n pairwise correlation (r)', labelpad=-10)
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'Extra plots', 'Correlation', f'{BIN_SIZE}ms', 'Summary.jpg'), dpi=600)

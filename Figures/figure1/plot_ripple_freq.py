@@ -34,13 +34,13 @@ ripple_df = ripple_df[ripple_df['sert-cre'] == 1]
 
 # %% Plot
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(figsize=(1.6, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(figsize=(1.4, 1.6), dpi=dpi)
 ax1.add_patch(Rectangle((0, 0), 1, 0.35, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=ripple_df, x='time', y='ripple_freq', errorbar='se', color='k',
              err_kws={'lw': 0})
 ax1.text(1.5, 0.32, f'n = {np.unique(ripple_df["subject"]).shape[0]} mice', ha='left', va='center')
 ax1.set(xticks=[], ylim=[0, 0.35], yticks=[0, 0.35], yticklabels=[0, 0.35], xlabel='')
-ax1.set_ylabel('Hippocampal sharp wave\nripple rate', labelpad=-10)
+ax1.set_ylabel('Hippocampal sharp\nwave ripple rate', labelpad=-10)
 ax1.plot([0, 1], [ax1.get_ylim()[0]-0.008, ax1.get_ylim()[0]-0.008], color='k', lw=0.75, clip_on=False)
 ax1.text(0.5, ax1.get_ylim()[0]-0.02, '1s', ha='center', va='top')
 
