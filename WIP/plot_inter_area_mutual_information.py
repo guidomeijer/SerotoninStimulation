@@ -17,7 +17,7 @@ import networkx as nx
 
 # Settings
 MIN_SUBJECTS = 2
-BIN_SIZE = 0.05
+BIN_SIZE = 0.1
 TIME_WIN = [-1, 3]
 
 # Get paths

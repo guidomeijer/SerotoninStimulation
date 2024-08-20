@@ -8,7 +8,6 @@ By: Guido Meijer
 import numpy as np
 from os.path import join, realpath, dirname, split
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 from brainbox.task.closed_loop import roc_single_event
 from sklearn.metrics import roc_curve
 from brainbox.population.decode import get_spike_counts_in_bins
@@ -16,18 +15,26 @@ from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
 from zetapy import getZeta
 from brainbox.plot import peri_event_time_histogram
-from stim_functions import paths, remap, load_passive_opto_times, figure_style
-from one.api import ONE
-from ibllib.atlas import AllenAtlas
-ba = AllenAtlas()
-one = ONE()
+from stim_functions import paths, remap, load_passive_opto_times, figure_style, init_one
+one = init_one()
 
 # Settings
-TITLE = 'Frontal (mPFC) neuron'
-SUBJECT = 'ZFM-05181'
-DATE = '2023-01-10'
+"""
+# frontal cortex enhancement
+TITLE = 'Frontal cortex (PL) neuron'
+SUBJECT = 'ZFM-03330'
+DATE = '2022-02-15'
 PROBE = 'probe00'
-NEURON = 385
+NEURON = 323
+SCALEBAR = 30
+"""
+
+# Good example CA1
+TITLE = 'Hippocampus (CA1) neuron'
+SUBJECT = 'ZFM-04820'
+DATE = '2022-09-15'
+PROBE = 'probe00'
+NEURON = 1039
 SCALEBAR = 10
 
 T_BEFORE = 1  # for plotting
@@ -51,7 +58,7 @@ eid = ins[0]['session']
 opto_train_times, _ = load_passive_opto_times(eid, one=one)
 
 # Load in spikes
-sl = SpikeSortingLoader(pid=pid, one=one, atlas=ba)
+sl = SpikeSortingLoader(pid=pid, one=one)
 spikes, clusters, channels = sl.load_spike_sorting()
 clusters = sl.merge_clusters(spikes, clusters, channels)
 
@@ -101,7 +108,7 @@ print(f'ZETA p-value: {p_value}')
 
 # %% Plot PSTH
 colors, dpi = figure_style()
-p, ax = plt.subplots(1, 1, figsize=(1.25, 1.75), dpi=dpi)
+p, ax = plt.subplots(1, 1, figsize=(1.25, 2), dpi=dpi)
 ax.add_patch(Rectangle((0, 0), 1, 100, color='royalblue', alpha=0.25, lw=0))
 ax.add_patch(Rectangle((0, 0), 1, -100, color='royalblue', alpha=0.25, lw=0))
 peri_event_time_histogram(spikes.times, spikes.clusters, opto_train_times,
@@ -113,11 +120,14 @@ peri_event_time_histogram(spikes.times, spikes.clusters, opto_train_times,
                           eventline_kwargs={'lw': 0})
 ax.plot([-1.05, -1.05], [0, SCALEBAR], color='k', lw=0.75, clip_on=False)
 ax.text(-1.05, SCALEBAR/2, f'{SCALEBAR} sp s$^{-1}$', ha='right', va='center', rotation=90)
-
-ax.text(0.5, 12, '***', ha='center', va='center', fontsize=10)
-ax.plot([0, 1], [ax.get_ylim()[0]-0.5, ax.get_ylim()[0]-0.5], color='k', lw=0.75, clip_on=False)
-ax.text(0.5, ax.get_ylim()[0]-1, '1s', ha='center', va='top')
-
+if NEURON == 1039:
+    ax.text(0.5, 16, '***', ha='center', va='center', fontsize=10)
+    ax.plot([0, 1], [ax.get_ylim()[0]-0.5, ax.get_ylim()[0]-0.5], color='k', lw=0.75, clip_on=False)
+    ax.text(0.5, ax.get_ylim()[0]-1, '1s', ha='center', va='top')
+elif NEURON == 323:
+    ax.text(0.5, 3, '***', ha='center', va='center', fontsize=10)
+    ax.plot([0, 1], [ax.get_ylim()[0]-1, ax.get_ylim()[0]-1], color='k', lw=0.75, clip_on=False)
+    ax.text(0.5, ax.get_ylim()[0]-2, '1s', ha='center', va='top')
 ax.axis('off')
 ax.set(title=TITLE)
 

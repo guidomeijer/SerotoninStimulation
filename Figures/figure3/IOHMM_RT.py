@@ -24,7 +24,7 @@ trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
 # Paths
 f_path, save_path = paths()
 fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-1])
-asd
+
 # Initialize
 one = init_one()
 colors, dpi = figure_style()
@@ -230,7 +230,8 @@ sns.lineplot(data=block_df, x='trial', y='p_state_bl', hue='opto', ax=ax1,
              hue_order=[1, 0], palette=[colors['stim'], colors['no-stim']],
              errorbar='se', err_kws={'lw': 0})
 ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey', lw=0.5)
-ax1.set(ylabel='P(state)', yticks=[-15, -10, -5, 0, 5, 10], xticks=[-20, 0, 20, 40, 60, 80],
+ax1.set(ylabel='Prob. of engaged state (%)', yticks=[-15, -10, -5, 0, 5, 10],
+        xticks=[-20, 0, 20, 40, 60, 80],
         xlabel='Trials since 5-HT start')
 
 leg_handles, _ = ax1.get_legend_handles_labels()
