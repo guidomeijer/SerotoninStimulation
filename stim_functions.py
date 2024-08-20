@@ -11,6 +11,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import tkinter as tk
+import patsy
+import statsmodels.api as sm
+from sklearn.model_selection import KFold
 from scipy.stats import binned_statistic
 from scipy.signal import convolve
 from scipy.signal.windows import gaussian
@@ -189,8 +192,8 @@ def figure_style():
               'suppressed': sns.color_palette('colorblind')[0],
               'down-state': sns.color_palette('colorblind')[3],
               'up-state': [1, 1, 1],
-              'stim': [0, 0, 0],
-              'no-stim': [0.7, 0.7, 0.7],
+              'stim': 'dodgerblue',
+              'no-stim': [0.65, 0.65, 0.65],
               'NS': sns.color_palette('Set2')[0],
               'WS': sns.color_palette('Set2')[1],
               'WS1': sns.color_palette('Set2')[1],
@@ -1561,3 +1564,69 @@ def get_bias(trials):
     bias_left = psy.erf_psycho_2gammas(pars_left, 0)
 
     return bias_right - bias_left
+
+
+def fit_glm(behav, prior_blocks=True, opto_stim=False, folds=3):
+
+    # drop trials with contrast-level 50, only rarely present (should not be its own regressor)
+    behav = behav[np.abs(behav.signed_contrast) != 50]
+
+    # add extra parameters to GLM
+    model_str = 'choice ~ 1 + stimulus_side:C(contrast, Treatment) + previous_choice + block_id + laser_stimulation'
+  
+    # drop NaNs
+    behav = behav.dropna(subset=['trial_feedback_type', 'choice', 'previous_choice']).reset_index(drop=True)
+
+    # use patsy to easily build design matrix
+    endog, exog = patsy.dmatrices(model_str, data=behav, return_type='dataframe')
+
+    # remove the one column (with 0 contrast) that has no variance
+    if 'stimulus_side:C(contrast, Treatment)[0.0]' in exog.columns:
+        exog.drop(columns=['stimulus_side:C(contrast, Treatment)[0.0]'], inplace=True)
+
+    # recode choices for logistic regression
+    endog['choice'] = endog['choice'].map({-1:0, 1:1})
+
+    # rename columns
+    exog.rename(columns={'Intercept': 'bias',
+             'stimulus_side:C(contrast, Treatment)[6.25]': '6.25',
+             'stimulus_side:C(contrast, Treatment)[12.5]': '12.5',
+             'stimulus_side:C(contrast, Treatment)[25.0]': '25',
+             'stimulus_side:C(contrast, Treatment)[50.0]': '50',
+             'stimulus_side:C(contrast, Treatment)[100.0]': '100'},
+             inplace=True)
+
+    # NOW FIT THIS WITH STATSMODELS - ignore NaN choices
+    logit_model = sm.Logit(endog, exog)
+    res = logit_model.fit_regularized(disp=False) # run silently
+
+    # what do we want to keep?
+    params = pd.DataFrame(res.params).T
+    params['pseudo_rsq'] = res.prsquared # https://www.statsmodels.org/stable/generated/statsmodels.discrete.discrete_model.LogitResults.prsquared.html?highlight=pseudo
+    params['condition_number'] = np.linalg.cond(exog)
+
+    # ===================================== #
+    # ADD MODEL ACCURACY - cross-validate
+
+    kf = KFold(n_splits=folds, shuffle=True)
+    acc = np.array([])
+    for train, test in kf.split(endog):
+        X_train, X_test, y_train, y_test = exog.loc[train], exog.loc[test], \
+                                           endog.loc[train], endog.loc[test]
+        # fit again
+        logit_model = sm.Logit(y_train, X_train)
+        res = logit_model.fit_regularized(disp=False)  # run silently
+
+        # compute the accuracy on held-out data [from Luigi]:
+        # suppose you are predicting Pr(Left), let's call it p,
+        # the % match is p if the actual choice is left, or 1-p if the actual choice is right
+        # if you were to simulate it, in the end you would get these numbers
+        y_test['pred'] = res.predict(X_test)
+        y_test.loc[y_test['choice'] == 0, 'pred'] = 1 - y_test.loc[y_test['choice'] == 0, 'pred']
+        acc = np.append(acc, y_test['pred'].mean())
+
+    # average prediction accuracy over the K folds
+    params['accuracy'] = np.mean(acc)
+   
+
+    return params  # wide df
