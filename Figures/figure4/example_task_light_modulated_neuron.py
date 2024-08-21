@@ -17,7 +17,7 @@ ba = AllenAtlas()
 one = init_one()
 
 # Settings
-"""
+
 TITLE = 'Frontal cortex (ACA)'
 SUBJECT = 'ZFM-02600'
 DATE = '2021-08-25'
@@ -32,7 +32,7 @@ DATE = '2022-12-08'
 PROBE = 'probe00'
 NEURON = 395
 SCALEBAR = 15
-
+"""
 
 T_BEFORE = 1  # for plotting
 T_AFTER = 2

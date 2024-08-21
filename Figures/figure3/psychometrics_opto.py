@@ -20,7 +20,7 @@ one = ONE()
 
 # Settings
 MIN_TRIALS = 500
-PLOT_SINGLE_ANIMALS = False
+PLOT_SINGLE_ANIMALS = True
 subjects = load_subjects()
 colors, dpi = figure_style()
 
@@ -65,11 +65,9 @@ for i, nickname in enumerate(subjects['subject']):
     perf_no_opto = (trials.loc[trials['laser_stimulation'] == 0, 'correct'].sum()
                     / trials.loc[trials['laser_stimulation'] == 0, 'correct'].shape[0]) * 100
 
-    # Get RT
-    rt_no_stim = trials[(trials['laser_stimulation'] == 0)
-                        & (trials['laser_probability'] == 0.25)].median()['reaction_times']
-    rt_stim = trials[(trials['laser_stimulation'] == 1)
-                     & (trials['laser_probability'] == 0.75)].median()['reaction_times']
+    # Get RT/
+    rt_no_stim = trials[trials['laser_stimulation'] == 0].median()['reaction_times']
+    rt_stim = trials[trials['laser_stimulation'] == 1].median()['reaction_times']
     rt_catch_no_stim = trials[(trials['laser_stimulation'] == 0)
                               & (trials['laser_probability'] == 0.25)].median()['reaction_times']
     rt_catch_stim = trials[(trials['laser_stimulation'] == 1)
@@ -118,7 +116,8 @@ for i, nickname in enumerate(subjects['subject']):
 
     # Plot
     if PLOT_SINGLE_ANIMALS:
-        f, ax1 = plt.subplots(figsize=(1.75, 2), dpi=dpi)
+       
+        f, ax1 = plt.subplots(figsize=(2, 2), dpi=dpi)
 
         # plot_psychometric(trials[trials['probabilityLeft'] == 0.5], ax=ax1, color='k')
         plot_psychometric(trials[(trials['probabilityLeft'] == 0.8)
@@ -133,13 +132,13 @@ for i, nickname in enumerate(subjects['subject']):
         plot_psychometric(trials[(trials['probabilityLeft'] == 0.2)
                                  & (trials['laser_stimulation'] == 1)], ax=ax1,
                           color=colors['right-stim'])
-        #ax1.text(-20, 0.75, '80% right', color=colors['right'])
-        #ax1.text(20, 0.25, '80% left', color=colors['left'])
 
         sns.despine(trim=True)
         #plt.tight_layout()
         plt.subplots_adjust(left=0.21, right=0.98, bottom=0.2, top=0.95)
+        
         plt.savefig(join(fig_path, '%s_opto_behavior_psycurve.pdf' % nickname))
+        plt.close(f)
         
 psy_avg_block_df = psy_df.groupby(['subject', 'opto_stim']).mean()
 psy_avg_block_df['lapse_both'] = psy_avg_block_df.loc[:, 'lapse_l':'lapse_r'].mean(axis=1)
