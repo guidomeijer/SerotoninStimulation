@@ -18,6 +18,8 @@ from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
 MIN_NEURONS = 15
+MIN_NEURONS_PER_MOUSE = 5
+MIN_REC = 2
 
 # Get paths
 f_path, save_path = paths()
@@ -29,51 +31,64 @@ task_mod_over_time = pd.read_pickle(join(save_path, 'mod_over_time_task.pickle')
 passive_mod_over_time = pd.read_pickle(join(save_path, 'mod_over_time.pickle'))
 
 # Load in modulation index
-task_mod = pd.read_csv(join(save_path, 'task_modulated_neurons.csv'))
-passive_mod = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
-
-# Merge dataframes
-task_neurons = pd.merge(task_mod_over_time, task_mod,
-                        on=['pid', 'subject', 'date', 'neuron_id', 'region'])
-passive_neurons = pd.merge(passive_mod_over_time, passive_mod,
-                           on=['pid', 'subject', 'date', 'neuron_id', 'region'])
-
-# Get max modulation
-task_neurons['task_mod_idx'] = [i[np.argmax(np.abs(i))] for i in task_neurons['mod_idx']]
-passive_neurons['passive_mod_idx'] = [i[np.argmax(np.abs(i))] for i in passive_neurons['mod_idx']]
+all_task_neurons = pd.read_csv(join(save_path, 'task_modulated_neurons.csv'))
+all_passive_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 
 # Add genotype and subject number
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
-    task_neurons.loc[task_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
-    task_neurons.loc[task_neurons['subject'] == nickname, 'subject_nr'] = subjects.loc[subjects['subject'] == nickname, 'subject_nr'].values[0]
-    passive_neurons.loc[passive_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
-    passive_neurons.loc[passive_neurons['subject'] == nickname, 'subject_nr'] = subjects.loc[subjects['subject'] == nickname, 'subject_nr'].values[0]
+    all_task_neurons.loc[all_task_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+    all_passive_neurons.loc[all_passive_neurons['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
 # Only sert-cre mice
-task_neurons = task_neurons[task_neurons['sert-cre'] == 1]
-passive_neurons = passive_neurons[passive_neurons['sert-cre'] == 1]
+all_task_neurons = all_task_neurons[all_task_neurons['sert-cre'] == 1]
+all_passive_neurons = all_passive_neurons[all_passive_neurons['sert-cre'] == 1]
+
+# Only high level regions
+all_task_neurons['full_region'] = combine_regions(all_task_neurons['region'])
+all_passive_neurons['full_region'] = combine_regions(all_passive_neurons['region'])
+all_task_neurons = all_task_neurons[all_task_neurons['full_region'] != 'root']
+all_passive_neurons = all_passive_neurons[all_passive_neurons['full_region'] != 'root']
+
+# Merge dataframes
+task_neurons = pd.merge(task_mod_over_time, all_task_neurons,
+                        on=['pid', 'subject', 'date', 'neuron_id', 'region'])
+passive_neurons = pd.merge(passive_mod_over_time, all_passive_neurons,
+                           on=['pid', 'subject', 'date', 'neuron_id', 'region'])
 
 # Only modulated neurons
 task_neurons = task_neurons[task_neurons['opto_modulated'] == 1]
 passive_neurons = passive_neurons[passive_neurons['modulated'] == 1]
 
-# Drop root and void
-task_neurons = task_neurons[(task_neurons['region'] != 'root') & (task_neurons['region'] != 'void')]
-passive_neurons = passive_neurons[(passive_neurons['region'] != 'root') & (passive_neurons['region'] != 'void')]
+# Get max modulation
+task_neurons['task_mod_idx'] = [i[np.argmax(np.abs(i))] for i in task_neurons['mod_idx']]
+passive_neurons['passive_mod_idx'] = [i[np.argmax(np.abs(i))] for i in passive_neurons['mod_idx']]
 
-# Only high level regions
-task_neurons['full_region'] = combine_regions(task_neurons['region'])
-passive_neurons['full_region'] = combine_regions(passive_neurons['region'])
-task_neurons = task_neurons[task_neurons['full_region'] != 'root']
-passive_neurons = passive_neurons[passive_neurons['full_region'] != 'root']
-
-# Get mean per region
+# Get modulation index per region
 grouped_df = passive_neurons.groupby(['full_region']).median(numeric_only=True)['passive_mod_idx'].to_frame()
 grouped_df['n_neurons'] = passive_neurons.groupby(['full_region']).size()
 grouped_df['task'] = task_neurons.groupby(['full_region']).median(numeric_only=True)['task_mod_idx']
 grouped_df = grouped_df.rename(columns={'passive_mod_idx': 'passive'}).reset_index()
 grouped_df = grouped_df.loc[grouped_df['n_neurons'] >= MIN_NEURONS]
+
+# Get percentage modulated neurons per region
+per_passive_df = all_passive_neurons.groupby(['full_region', 'subject']).sum(numeric_only=True)
+per_passive_df['n_neurons'] = all_passive_neurons.groupby(['full_region', 'subject']).size()
+per_passive_df['perc_mod'] = (per_passive_df['modulated'] / per_passive_df['n_neurons']) * 100
+per_passive_df = per_passive_df[per_passive_df['n_neurons'] >= MIN_NEURONS_PER_MOUSE]
+per_passive_df = per_passive_df.groupby('full_region').filter(lambda x: len(x) >= MIN_REC)
+per_passive_df = per_passive_df.reset_index()
+perc_mod = per_passive_df[['full_region', 'perc_mod']].groupby('full_region').mean().rename(
+    columns={'perc_mod': 'passive'})
+
+per_task_df = all_task_neurons.groupby(['full_region', 'subject']).sum(numeric_only=True)
+per_task_df['n_neurons'] = all_task_neurons.groupby(['full_region', 'subject']).size()
+per_task_df['perc_mod'] = (per_task_df['opto_modulated'] / per_task_df['n_neurons']) * 100
+per_task_df = per_task_df[per_task_df['n_neurons'] >= MIN_NEURONS_PER_MOUSE]
+per_task_df = per_task_df.groupby('full_region').filter(lambda x: len(x) >= MIN_REC)
+per_task_df = per_task_df.reset_index()
+perc_mod['task'] = per_task_df[['full_region', 'perc_mod']].groupby('full_region').mean()['perc_mod']
+perc_mod = perc_mod.reset_index()
 
 # %%
 colors, dpi = figure_style()
@@ -81,7 +96,7 @@ colors, dpi = figure_style()
 # Add colormap
 grouped_df['color'] = [colors[i] for i in grouped_df['full_region']]
 
-f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 ax1.plot([-0.3, 0.3], [-0.3, 0.3], ls='--', color='grey')
 # this plots the colored region names
 for i in grouped_df.index:
@@ -98,4 +113,24 @@ ax1.set_ylabel('Modulation index task', labelpad=0)
 sns.despine(offset=0, trim=False)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'modulation_passive_vs_task.pdf'))
+
+# %%
+perc_mod['color'] = [colors[i] for i in perc_mod['full_region']]
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+ax1.plot([0, 50], [0, 50], ls='--', color='grey')
+# this plots the colored region names
+for i in perc_mod.index:
+    ax1.text(perc_mod.loc[i, 'passive'],
+             perc_mod.loc[i, 'task'],
+             perc_mod.loc[i, 'full_region'],
+             ha='center', va='center',
+             color=perc_mod.loc[i, 'color'], fontsize=6, fontweight='bold')
+ax1.set(yticks=[0, 25, 50], xticks=[0, 25, 50],
+        ylim=[0, 50], xlim=[0, 50],
+        xlabel='Modulated neurons passive (%)', ylabel='Modulated neurons task (%)')
+sns.despine(offset=0, trim=False)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'perc_mod_passive_vs_task.pdf'))
+
+
 

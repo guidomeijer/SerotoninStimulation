@@ -336,7 +336,7 @@ plt.savefig(join(fig_path, 'dot_prod_pca_all_regions.pdf'))
 
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-140, azim=220)
+ax.view_init(elev=-160, azim=220)
 for sp in SPLITS:
     cmap = mpl.colormaps.get_cmap(CMAPS[sp])
     col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -350,8 +350,7 @@ for sp in SPLITS:
                color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
 #ax.grid('off')
 #ax.axis('off')
-ax.set(title='Frontal cortex')
-plt.tight_layout()
+ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
 plt.savefig(join(fig_path, 'pca_frontal-cortex.pdf'))
 
 # %%
