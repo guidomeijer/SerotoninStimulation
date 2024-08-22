@@ -19,7 +19,7 @@ from one.api import ONE
 one = ONE()
 
 # Settings
-MIN_TRIALS = 200
+MIN_TRIALS = 500
 PLOT_SINGLE_ANIMALS = True
 subjects = load_subjects()
 colors, dpi = figure_style()
@@ -32,14 +32,14 @@ bias_df, lapse_df, psy_df = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 for i, nickname in enumerate(subjects['subject']):
     
     # Only use sert-cre animals
-    if subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0] == 0:
+    if subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0] == 1:
         continue
 
     # Query sessions
     eids = query_opto_sessions(nickname, include_ephys=True, one=one)
 
     # Apply behavioral criterion
-    eids = behavioral_criterion(eids, verbose=False, one=one)
+    eids = behavioral_criterion(eids, verbose=True, one=one)
     if len(eids) == 0:
         continue
 
@@ -171,7 +171,7 @@ p_perf = stats.ttest_1samp(perc_perf, 0)[1]
 f, ax1 = plt.subplots(1, 1, figsize=(2.2, 2), dpi=dpi)
 sns.swarmplot(data=pd.melt(perc_df), x='variable', y='value', color='k', size=3)
 ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey')
-ax1.text(2, 35, '*', ha='center', va='center', fontsize=12)
+
 ax1.set(ylabel='5-HT induced change (%)', xlabel='', yticks=[-40, -20, 0, 20, 40])
 ax1.set_xticklabels(ax1.get_xmajorticklabels(), rotation=40, ha='right')
 
