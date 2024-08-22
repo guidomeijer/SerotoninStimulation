@@ -166,7 +166,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         opto_pseudo = opto_pseudo == 0.2
         
         for split in SPLITS:
-                        
+               
             # Split trials
             if split == 'L_opto':
                 this_peth = np.mean(binned_spikes[

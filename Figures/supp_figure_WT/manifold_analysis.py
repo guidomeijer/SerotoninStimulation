@@ -25,7 +25,7 @@ T_BEFORE = 0.03  #s
 DROP_REGIONS = ['root', 'AI', 'BC', 'ZI', 'RSP']
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
 CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r', 'R_no_opto': 'Blues_r',
-              'L_collapsed': 'Reds_r', 'R_collapsed': 'Purples_r', 'no_opto_collapsed': 'Greys_r', 'opto_collapsed': 'Blues_r'})
+              'L_collapsed': 'Reds_r', 'R_collapsed': 'Purples_r', 'no_opto_collapsed': 'Oranges_r', 'opto_collapsed': 'Blues_r'})
 
 # Initialize
 pca = PCA(n_components=N_DIM)
@@ -39,13 +39,14 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 print('Loading in data..')
 regions = np.array([])
 ses_paths = glob(join(load_path, 'manifold', f'{SPLIT_ON}', '*.npy'))
+count = 0
 for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
-    if this_dict['sert-cre'] == 0:
+    if this_dict['sert-cre'] == 1:
         continue
     n_timepoints = this_dict['time'].shape[0]
     time_ax = this_dict['time']
-    if i == 0:        
+    if count == 0:        
         L_opto = np.empty((0, n_timepoints))
         R_opto = np.empty((0, n_timepoints))
         L_no_opto = np.empty((0, n_timepoints))
@@ -78,6 +79,7 @@ for i, ses_path in enumerate(ses_paths):
     
     #regions = np.concatenate((regions, high_level_regions(this_dict['region'], input_atlas='Beryl')))
     regions = np.concatenate((regions, combine_regions(remap(this_dict['region']))))
+    count += 1
 
 # Get Eucledian distances in neural space between opto and no opto
 print('Calculating Eucledian distances..')
@@ -252,18 +254,17 @@ for i, region in enumerate(dist_choice.keys()):
         ax1.plot(time_ax, dist_choice[region], color=colors[region])
         ax1.text(time_ax[-1] + 0.005, dist_choice[region][-1], region, color=colors[region],
                  va='center')
-ax1.set(ylabel='Separation (spks/s)', title='Choice', yticks=[0, 50, 100, 150],
-        xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-150, -100, -50, 0])
+        ax1.set(ylabel='Separation (spks/s)', title='Choice', 
+                xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-0.15, -0.1, -0.05, 0])
 
 for i, region in enumerate(dist_opto.keys()):
     if dist_choice[region][-1] > np.nanquantile(dist_choice_shuffle[region], 0.99, axis=1)[-1]:
         ax2.plot(time_ax, dist_opto[region], color=colors[region])
         ax2.text(time_ax[-1] + 0.005, dist_opto[region][-1], region, color=colors[region],
                  va='center')
-ax2.set(title='5-HT', xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-150, -100, -50, 0],
-        yticks=[0, 50, 100, 150])
+ax2.set(title='5-HT', xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-0.15, -0.1, -0.05, 0])
 
-f.text(0.5, 0.04, 'Time to choice (ms)', ha='center')
+f.text(0.5, 0.04, 'Time to choice (s)', ha='center')
 
 sns.despine(trim=True)
 plt.subplots_adjust(bottom=0.21, wspace=0.3, left=0.15)
@@ -275,24 +276,22 @@ plt.savefig(join(fig_path, 'choice_and_opto.pdf'))
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi, sharey=True)
 
 for i, region in enumerate(dist_choice.keys()):
-    if dist_choice[region][-1] > np.nanquantile(dist_choice_shuffle[region], 0.99, axis=1)[-1]:
+    if dist_choice[region][-1] > np.nanquantile(dist_choice_shuffle[region], 0.95, axis=1)[-1]:
         ax1.plot(time_ax, dot_pca[region], color=colors[region])
-        if p_value[region][-1] < 0.001:
+        if any(p_value[region] < 0.001):
             ax1.text(time_ax[-1] + 0.005, dot_pca[region][-1], '***', color=colors[region],
                      va='top', fontsize=12)
-        elif p_value[region][-1] < 0.01:
+        elif any(p_value[region] < 0.01):
             ax1.text(time_ax[-1] + 0.005, dot_pca[region][-1], '**', color=colors[region],
                      va='top', fontsize=12)
-        elif p_value[region][-1] < 0.05:
-            ax1.text(time_ax[-1] + 0.005, dot_pca[region][-1] + 0.025, '*', color=colors[region],
+        elif any(p_value[region] < 0.05):
+            ax1.text(time_ax[-1] + 0.005, dot_pca[region][-1], '*', color=colors[region],
                      va='top', fontsize=12)
-ax1.set(ylabel='Normalized dot product', yticks=[0, 0.2, 0.4, 0.6, 0.8, 1],
-        xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-150, -100, -50, 0],
-        xlabel='Time to choice (ms)')
+        ax1.set(ylabel='Normalized dot product', yticks=[0, 0.2, 0.4, 0.6, 0.8],
+                xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-0.15, -0.1, -0.05, 0])
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, 'dot_product.pdf'))
 
 # %% Plot angle 
 
@@ -308,7 +307,6 @@ for i, region in enumerate(dist_choice.keys()):
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, 'angle.pdf'))
 
 
 # %% Plot example region
@@ -341,7 +339,7 @@ pca_r_col = (pca_fit[EXAMPLE_REGION][split_ids == 'R_opto'] + pca_fit['mPFC'][sp
 
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-179, azim=225)
+ax.view_init(elev=-160, azim=220)
 
 cmap_l = mpl.colormaps.get_cmap(CMAPS['L_collapsed'])
 col_l = [cmap_l((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -368,7 +366,7 @@ pca_no_opto_col = (pca_fit[EXAMPLE_REGION][split_ids == 'L_no_opto'] + pca_fit['
     
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-179, azim=225)
+ax.view_init(elev=-160, azim=220)
 
 cmap_opto = mpl.colormaps.get_cmap(CMAPS['opto_collapsed'])
 col_opto = [cmap_opto((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -392,7 +390,7 @@ plt.savefig(join(fig_path, 'pca_frontal-cortex_opto.pdf'))
     
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-179, azim=225)
+ax.view_init(elev=-160, azim=220)
 
 ax.plot(pca_opto_col[:, 0], pca_opto_col[:, 1], pca_opto_col[:, 2],
         color=col_opto[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
@@ -437,6 +435,7 @@ axs[0].set_ylabel('Dot product', labelpad=-10)
 sns.despine(trim=True)
 
 plt.tight_layout()
+plt.savefig(join(fig_path, 'dot_product.pdf'))
 
 # %%
 
@@ -455,6 +454,7 @@ for r, region in enumerate(angle_pca.keys()):
 axs[0].set_ylabel('Angle', labelpad=-10)
 sns.despine(trim=True)
 plt.tight_layout()
+plt.savefig(join(fig_path, 'angle.pdf'))
 
 
 # %%
