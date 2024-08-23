@@ -19,7 +19,7 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-OVERWRITE = True
+OVERWRITE = False
 NEURON_QC = True
 PRE_TIME = [0.5, 0]  # for modulation index
 POST_TIME = [0.3, 0.8]
