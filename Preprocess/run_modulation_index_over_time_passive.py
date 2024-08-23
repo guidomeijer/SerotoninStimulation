@@ -18,7 +18,7 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-OVERWRITE = True
+OVERWRITE = False
 BASELINE = [0.5, 0]
 PRE_TIME = 1
 POST_TIME = 5

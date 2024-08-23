@@ -40,6 +40,7 @@ for i, file_path in enumerate(rec_files):
     print(f'Starting {i} of {len(rec_files)}')
     subject = split(file_path)[1][:9]
     date = split(file_path)[1][10:20]
+    eid = one.search(subject=subject, date=date)[0]
     if subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0] == 0:
         continue
     
@@ -53,9 +54,8 @@ for i, file_path in enumerate(rec_files):
     bl_time_ax = time_ax[time_ax < 0]
 
     # Load in pupil diameter
-    if not isfile(join(repo_path, 'PupilDiameter', f'{hmm_dict["eid"]}.npy')):
+    if not isfile(join(cache_path, 'PupilDiameter', f'{hmm_dict["eid"]}_diameter.npy')):
         print('Loading and smoothing pupil trace..')
-        eid = one.search(subject=subject, date=date)[0]
         video_times, XYs = get_dlc_XYs(one, eid)
         if XYs is None:
             continue
@@ -63,10 +63,10 @@ for i, file_path in enumerate(rec_files):
         np.save(join(cache_path, 'PupilDiameter', f'{hmm_dict["eid"]}_diameter.npy'), diameter)
         np.save(join(cache_path, 'PupilDiameter', f'{hmm_dict["eid"]}_times.npy'), video_times)
     else:
-        diameter = np.load(join(cache_path, f'{eid}_diameter.npy'))
-        video_times = np.load(join(cache_path, f'{eid}_times.npy'))
-    
-        
+        diameter = np.load(join(cache_path, 'PupilDiameter', f'{eid}_diameter.npy'))
+        video_times = np.load(join(cache_path, 'PupilDiameter', f'{eid}_times.npy'))
+     
+    """
     # Get average pupil diameter during states of passive events
     state_pupil = np.empty((hmm_dict['event_times'].shape[0], bl_time_ax.shape[0]))
     for i_e, this_event in enumerate(hmm_dict['event_times']):
@@ -85,6 +85,22 @@ for i, file_path in enumerate(rec_files):
             continue
         r_state[this_state], p_state[this_state] = stats.pearsonr(
             this_prob[~np.isnan(this_pupil)], this_pupil[~np.isnan(this_pupil)])
+    """
+    
+    # Get average pupil diameter during states of passive events
+    state_pupil = np.empty(hmm_dict['event_times'].shape[0])
+    for i_e, this_event in enumerate(hmm_dict['event_times']):
+        state_pupil[i_e] = np.nanmean(diameter[(video_times > this_event + time_ax[0]) & 
+                                               (video_times <= this_event)])
+    if np.sum(np.isnan(state_pupil)) == state_pupil.shape[0]:
+        continue
+    
+    # Correlate pupil with state probability
+    r_state, p_state = np.empty(n_states), np.empty(n_states)
+    for this_state in range(n_states):  
+        state_prob = np.mean(prob_mat[:, time_ax < 0, this_state], axis=1)
+        r_state[this_state], p_state[this_state] = stats.pearsonr(
+            state_prob[~np.isnan(state_pupil)], state_pupil[~np.isnan(state_pupil)])
     
     # Add to dataframe
     subject = split(file_path)[-1].split('_')[0]
