@@ -9,7 +9,7 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
-from serotonin_functions import paths, load_passive_opto_times
+from stim_functions import paths, load_passive_opto_times
 from brainbox.population.decode import get_spike_counts_in_bins
 from sklearn.metrics import roc_auc_score
 from one.api import ONE
@@ -18,7 +18,7 @@ ba = AllenAtlas()
 one = ONE()
 
 # Settings
-OVERWRITE = False
+OVERWRITE = True
 BASELINE = [0.5, 0]
 PRE_TIME = 1
 POST_TIME = 5
