@@ -23,8 +23,14 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in results
-all_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+mod_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+mod_over_time = pd.read_pickle(join(save_path, 'mod_over_time.pickle'))
+all_neurons = pd.merge(mod_over_time, mod_neurons,
+                           on=['pid', 'subject', 'date', 'neuron_id', 'region'])
 all_neurons['full_region'] = combine_regions(all_neurons['region'], abbreviate=True)
+
+# Get max modulation
+all_neurons['max_mod_index'] = [i[np.argmax(np.abs(i))] for i in all_neurons['mod_idx']]
 
 # Add genotype
 subjects = load_subjects()
@@ -115,14 +121,14 @@ f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
 )
 # this plots the colored region names
 for i in grouped_df.index:
-    ax1.text(grouped_df.loc[i, 'mod_index'],
+    ax1.text(grouped_df.loc[i, 'max_mod_index'],
              grouped_df.loc[i, 'latency'],
              grouped_df.loc[i, 'full_region'],
              ha='center', va='center',
              color=grouped_df.loc[i, 'color'], fontsize=6, fontweight='bold')
 ax1.set(yticks=[0, 100, 200], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
         ylabel='Modulation latency (ms)', xlabel='Modulation index')
-r, p = pearsonr(grouped_df['mod_index'], grouped_df['latency'])
+r, p = pearsonr(grouped_df['max_mod_index'], grouped_df['latency'])
 # ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
 ax1.text(0, 200, '**', fontsize=10, ha='center')
 
