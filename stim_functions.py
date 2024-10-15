@@ -677,6 +677,8 @@ def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimsi
                'stim_side'] = 1
     trials.loc[(trials['signed_contrast'] == 0) & (trials['contrastRight'].isnull()),
                'stim_side'] = -1
+    
+    trials['time_to_choice'] = trials['feedback_times'] - trials['goCue_times']
     if 'firstMovement_times' in trials.columns.values:
         trials['reaction_times'] = trials['firstMovement_times'] - trials['goCue_times']
     if invert_choice:

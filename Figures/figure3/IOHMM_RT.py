@@ -67,7 +67,8 @@ for i, subject in enumerate(subjects['subject']):
             continue
            
         # Get reaction times 
-        trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
+        #trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
+        trials_df['rt'] = trials_df['feedback_times'] - trials_df['goCue_times']
         trials_df = trials_df[~np.isnan(trials_df['rt'])]
             
         # Start training
@@ -153,10 +154,7 @@ for i, subject in enumerate(subjects['subject']):
                 if trial_win.shape[0] == WIN_SIZE:
                     these_p_state.append(trial_win['p_engaged'].mean())
                     these_trial_bins.append(trial_win_labels[tt])
-                    
-                
-            
-            
+                                
             """
             these_p_state = np.empty(len(TRIAL_BINS)-1)
             these_p_state[:] = np.nan
@@ -218,6 +216,16 @@ for i, subject in enumerate(subjects['subject']):
         'trial': trial_win_labels, 'subject': subject,
         'sert-cre': sert_cre,
         'opto': 0})))
+    
+    # %% Plot session
+    f, ax1 = plt.subplots(1, 1, figsize=(2.5, 1.75), dpi=dpi)
+    ax1.scatter(np.arange(trials_df['rt'].shape[0]), trials_df['rt'], color='k', s=2)
+    ax2 = ax1.twinx()
+    ax2.plot(np.arange(trials_df['rt'].shape[0]), trials_df['p_engaged'])
+    ax1.set(xlim=[300, 400], ylim=[0, 2], xlabel='Trials', ylabel='Reaction time (s)')
+        
+    sns.despine(trim=True, right=False)
+    plt.tight_layout()
     
 #stats.ttest_rel(state_df['switch_stim'].values[~np.isnan(state_df['switch_stim'].values)],
 #                state_df['switch_nostim'].values[~np.isnan(state_df['switch_nostim'].values)])

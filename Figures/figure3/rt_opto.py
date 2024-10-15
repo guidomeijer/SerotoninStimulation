@@ -14,6 +14,7 @@ from stim_functions import (load_subjects, query_opto_sessions, behavioral_crite
                             load_trials, figure_style, paths)
 from one.api import ONE
 one = ONE()
+colors, dpi = figure_style()
 
 # Settings
 MIN_TRIALS = 400
@@ -58,7 +59,7 @@ for i, subject in enumerate(subjects['subject']):
     #trials = trials[~((trials['laser_probability'] == 0.75) & (trials['laser_stimulation'] == 0))]
 
     trials['abs_contrast'] = np.abs(trials['signed_contrast'])
-    this_rt_per_contrast = trials[['abs_contrast', 'reaction_times', 'laser_stimulation']].groupby(
+    this_rt_per_contrast = trials[['abs_contrast', 'time_to_choice', 'laser_stimulation']].groupby(
         ['abs_contrast', 'laser_stimulation']).median()
     this_rt_per_contrast = this_rt_per_contrast.reset_index()
     this_rt_per_contrast['subject'] = subject
@@ -66,19 +67,32 @@ for i, subject in enumerate(subjects['subject']):
     for c, contr in enumerate(np.unique(this_rt_per_contrast['abs_contrast'])):
         rt_opto = this_rt_per_contrast.loc[
             (this_rt_per_contrast['abs_contrast'] == contr) & (this_rt_per_contrast['laser_stimulation'] == 1),
-            'reaction_times'].values[0]
+            'time_to_choice'].values[0]
         rt_no_opto = this_rt_per_contrast.loc[
             (this_rt_per_contrast['abs_contrast'] == contr) & (this_rt_per_contrast['laser_stimulation'] == 0),
-            'reaction_times'].values[0]
+            'time_to_choice'].values[0]
         perc_rt = ((rt_opto - rt_no_opto) / rt_no_opto) * 100
         ratio_rt = (rt_opto - rt_no_opto) / (rt_opto + rt_no_opto)
         diff_rt = rt_opto - rt_no_opto
         this_rt_perc.append({'perc_rt': perc_rt, 'ratio_rt': ratio_rt, 'diff_rt': diff_rt,
                              'contrast': contr, 'subject': subject})
     rt_perc_df = pd.concat((rt_perc_df, pd.DataFrame(this_rt_perc)))
+    
+    # %% Plot example animal
+    f, axs = plt.subplots(1, 5, figsize=(8.75, 1.75), dpi=dpi)
+    for ii, this_contrast in enumerate([0, 0.0625, 0.125, 0.25, 1]):
+        sns.histplot(data=trials[trials['abs_contrast'] == this_contrast], x='time_to_choice',
+                     hue='laser_stimulation', binwidth=0.025, ax=axs[ii])
+        axs[ii].set(xlim=[0, 1], xlabel='Reaction time (s)')
+        #ax1.set(xscale='log')
+    
+    plt.suptitle(f'{subject}')
+    sns.despine(trim=True)
+    plt.tight_layout()
+    
         
+    
 # %%
-colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 sns.barplot(data=rt_perc_df, x='contrast', y='perc_rt', errorbar='se', ax=ax1)
 ax1.set(ylabel='5-HT induced reaction time\nincrease (%)', xticks=np.arange(5),

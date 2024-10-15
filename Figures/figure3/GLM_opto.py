@@ -62,11 +62,12 @@ long_df = pd.melt(results_df.loc[results_df['sert-cre'] == 1,
                                  ['100', '25', '12.5', '6.25', 'previous_choice',
                                   'block_id', 'laser_stimulation']])
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.65, 2), dpi=dpi)
 sns.barplot(data=long_df, x='variable', y='value', color='grey', zorder=1, linewidth=0)
+ax1.text(2.5, 2.5, f'n = {np.sum(results_df["sert-cre"] == 1)} mice')
 #ax1.plot(ax1.get_xlim(), [0, 0], color='grey', zorder=0)
 ax1.set(ylabel='GLM weight', xticks=np.arange(7), xlabel='', yticks=[0, 1, 2, 3], xlim=[-1, 7])
-ax1.set_xticklabels(['100%', '25%', '12.5%', '6.25%', 'Prev. choice', 'Biased block', '5-HT'],
+ax1.set_xticklabels(['100%', '25%', '12.5%', '6.25%', 'Prev. choice', 'Prior', '5-HT'],
                     rotation=40, ha='right')
 
 sns.despine(trim=True)
