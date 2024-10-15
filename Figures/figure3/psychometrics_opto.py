@@ -20,7 +20,7 @@ one = ONE()
 
 # Settings
 MIN_TRIALS = 200
-PLOT_SINGLE_ANIMALS = True
+PLOT_SINGLE_ANIMALS = False
 subjects = load_subjects()
 colors, dpi = figure_style()
 
@@ -157,8 +157,7 @@ perc_threshold = ((psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'thr
                    - psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 0, 'threshold'].values)
                   / psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'threshold'].values) * 100
 perc_perf = ((bias_df['perf_stim'] - bias_df['perf_no_stim']) / bias_df['perf_stim']).values * 100
-perc_df = pd.DataFrame(data={'Performance': perc_perf, 'Reaction time': perc_rt,
-                             'Threshold': perc_threshold, 'Bias': perc_bias,
+perc_df = pd.DataFrame(data={'Performance': perc_perf, 'Threshold': perc_threshold, 'Bias': perc_bias,
                              'Lapse rate': perc_lapse})
 
 # Do statistics
@@ -168,10 +167,10 @@ p_lapse = stats.ttest_1samp(perc_lapse, 0)[1]
 p_threshold = stats.ttest_1samp(perc_threshold, 0)[1]
 p_perf = stats.ttest_1samp(perc_perf, 0)[1]
 
-f, ax1 = plt.subplots(1, 1, figsize=(2.2, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
 sns.swarmplot(data=pd.melt(perc_df), x='variable', y='value', color='k', size=3)
 ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey')
-ax1.text(2, 35, '*', ha='center', va='center', fontsize=12)
+ax1.text(1, 35, '*', ha='center', va='center', fontsize=12)
 ax1.set(ylabel='5-HT induced change (%)', xlabel='', yticks=[-40, -20, 0, 20, 40])
 ax1.set_xticklabels(ax1.get_xmajorticklabels(), rotation=40, ha='right')
 

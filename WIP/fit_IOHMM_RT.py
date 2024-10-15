@@ -24,7 +24,7 @@ trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
 # Paths
 f_path, save_path = paths()
 fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-1])
-asd
+
 # Initialize
 one = init_one()
 colors, dpi = figure_style()
@@ -67,7 +67,8 @@ for i, subject in enumerate(subjects['subject']):
             continue
            
         # Get reaction times 
-        trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
+        #trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
+        trials_df['rt'] = trials_df['feedback_times'] - trials_df['goCue_times']
         trials_df = trials_df[~np.isnan(trials_df['rt'])]
             
         # Start training

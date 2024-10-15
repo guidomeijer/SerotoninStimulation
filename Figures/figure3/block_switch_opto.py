@@ -92,7 +92,8 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 sns.lineplot(x='trial', y='to_prior_choice', data=per_animal_df[per_animal_df['sert-cre'] == 1],
              hue='opto', errorbar='se', hue_order=[1, 0], err_kws={'lw': 0},
              palette=[colors['stim'], colors['no-stim']], ax=ax1)
-ax1.set(xlim=[0, 20], ylabel='Fraction of choices towards\nthe biased side', xlabel='Trials since bias switch',
+ax1.text(7.5, 0.52, f'n = {len(np.unique(per_animal_df[per_animal_df["sert-cre"] == 1]["subject"]))} mice')
+ax1.set(xlim=[0, 20], ylabel='Fraction of choices towards\nthe side with the high prior', xlabel='Trials since prior switch',
         ylim=[0.4, 0.8])
 leg_handles, _ = ax1.get_legend_handles_labels()
 leg_labels = ['5-HT', 'No 5-HT']
