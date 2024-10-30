@@ -9,6 +9,7 @@ import numpy as np
 from os import path
 import pandas as pd
 import seaborn as sns
+from scipy.stats import zscore
 import matplotlib.pyplot as plt
 from IOHMM import UnSupervisedIOHMM
 from IOHMM import OLS, CrossEntropyMNL
@@ -16,9 +17,10 @@ from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
                             figure_style, load_subjects, behavioral_criterion)
 
 # Settings
-SINGLE_TRIALS = [2, 10]
+SINGLE_TRIALS = [5, 30]
 WIN_STARTS = np.arange(-20, 70) 
 WIN_SIZE = 15
+PLOT_SESSIONS = False
 trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
 
 # Paths
@@ -34,8 +36,8 @@ subjects = load_subjects()
 # Initialize IOHMM with two states
 SHMM = UnSupervisedIOHMM(num_states=2, max_EM_iter=200, EM_tol=1e-6)
 SHMM.set_models(model_emissions = [OLS()], 
-                model_transition=CrossEntropyMNL(solver='lbfgs'),
-                model_initial=CrossEntropyMNL(solver='lbfgs'))
+                model_transition=CrossEntropyMNL(solver='lbfgs', alpha=0),
+                model_initial=CrossEntropyMNL(solver='lbfgs', alpha=0))
 SHMM.set_inputs(covariates_initial = [],
                 covariates_transition = [],
                 covariates_emissions = [[]])
@@ -70,7 +72,14 @@ for i, subject in enumerate(subjects['subject']):
         #trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
         trials_df['rt'] = trials_df['feedback_times'] - trials_df['goCue_times']
         trials_df = trials_df[~np.isnan(trials_df['rt'])]
-            
+                
+        # Log transform and then z-score reaction times per contrast
+        trials_df['rt'] = np.log10(trials_df['rt'])
+        trials_df['abs_contrast'] = np.abs(trials_df['signed_contrast'])
+        for ii, this_contrast in enumerate(np.unique(trials_df['abs_contrast'])):
+            trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'] = zscore(
+                trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'])
+                    
         # Start training
         SHMM.set_data([trials_df])
         SHMM.train()
@@ -119,8 +128,10 @@ for i, subject in enumerate(subjects['subject']):
                       & (trials_df['laser_stimulation'] == 0), 'laser_stimulation'] = 1
         
         # Get precentage of disengaged trials for stimulated vs non-stimulated blocks
-        eng_stim.append(trials_df.loc[trials_df['laser_stimulation'] == 1, 'p_engaged'].mean() * 100)
-        eng_nostim.append(trials_df.loc[trials_df['laser_stimulation'] == 0, 'p_engaged'].mean() * 100)
+        eng_stim.append((np.sum(trials_df.loc[trials_df['laser_stimulation'] == 1, 'state']) 
+                         / trials_df.loc[trials_df['laser_stimulation'] == 1, 'state'].shape[0]) * 100)
+        eng_nostim.append((np.sum(trials_df.loc[trials_df['laser_stimulation'] == 0, 'state']) 
+                         / trials_df.loc[trials_df['laser_stimulation'] == 0, 'state'].shape[0]) * 100)
         
         # Get percentage of state switches for stimulated vs non-stimulated blocks
         switch_stim.append((np.sum(trials_df.loc[trials_df['laser_stimulation'] == 1, 'state_switch'])
@@ -167,18 +178,37 @@ for i, subject in enumerate(subjects['subject']):
                 'state': np.array(these_p_state), 'trial_bin': np.array(these_trial_bins),
                 'opto_switch': all_blocks,
                 'opto': trials_df.loc[trial_ind, 'laser_stimulation']})), ignore_index=True)
+            
+            
+        # %% Plot session
+        if PLOT_SESSIONS:
+            f, ax1 = plt.subplots(1, 1, figsize=(7, 1.75), dpi=dpi)
+            ax1.scatter(np.arange(trials_df['rt'].shape[0]), trials_df['rt'], color='k', s=2, zorder=1)
+            ax1.scatter(np.arange(trials_df['rt'].shape[0]), trials_df['laser_stimulation'], zorder=0)
+            ax2 = ax1.twinx()
+            ax2.plot(np.arange(trials_df['rt'].shape[0]), trials_df['p_engaged'], alpha=0.5, color='orange')
+            ax1.set(ylim=[-1, 1.1], xlabel='Trials', ylabel='Reaction time (s)')
+                
+            sns.despine(trim=True, right=False)
+            plt.tight_layout()
+            plt.savefig(path.join(fig_path, 'IOHMM', f'{subject}_{eid}.jpg'), dpi=600)
+            plt.close(f)
+                
+            #stats.ttest_rel(state_df['switch_stim'].values[~np.isnan(state_df['switch_stim'].values)],
+            #                state_df['switch_nostim'].values[~np.isnan(state_df['switch_nostim'].values)])
+                
         
     # Get mean over sessions
-    eng_stim = np.mean(eng_stim)
-    eng_nostim = np.mean(eng_nostim)
-    switch_stim = np.mean(switch_stim)
-    switch_nostim = np.mean(switch_nostim)
+    eng_stim_mean = np.mean(eng_stim)
+    eng_nostim_mean = np.mean(eng_nostim)
+    switch_stim_mean = np.mean(switch_stim)
+    switch_nostim_mean = np.mean(switch_nostim)
         
     # Add to dataframe
     state_df = pd.concat((state_df, pd.DataFrame(index=[state_df.shape[0]], data={
         'subject': subject, 'sert-cre': sert_cre,
-        'eng_stim': eng_stim, 'eng_nostim': eng_nostim,
-        'switch_stim': switch_stim, 'switch_nostim': switch_nostim})))
+        'eng_stim': eng_stim_mean, 'eng_nostim': eng_nostim_mean,
+        'switch_stim': switch_stim_mean, 'switch_nostim': switch_nostim_mean})))
 
     this_state = this_probe_df[this_probe_df['opto'] == 1].groupby('trial').mean()['state'].values * 100
     probe_df = pd.concat((probe_df, pd.DataFrame(data={
@@ -217,19 +247,7 @@ for i, subject in enumerate(subjects['subject']):
         'sert-cre': sert_cre,
         'opto': 0})))
     
-    # %% Plot session
-    f, ax1 = plt.subplots(1, 1, figsize=(2.5, 1.75), dpi=dpi)
-    ax1.scatter(np.arange(trials_df['rt'].shape[0]), trials_df['rt'], color='k', s=2)
-    ax2 = ax1.twinx()
-    ax2.plot(np.arange(trials_df['rt'].shape[0]), trials_df['p_engaged'])
-    ax1.set(xlim=[300, 400], ylim=[0, 2], xlabel='Trials', ylabel='Reaction time (s)')
-        
-    sns.despine(trim=True, right=False)
-    plt.tight_layout()
-    
-#stats.ttest_rel(state_df['switch_stim'].values[~np.isnan(state_df['switch_stim'].values)],
-#                state_df['switch_nostim'].values[~np.isnan(state_df['switch_nostim'].values)])
-    
+  
 # %% Plot
     
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
@@ -249,3 +267,4 @@ ax1.legend(leg_handles, leg_labels, prop={'size': 5}, bbox_to_anchor=[0.52, 1.1]
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(path.join(fig_path, 'reaction_time_HMM.pdf'))
+
