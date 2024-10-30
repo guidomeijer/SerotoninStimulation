@@ -7,7 +7,7 @@ By: Guido Meijer
 import numpy as np
 import pandas as pd
 from os.path import join, realpath, dirname, split
-from scipy.stats import ttest_rel, ttest_1samp
+from scipy.stats import ttest_rel, ttest_1samp, zscore
 import matplotlib.pyplot as plt
 import seaborn as sns
 from stim_functions import (load_subjects, query_opto_sessions, behavioral_criterion,
@@ -26,7 +26,7 @@ subjects = load_subjects()
 f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
-rt_perc_df = pd.DataFrame()
+rt_perc_df, all_trials_rt = pd.DataFrame(), pd.DataFrame()
 for i, subject in enumerate(subjects['subject']):
 
     # Only use sert-cre animals
@@ -78,7 +78,13 @@ for i, subject in enumerate(subjects['subject']):
                              'contrast': contr, 'subject': subject})
     rt_perc_df = pd.concat((rt_perc_df, pd.DataFrame(this_rt_perc)))
     
+    # Add to dataframe
+    trials['rt_zscored'] = zscore(trials['time_to_choice'])
+    all_trials_rt = pd.concat((all_trials_rt, trials))
+    
+    
     # %% Plot example animal
+    """
     f, axs = plt.subplots(1, 5, figsize=(8.75, 1.75), dpi=dpi)
     for ii, this_contrast in enumerate([0, 0.0625, 0.125, 0.25, 1]):
         sns.histplot(data=trials[trials['abs_contrast'] == this_contrast], x='time_to_choice',
@@ -89,8 +95,20 @@ for i, subject in enumerate(subjects['subject']):
     plt.suptitle(f'{subject}')
     sns.despine(trim=True)
     plt.tight_layout()
+    """
+    f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+
+    sns.histplot(data=trials, x='time_to_choice', hue='laser_stimulation', binwidth=0.05, ax=ax1,
+                 palette=[colors['no-stim'], colors['stim']])
+    ax1.legend(labels=['5-HT', 'No 5-HT'])
+    ax1.set(xlim=[0, 2], xlabel='Reaction time (s)', xticks=[0, 0.5, 1, 1.5, 2],
+            xticklabels=[0, 0.5, 1, 1.5, 2])
+    #ax1.set(xscale='log')
+
+    sns.despine(trim=True)
+    plt.tight_layout()
+    plt.savefig(join(fig_path, f'{subject}_reaction_times.pdf'))
     
-        
     
 # %%
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
@@ -101,3 +119,13 @@ ax1.set(ylabel='5-HT induced reaction time\nincrease (%)', xticks=np.arange(5),
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'reaction_time_per_contrast.pdf'))
+
+
+# %%
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+
+np.sum(all_trials_rt.loc[all_trials_rt['laser_stimulation'] == 1, 'rt_zscored'] > 2)
+np.sum(all_trials_rt.loc[all_trials_rt['laser_stimulation'] == 0, 'rt_zscored'] > 2)
+
+sns.despine(trim=True)
+plt.tight_layout()
