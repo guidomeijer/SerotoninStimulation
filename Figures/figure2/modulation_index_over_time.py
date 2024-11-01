@@ -14,7 +14,7 @@ import seaborn as sns
 from stim_functions import paths, load_subjects, figure_style, combine_regions
 
 # Settings
-MIN_NEURONS = 10
+MIN_NEURONS = 20
 MIN_REC = 3
 
 # Get paths
@@ -91,8 +91,7 @@ mod_mean_df = mod_long_df.groupby(['region', 'time']).mean(numeric_only=True).re
 mod_matrix = pd.pivot(mod_mean_df, columns='time', index='region', values='mod_idx')
 
 
-
-mod_matrix['order'] = np.min(mod_matrix.iloc[:, 14:22], axis=1)
+mod_matrix['order'] = np.max(mod_matrix.iloc[:, 11:20], axis=1)
 mod_matrix = mod_matrix.sort_values(by='order', axis=0)
 mod_matrix.drop('order', axis=1, inplace=True)
 

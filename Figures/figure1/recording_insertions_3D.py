@@ -25,7 +25,7 @@ f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in recordings and subjects
-rec = query_ephys_sessions(anesthesia='all')
+rec = query_ephys_sessions()
 subjects = load_subjects()
 
 plot_colors, dpi = figure_style()
