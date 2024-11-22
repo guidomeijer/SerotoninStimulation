@@ -11,15 +11,12 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import zscore
 import matplotlib.pyplot as plt
-from IOHMM import UnSupervisedIOHMM
-from IOHMM import OLS, CrossEntropyMNL
 from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
                             figure_style, load_subjects, behavioral_criterion)
 
 # Settings
-SINGLE_TRIALS = [5, 30]
-WIN_STARTS = np.arange(-20, 70) 
-WIN_SIZE = 15
+WIN_STARTS = np.arange(-20, 50)
+WIN_SIZE = 10
 PLOT_SESSIONS = False
 trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
 
@@ -29,23 +26,11 @@ fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-
 
 # Initialize
 one = init_one()
-colors, dpi = figure_style()
 _, data_path = paths()
 subjects = load_subjects()
 
-# Initialize IOHMM with two states
-SHMM = UnSupervisedIOHMM(num_states=2, max_EM_iter=200, EM_tol=1e-6)
-SHMM.set_models(model_emissions = [OLS()], 
-                model_transition=CrossEntropyMNL(solver='lbfgs', alpha=0),
-                model_initial=CrossEntropyMNL(solver='lbfgs', alpha=0))
-SHMM.set_inputs(covariates_initial = [],
-                covariates_transition = [],
-                covariates_emissions = [[]])
-SHMM.set_outputs([['rt']])
-
 # Loop over subjects
-rt_df, block_df, block_single_df = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-probe_df = pd.DataFrame()
+rt_df, block_df, block_end_df = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 for i, subject in enumerate(subjects['subject']):
     print(f'{subject} ({i} of {subjects.shape[0]})')
 
@@ -72,25 +57,23 @@ for i, subject in enumerate(subjects['subject']):
         #trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
         trials_df['rt'] = trials_df['feedback_times'] - trials_df['goCue_times']
         trials_df = trials_df[~np.isnan(trials_df['rt'])]
-                
-        """
+        
         # Log transform and then z-score reaction times per contrast
         trials_df['rt'] = np.log10(trials_df['rt'])
         trials_df['abs_contrast'] = np.abs(trials_df['signed_contrast'])
         for ii, this_contrast in enumerate(np.unique(trials_df['abs_contrast'])):
             trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'] = zscore(
                 trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'])
-        """            
+                    
        
         # Remove probe trials
         trials_df.loc[(trials_df['laser_probability'] == 0.25)
                       & (trials_df['laser_stimulation'] == 1), 'laser_stimulation'] = 0
         trials_df.loc[(trials_df['laser_probability'] == 0.75)
                       & (trials_df['laser_stimulation'] == 0), 'laser_stimulation'] = 1
-        
     
         # Get states centered at opto block switches
-        this_block_df = pd.DataFrame()
+        this_block_df, this_end_df = pd.DataFrame(), pd.DataFrame()
         all_blocks = 0
         trials_df['opto_block_switch'] = np.concatenate((
             [False], np.diff(trials_df['laser_stimulation']) != 0))
@@ -111,6 +94,7 @@ for i, subject in enumerate(subjects['subject']):
                 'opto_switch': all_blocks,
                 'opto': trials_df.loc[trial_ind, 'laser_stimulation']})), ignore_index=True)
             
+                    
         # Get reaction time medians
         rt_opto_median.append(trials_df.loc[trials_df['laser_stimulation'] == 1, 'rt'].median())
         rt_no_opto_median.append(trials_df.loc[trials_df['laser_stimulation'] == 0, 'rt'].median())
@@ -135,26 +119,31 @@ for i, subject in enumerate(subjects['subject']):
         'sert-cre': sert_cre,
         'opto': 0})))
     
+ 
   
 # %% Plot
     
+colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 
-sns.lineplot(data=block_df, x='trial', y='rt_bl', hue='opto', ax=ax1,
+sns.lineplot(data=block_df, x='trial', y='rt', hue='opto', ax=ax1,
              hue_order=[1, 0], palette=[colors['stim'], colors['no-stim']],
              errorbar='se', err_kws={'lw': 0})
 ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey', lw=0.5)
-ax1.set(ylabel='Baseline subtr. reaction time (s)', yticks=[-1, -0.5, 0, 0.5, 1, 1.5],
-        xticks=[-20, 0, 20, 40, 60, 80],
-        xlabel='Trials since stim. block switch')
+#ax1.set(ylabel='Baseline subtr. reaction time (s)', yticks=[-1, -0.5, 0, 0.5, 1, 1.5],
+#        xticks=[-20, 0, 20, 40, 60, 80],
+#        xlabel='Trials since stim. block switch')
 
 leg_handles, _ = ax1.get_legend_handles_labels()
-leg_labels = ['5-HT', 'No 5-HT']
-ax1.legend(leg_handles, leg_labels, prop={'size': 5}, bbox_to_anchor=[0.52, 1], frameon=False)
+leg_labels = ['Start', 'End']
+leg = ax1.legend(leg_handles, leg_labels, prop={'size': 5}, bbox_to_anchor=[0.2, 1], frameon=False,
+                 title='5-HT block')
+leg.get_title().set_fontsize('6')
 
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(path.join(fig_path, 'reaction_time_opto_block.pdf'))
+
 
 # %%
 
