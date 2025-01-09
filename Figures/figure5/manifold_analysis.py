@@ -18,7 +18,7 @@ from stim_functions import (figure_style, paths, load_subjects, high_level_regio
                             remap, combine_regions)
 from sklearn.decomposition import PCA
 
-N_DIM = 3
+N_DIM = 10
 #SPLIT_ON = 'stim_side'
 SPLIT_ON = 'choice'
 T_BEFORE = 0.03  #s
@@ -293,6 +293,20 @@ ax1.set(ylabel='Normalized dot product', yticks=[0, 0.2, 0.4, 0.6, 0.8, 1],
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'dot_product.pdf'))
+
+# %%
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi, sharey=True)
+
+ax1.plot(time_ax, dot_pca['mPFC'], color=colors['mPFC'])
+ax1.text(time_ax[-1] + 0.005, dot_pca['mPFC'][-1] + 0.025, '*', color=colors['mPFC'],
+         va='top', fontsize=12)
+ax1.set(ylabel='Normalized dot product', yticks=[0, 0.2, 0.4],
+        xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-150, -100, -50, 0],
+        xlabel='Time to choice (ms)')
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'dot_product_mpfc.pdf'))
 
 # %% Plot angle 
 

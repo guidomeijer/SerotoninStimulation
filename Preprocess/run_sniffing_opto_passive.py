@@ -82,7 +82,6 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
         distances = np.sqrt(np.sum(np.diff(XYs['nose_tip'], axis=0)**2, axis=1))
         sniffing = smooth_interpolate_signal_sg(distances)
         
-
         # Assume frames were dropped at the end
         if video_times.shape[0] > sniffing.shape[0]:
             video_times = video_times[:sniffing.shape[0]]

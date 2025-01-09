@@ -25,6 +25,7 @@ from matplotlib import colors as matplotlib_colors
 from scipy.interpolate import interp1d
 import json
 from pathlib import Path
+from brainbox.io.one import SessionLoader
 from brainbox.io.spikeglx import spikeglx
 from brainbox.metrics.single_units import spike_sorting_metrics
 from brainbox.io.one import SpikeSortingLoader
@@ -1150,7 +1151,7 @@ def calculate_mi(spike_counts_A, spike_counts_B):
     return mutual_info
 
 
-def get_dlc_XYs(one, eid, view='left', likelihood_thresh=0.9):
+def get_dlc_XYs_old(one, eid, view='left', likelihood_thresh=0.9):
     ses_details = one.get_details(eid)
     subject = ses_details['subject']
     date = ses_details['date']
@@ -1177,6 +1178,25 @@ def get_dlc_XYs(one, eid, view='left', likelihood_thresh=0.9):
         y = y.filled(np.nan)
         XYs[point] = np.array([x, y]).T
     return times, XYs
+
+
+def get_dlc_XYs(one, eid, view='left'):
+    
+    # Load in DLC
+    sl = SessionLoader(one=one, eid=eid)
+    sl.load_pose(views=[view])
+    dlc_df = sl.pose[f'{view}Camera']
+    
+    # Transform to dict for backwards compatibility reasons
+    X = [dlc_df[i].values for i in dlc_df.columns if i[-1] == 'x']
+    Y = [dlc_df[i].values for i in dlc_df.columns if i[-1] == 'y']
+    key_names = [i[:-2] for i in dlc_df.columns if i[-1:] == 'x']
+    
+    XYs = {}
+    for i, this_key in enumerate(key_names):
+        XYs[this_key] = np.array([X[i], Y[i]]).T
+
+    return dlc_df['times'].values, XYs
 
 
 def smooth_interpolate_signal_sg(signal, window=31, order=3, interp_kind='cubic'):
