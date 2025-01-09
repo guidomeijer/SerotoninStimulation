@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import seaborn as sns
 from stim_functions import (paths, figure_style, load_passive_opto_times, load_subjects,
-                            query_ephys_sessions, init_one, get_dlc_XYs, get_raw_smooth_pupil_diameter)
+                            query_ephys_sessions, init_one, get_dlc_XYs, smooth_interpolate_signal_sg)
 one = init_one()
 
 # Settings
@@ -22,7 +22,7 @@ TIME_BINS = np.arange(-0.5, 4.1, 0.1)
 BIN_SIZE = 0.1  # seconds
 BASELINE = [0.5, 0]  # seconds
 fig_path, save_path = paths()
-fig_path = join(fig_path, 'Extra plots', 'Facial movement')
+fig_path = join(fig_path, 'Extra plots', 'Whisking')
 
 # Query and load data
 subjects = load_subjects()
@@ -33,7 +33,7 @@ rec = query_ephys_sessions(one=one)
 if OVERWRITE:
     results_df = pd.DataFrame()
 else:
-    results_df = pd.read_csv(join(save_path, 'facial_movement_passive.csv'))
+    results_df = pd.read_csv(join(save_path, 'whisking_passive.csv'))
 
 for k, nickname in enumerate(np.unique(rec['subject'])):
     print(f'Processing {nickname}..')
@@ -41,7 +41,7 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
     # Get eids
     eids = np.unique(rec.loc[rec['subject'] == nickname, 'eid'])
 
-    pupil_size = pd.DataFrame()
+    whisking_df = pd.DataFrame()
     for i, eid in enumerate(eids):
 
         # Skip if session is already done
@@ -78,55 +78,53 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
             print('Timestamp mismatch, skipping..')
             continue
 
-        # Get facial movement
-        asd
+        # Get whisking
+        roi_motion = one.load_dataset(eid, dataset='leftCamera.ROIMotionEnergy.npy')
+        whisking = smooth_interpolate_signal_sg(roi_motion)
         
-        print('Calculating smoothed pupil trace')
-        raw_diameter, diameter = get_raw_smooth_pupil_diameter(XYs)
-
         # Assume frames were dropped at the end
-        if video_times.shape[0] > diameter.shape[0]:
-            video_times = video_times[:diameter.shape[0]]
-        elif diameter.shape[0] > video_times.shape[0]:
-            diameter = diameter[:video_times.shape[0]]
+        if video_times.shape[0] > whisking.shape[0]:
+            video_times = video_times[:whisking.shape[0]]
+        elif whisking.shape[0] > video_times.shape[0]:
+            whisking = whisking[:video_times.shape[0]]
 
         # Calculate percentage change
-        diameter_perc = ((diameter - np.percentile(diameter[~np.isnan(diameter)], 2))
-                         / np.percentile(diameter[~np.isnan(diameter)], 2)) * 100
+        whisking_perc = ((whisking - np.percentile(whisking[~np.isnan(whisking)], 2))
+                         / np.percentile(whisking[~np.isnan(whisking)], 2)) * 100
 
         # Get trial triggered baseline subtracted pupil diameter
         for t, trial_start in enumerate(opto_train_times):
-            this_diameter = np.array([np.nan] * TIME_BINS.shape[0])
+            this_whisking = np.array([np.nan] * TIME_BINS.shape[0])
             baseline_subtracted = np.array([np.nan] * TIME_BINS.shape[0])
-            baseline = np.nanmean(diameter_perc[(video_times > (trial_start - BASELINE[0]))
+            baseline = np.nanmean(whisking_perc[(video_times > (trial_start - BASELINE[0]))
                                                   & (video_times < (trial_start - BASELINE[1]))])
             for b, time_bin in enumerate(TIME_BINS):
-                this_diameter[b] = np.nanmean(diameter_perc[
+                this_whisking[b] = np.nanmean(whisking_perc[
                     (video_times > (trial_start + time_bin) - (BIN_SIZE / 2))
                     & (video_times < (trial_start + time_bin) + (BIN_SIZE / 2))])
-                baseline_subtracted[b] = np.nanmean(diameter_perc[
+                baseline_subtracted[b] = np.nanmean(whisking_perc[
                     (video_times > (trial_start + time_bin) - (BIN_SIZE / 2))
                     & (video_times < (trial_start + time_bin) + (BIN_SIZE / 2))]) - baseline
-            pupil_size = pd.concat((pupil_size, pd.DataFrame(data={
-                'diameter': this_diameter, 'baseline_subtracted': baseline_subtracted, 'eid': eid,
+            whisking_df = pd.concat((whisking_df, pd.DataFrame(data={
+                'diameter': this_whisking, 'baseline_subtracted': baseline_subtracted, 'eid': eid,
                 'subject': nickname, 'trial': t, 'time': TIME_BINS, 'expression': expression,
                 'date': date})))
 
         # Add to overal dataframe
         results_df = pd.concat((results_df, pd.DataFrame(data={
-            'diameter': pupil_size[pupil_size['eid'] == eid].groupby('time').mean(numeric_only=True)['diameter'],
-            'baseline_subtracted': pupil_size[pupil_size['eid'] == eid].groupby('time').mean(numeric_only=True)['baseline_subtracted'],
+            'diameter': whisking_df[whisking_df['eid'] == eid].groupby('time').mean(numeric_only=True)['diameter'],
+            'baseline_subtracted': whisking_df[whisking_df['eid'] == eid].groupby('time').mean(numeric_only=True)['baseline_subtracted'],
             'time': TIME_BINS, 'subject': nickname, 'expression': expression, 'eid': eid})), ignore_index=True)
 
     # Save output
-    results_df.to_csv(join(save_path, 'facial_movement_passive.csv'))
+    results_df.to_csv(join(save_path, 'whisking_passive.csv'))
 
     # Plot this animal
     colors, dpi = figure_style()
-    pupil_size = pupil_size.reset_index(drop=True)
+    whisking_df = whisking_df.reset_index(drop=True)
 
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), dpi=dpi)
-    sns.lineplot(x='time', y='diameter', estimator=np.nanmean, data=pupil_size,
+    sns.lineplot(x='time', y='diameter', estimator=np.nanmean, data=whisking_df,
                  color='k', errorbar='se', ax=ax1, legend=None)
     ylim = ax1.get_ylim()
     ax1.add_patch(Rectangle((0, 0), 1, 500, color='royalblue', alpha=0.25, lw=0))
@@ -134,7 +132,7 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
             ylabel='Pupil size (%)', xlabel='Time (s)', ylim=ylim,
             xticks=np.arange(-1, TIME_BINS[-1]+0.1))
 
-    sns.lineplot(x='time', y='baseline_subtracted', estimator=np.nanmean, data=pupil_size,
+    sns.lineplot(x='time', y='baseline_subtracted', estimator=np.nanmean, data=whisking_df,
                  color='k', errorbar='se', ax=ax2, legend=None)
     ylim = ax2.get_ylim()
     ax2.add_patch(Rectangle((0, -100), 1, 200, color='royalblue', alpha=0.25, lw=0))
@@ -145,7 +143,7 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
     plt.tight_layout()
     sns.despine(trim=True)
 
-    plt.savefig(join(fig_path, f'{nickname}_facial_movement_passive.jpg'), dpi=600)
+    plt.savefig(join(fig_path, f'{nickname}_whisking_passive.jpg'), dpi=600)
     plt.close(f)
 
 
