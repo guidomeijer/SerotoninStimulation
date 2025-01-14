@@ -19,13 +19,8 @@ from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
 np.random.seed(42)
 
 # Settings
-SMOOTHING = True
-WIN_SEC = 0.5
-SINGLE_TRIALS = [5, 30]
-WIN_STARTS = np.arange(-20, 70) 
-WIN_SIZE = 15
-PLOT_SESSIONS = False
-trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
+SMOOTHING = False
+WIN_SEC = 1
 
 # Paths
 f_path, save_path = paths()
