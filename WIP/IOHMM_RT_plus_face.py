@@ -21,6 +21,7 @@ np.random.seed(42)
 # Settings
 SMOOTHING = False
 WIN_SEC = 1
+MIN_TRIALS = 300
 
 # Paths
 f_path, save_path = paths()
@@ -32,7 +33,7 @@ colors, dpi = figure_style()
 _, data_path = paths()
 subjects = load_subjects()
 
-# Initialize IOHMM with two states
+# Initialize IOHMM with three states
 SHMM = UnSupervisedIOHMM(num_states=3, max_EM_iter=200, EM_tol=1e-6)
 SHMM.set_models(model_emissions = [OLS()], 
                 model_transition=CrossEntropyMNL(solver='lbfgs'),
@@ -104,7 +105,9 @@ for i, subject in enumerate(subjects['subject']):
             
         # Drop trials without pupil size
         trials_df = trials_df[~np.isnan(trials_df['pupil']) & ~np.isnan(trials_df['reaction_times'])]
-                
+        if trials_df.shape[0] < MIN_TRIALS:
+            continue       
+        
         # Start training
         SHMM.set_data([trials_df])
         SHMM.train()
@@ -132,8 +135,10 @@ for i, subject in enumerate(subjects['subject']):
         snif_state = np.argmax(mean_sniffing)
         mean_whisking[low_rt_state] = 0
         whisk_state = np.argmax(mean_whisking)
-        diseng_state = 3 - (low_rt_state + snif_state) # disengaged state is the remaining state
-        state_ind = np.array([low_rt_state, snif_state, diseng_state])
+        mean_mov = (mean_sniffing / np.max(mean_sniffing) + mean_whisking / np.max(mean_whisking)) / 2
+        mov_state = np.argmax(mean_mov)
+        diseng_state = 3 - (low_rt_state + mov_state) # disengaged state is the remaining state
+        state_ind = np.array([low_rt_state, mov_state, diseng_state])
         state_name = ['engaged', 'exploratory', 'disengaged']
         final_states = np.ones(predicted_states.shape[0]).astype(int) * 10
         for kk in range(state_ind.shape[0]):
@@ -148,4 +153,5 @@ for i, subject in enumerate(subjects['subject']):
         # Save to disk
         date = str(one.get_details(eid)['date'])
         trials_df.to_csv(path.join(save_path, 'IOHMM', f'{subject}_{date}.csv'))
+        
 

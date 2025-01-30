@@ -19,7 +19,6 @@ colors, dpi = figure_style()
 PLOT_SES = False
 WIN_STARTS = np.arange(-20, 70) 
 WIN_SIZE = 15
-PLOT_SESSIONS = False
 trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
 
 # Get processed sessions
@@ -80,28 +79,27 @@ for i, ses_path in enumerate(ses):
     
     # Add to df
     all_trials = pd.concat((all_trials, trials_df))
-    
+        
     # Plot session
     if PLOT_SES:
         f, ax1 = plt.subplots(1, 1, figsize=(6, 2), dpi=dpi)
-        pupil_norm = ((trials_df['pupil_zscore'] - np.min(trials_df['pupil_zscore']))
-                      / (np.max(trials_df['pupil_zscore']) - np.min(trials_df['pupil_zscore'])))
-        ax1.scatter(trials_df.index, pupil_norm, color='magenta', s=2, label='Pupil')
-        whisking_norm = ((trials_df['whisking_zscore'] - np.min(trials_df['whisking_zscore']))
-                      / (np.max(trials_df['whisking_zscore']) - np.min(trials_df['whisking_zscore'])))
-        ax1.scatter(trials_df.index, whisking_norm, color='cyan', s=2, label='Whisking')
-        sniffing_norm = ((trials_df['sniffing_zscore'] - np.min(trials_df['sniffing_zscore']))
-                      / (np.max(trials_df['sniffing_zscore']) - np.min(trials_df['sniffing_zscore'])))
-        ax1.scatter(trials_df.index, sniffing_norm, color='blue', s=2, label='Sniffing')
-        rt_norm = ((trials_df['rt_zscore'] - np.min(trials_df['rt_zscore']))
-                      / (np.max(trials_df['rt_zscore']) - np.min(trials_df['rt_zscore'])))
-        ax1.scatter(trials_df.index, rt_norm, color='red', s=2, label='RT')
-        ax1.plot(trials_df.index, trials_df['p_engaged'], label='Engaged')
-        ax1.plot(trials_df.index, trials_df['p_exploratory'], label='Exploratory')
-        ax1.plot(trials_df.index, trials_df['p_disengaged'], label='Disengaged')
         
-        ax1.legend(bbox_to_anchor=[1.2, 0.5])
-        ax1.set(xlim=[200, 250])
+        ax1.plot(np.arange(trials_df.shape[0]), trials_df['p_engaged'], label='Engaged', zorder=0)
+        ax1.plot(np.arange(trials_df.shape[0]), trials_df['p_exploratory'], label='Exploratory', zorder=0)
+        ax1.plot(np.arange(trials_df.shape[0]), trials_df['p_disengaged'], label='Disengaged', zorder=0)
+        
+        norm_rt = ((trials_df['rt_log'] - np.min(trials_df['rt_log']))
+                   / (np.max(trials_df['rt_log']) - np.min(trials_df['rt_log'])))
+        ax1.scatter(np.arange(trials_df.shape[0]), norm_rt, color='magenta', label='RT')
+        norm_whisk = ((trials_df['whisking'] - np.min(trials_df['whisking']))
+                      / (np.max(trials_df['whisking']) - np.min(trials_df['whisking'])))        
+        ax1.scatter(np.arange(trials_df.shape[0]), norm_whisk, color='cyan', label='Whisking')
+        norm_snif = ((trials_df['sniffing'] - np.min(trials_df['sniffing']))
+                     / (np.max(trials_df['sniffing']) - np.min(trials_df['sniffing'])))        
+        ax1.scatter(np.arange(trials_df.shape[0]), norm_snif, color='gold', label='Sniffing')
+                
+        ax1.set(xlim=[250, 300], xlabel='Trials')
+        ax1.legend(bbox_to_anchor=(1.2, 0.4))
         
         plt.tight_layout()
         sns.despine(trim=True)
@@ -135,11 +133,18 @@ plt.tight_layout()
 plt.savefig(path.join(fig_path, 'Extra plots', 'RT_plus_face_IOHMM_states.jpg'), dpi=600)
 
 # %%
-"""
+
 long_df = per_sub_diff.melt(value_vars=['p_engaged', 'p_exploratory', 'p_disengaged'])
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 sns.swarmplot(data=long_df, x='variable', y='value')
-"""
+ax1.plot([-0.5, 2.5], [0, 0], ls='--', lw=0.75, color='grey')
+ax1.set(ylabel='5-HT induced change (%)', xlabel='', xticks=[0, 1, 2],
+        xticklabels=['Eng.', 'Expl.', 'Diseng.'], yticks=[-5, 0, 5])
+
+
+plt.tight_layout()
+sns.despine(trim=True)
+plt.savefig(path.join(fig_path, 'Extra plots', 'RT_plus_face_IOHMM_change.jpg'), dpi=600)
 
 # %% Plot
     
@@ -150,9 +155,30 @@ sns.lineplot(data=long_df, x='trial_bin', y='value', hue='variable', ax=ax1,
              errorbar='se', err_kws={'lw': 0})
 ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey', lw=0.5)
 
-ax1.set(ylabel='Prob. of engaged state (%)', yticks=[-10, -5, 0, 5],
+ax1.set(ylabel='State probability (%)', yticks=[-10, -5, 0, 5],
         xticks=[-20, 0, 20, 40, 60, 80],
         xlabel='Trials since 5-HT start')
+
+leg_handles, _ = ax1.get_legend_handles_labels()
+leg_labels = ['Engaged', 'Exploratory', 'Disengaged']
+ax1.legend(leg_handles, leg_labels, prop={'size': 5}, bbox_to_anchor=[0.6, 0.4], frameon=False)
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(path.join(fig_path, 'Extra plots', 'RT_plus_face_IOHMM_baseline.jpg'), dpi=600)
+
+# %%
+
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
+long_df = pd.melt(per_sub_block[per_sub_block['opto'] == 1], id_vars=['trial_bin'],
+                  value_vars=['p_engaged', 'p_exploratory', 'p_disengaged'])
+sns.lineplot(data=long_df, x='trial_bin', y='value', hue='variable', ax=ax1,
+             errorbar='se', err_kws={'lw': 0})
+ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey', lw=0.5)
+
+ax1.set(ylabel='Prob. of engaged state (%)',
+        xticks=[-20, 0, 20, 40, 60, 80],
+       xlabel='Trials since 5-HT start')
 
 leg_handles, _ = ax1.get_legend_handles_labels()
 leg_labels = ['Engaged', 'Exploratory', 'Disengaged']
