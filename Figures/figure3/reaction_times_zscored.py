@@ -124,19 +124,39 @@ for i, subject in enumerate(subjects['subject']):
 # %% Plot
     
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
+
+sns.lineplot(data=block_df, x='trial', y='rt_bl', hue='opto', ax=ax1,
+             hue_order=[1, 0], palette=[colors['stim'], colors['no-stim']],
+             errorbar='se', err_kws={'lw': 0})
+ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey', lw=0.5)
+ax1.set(ylabel='Baseline subtr. reaction time (std)', 
+        xticks=[-20, 0, 20, 40, 60],
+        xlabel='Trials since stim. block switch')
+
+leg_handles, _ = ax1.get_legend_handles_labels()
+leg_labels = ['Start', 'End']
+leg = ax1.legend(leg_handles, leg_labels, prop={'size': 5}, bbox_to_anchor=[0.9, 0.5], frameon=False,
+                 title='5-HT block')
+leg.get_title().set_fontsize('6')
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(path.join(fig_path, 'reaction_time_opto_block_bl.pdf'))
+
+# %%
+f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
 
 sns.lineplot(data=block_df, x='trial', y='rt', hue='opto', ax=ax1,
              hue_order=[1, 0], palette=[colors['stim'], colors['no-stim']],
              errorbar='se', err_kws={'lw': 0})
-ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey', lw=0.5)
-#ax1.set(ylabel='Baseline subtr. reaction time (s)', yticks=[-1, -0.5, 0, 0.5, 1, 1.5],
-#        xticks=[-20, 0, 20, 40, 60, 80],
-#        xlabel='Trials since stim. block switch')
+ax1.set(ylabel='Z-scored reaction time (std)',
+        xticks=[-20, 0, 20, 40, 60],
+        xlabel='Trials since stim. block switch')
 
 leg_handles, _ = ax1.get_legend_handles_labels()
 leg_labels = ['Start', 'End']
-leg = ax1.legend(leg_handles, leg_labels, prop={'size': 5}, bbox_to_anchor=[0.2, 1], frameon=False,
+leg = ax1.legend(leg_handles, leg_labels, prop={'size': 5}, bbox_to_anchor=[0.9, 0.5], frameon=False,
                  title='5-HT block')
 leg.get_title().set_fontsize('6')
 

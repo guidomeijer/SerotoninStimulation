@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import zscore
 import matplotlib.pyplot as plt
+from copy import deepcopy
 from IOHMM import UnSupervisedIOHMM
 from IOHMM import OLS, CrossEntropyMNL
 from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
@@ -20,7 +21,7 @@ from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
 SINGLE_TRIALS = [5, 30]
 WIN_STARTS = np.arange(-20, 70) 
 WIN_SIZE = 15
-PLOT_SESSIONS = False
+PLOT_SESSIONS = True
 trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
 
 # Paths
@@ -33,15 +34,6 @@ colors, dpi = figure_style()
 _, data_path = paths()
 subjects = load_subjects()
 
-# Initialize IOHMM with two states
-SHMM = UnSupervisedIOHMM(num_states=2, max_EM_iter=200, EM_tol=1e-6)
-SHMM.set_models(model_emissions = [OLS()], 
-                model_transition=CrossEntropyMNL(solver='lbfgs', alpha=0),
-                model_initial=CrossEntropyMNL(solver='lbfgs', alpha=0))
-SHMM.set_inputs(covariates_initial = [],
-                covariates_transition = [],
-                covariates_emissions = [[]])
-SHMM.set_outputs([['rt']])
 
 # Loop over subjects
 state_df, block_df, block_single_df = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
@@ -79,13 +71,80 @@ for i, subject in enumerate(subjects['subject']):
         for ii, this_contrast in enumerate(np.unique(trials_df['abs_contrast'])):
             trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'] = zscore(
                 trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'])
-                    
+            
+        trials_df['constant'] = -100
+            
+        # Initialize IOHMM with two states
+        IOHMM = UnSupervisedIOHMM(num_states=2, max_EM_iter=200, EM_tol=1e-6)
+        IOHMM.set_models(model_emissions = [OLS()], 
+                        model_transition= CrossEntropyMNL(),
+                        model_initial= CrossEntropyMNL())
+        IOHMM.set_inputs(covariates_initial = [],
+                        covariates_transition = [],
+                        covariates_emissions = [[]])
+        IOHMM.set_outputs([['rt']])
+            
         # Start training
-        SHMM.set_data([trials_df])
+        IOHMM.set_data([trials_df])
+        IOHMM.train()
+        
+        IOHMM.model_transition[0].coef += 10
+        IOHMM.model_transition[1].coef += 10
+        
+        """
+        print(np.exp(IOHMM.model_transition[0].predict_log_proba(np.array([[]]))))
+        print(np.exp(IOHMM.model_transition[1].predict_log_proba(np.array([[]]))))
+        
+        emissions_model = deepcopy(IOHMM.model_emissions)
+        init_model = deepcopy(IOHMM.model_initial)
+        transition_model = deepcopy(IOHMM.model_transition)
+        
+        transition_model[0].coef = transition_model[1].coef * 100000
+        transition_model[1].coef = transition_model[1].coef * 100000
+        
+        # Initialize IOHMM with two states
+        trained_IOHMM = UnSupervisedIOHMM(num_states=2, max_EM_iter=200, EM_tol=1e-6)
+        trained_IOHMM.set_models(model_emissions = emissions_model, 
+                                 model_transition = transition_model,
+                                 model_initial = init_model,
+                                 trained=True)
+        trained_IOHMM.set_inputs(covariates_initial = [],
+                                 covariates_transition = [],
+                                 covariates_emissions = [[]])
+        trained_IOHMM.set_outputs([['rt']])
+            
+        # Start training
+        trained_IOHMM.set_data([trials_df])
+        trained_IOHMM.train()
+        print(np.exp(trained_IOHMM.model_transition[0].predict_log_proba(np.array([[]]))))
+        print(np.exp(trained_IOHMM.model_transition[1].predict_log_proba(np.array([[]]))))
+        
+        
+        
+        
+        # Set regularization strength
+        #SHMM.model_transition[0].alpha = 1000
+        #SHMM.model_transition[1].alpha = 1000
+        
+        SHMM.model_initial.coef = SHMM.model_initial.coef * 1000
+        SHMM.model_transition[0].coef = SHMM.model_transition[0].coef + 1000
+        SHMM.model_transition[1].coef = SHMM.model_transition[1].coef + 1000
+        
+        print(np.exp(SHMM.model_transition[0].predict_log_proba(np.array([[]]))))
+        print(np.exp(SHMM.model_transition[1].predict_log_proba(np.array([[]]))))
+        
+        # Refit the model
+        SHMM.set_models(model_emissions = SHMM.model_emissions, 
+                        model_transition = SHMM.model_transition,
+                        model_initial = SHMM.model_initial,
+                        trained=True)
         SHMM.train()
         
+        print(np.exp(SHMM.model_transition[0].predict_log_proba(np.array([[]]))))
+        print(np.exp(SHMM.model_transition[1].predict_log_proba(np.array([[]]))))
+        """
         # Get posterior probabilities and most likely state per trial
-        post_prob = np.exp(SHMM.log_gammas[0])
+        post_prob = np.exp(IOHMM.log_gammas[0])
         predicted_states = np.array([np.argmax(i, axis=0) for i in post_prob])
         
         # Determine the engaged state as the one with the lowest RT
@@ -191,6 +250,10 @@ for i, subject in enumerate(subjects['subject']):
                 
             sns.despine(trim=True, right=False)
             plt.tight_layout()
+            
+            ax1.set(xlim=[0, 50])
+            asd
+            
             plt.savefig(path.join(fig_path, 'IOHMM', f'{subject}_{eid}.jpg'), dpi=600)
             plt.close(f)
                 

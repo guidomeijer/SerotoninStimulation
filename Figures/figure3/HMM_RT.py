@@ -31,8 +31,6 @@ colors, dpi = figure_style()
 _, data_path = paths()
 subjects = load_subjects()
 
-# Initialize IOHMM with two states
-simple_hmm = ssm.HMM(2, clusters_in_region.shape[0], observations='gaussian')
 
 # Loop over subjects
 state_df, block_df, block_single_df = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
@@ -66,19 +64,28 @@ for i, subject in enumerate(subjects['subject']):
                 
         # Log transform and then z-score reaction times per contrast
         trials_df['rt'] = np.log10(trials_df['rt'])
+        """
         trials_df['abs_contrast'] = np.abs(trials_df['signed_contrast'])
         for ii, this_contrast in enumerate(np.unique(trials_df['abs_contrast'])):
             trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'] = zscore(
                 trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'])
-                    
-        # Start training
-        SHMM.set_data([trials_df])
-        SHMM.train()
+        """
+        input_arr = trials_df['rt'].values.reshape(-1, 1)
         
-        # Get posterior probabilities and most likely state per trial
-        post_prob = np.exp(SHMM.log_gammas[0])
-        predicted_states = np.array([np.argmax(i, axis=0) for i in post_prob])
+        """
+        # Fit ARHMM 
+        arhmm = ssm.HMM(2, 1, observations='ar', observation_kwargs={'lags': 1})
+        arhmm.fit(input_arr, method="em", num_iters=50)
+        predicted_states = arhmm.most_likely_states(input_arr)
+        post_prob = arhmm.filter(input_arr)
+        """
         
+        # Fit HMM
+        simple_hmm = ssm.HMM(2, 1, observations='gaussian')  
+        lls = simple_hmm.fit(input_arr, method='em', transitions='sticky')
+        predicted_states = simple_hmm.most_likely_states(input_arr)
+        post_prob = simple_hmm.filter(input_arr)
+          
         # Determine the engaged state as the one with the lowest RT
         # engaged state = 1, disengaged state = 0
         if (np.median(trials_df['rt'].values[predicted_states == 0])
@@ -179,7 +186,7 @@ for i, subject in enumerate(subjects['subject']):
             
         sns.despine(trim=True, right=False)
         plt.tight_layout()
-        plt.savefig(path.join(fig_path, 'IOHMM', f'{subject}_{eid}.jpg'), dpi=600)
+        plt.savefig(path.join(f_path, 'Extra plots', 'HMM', f'{subject}_{eid}.jpg'), dpi=600)
         plt.close(f)
             
         #stats.ttest_rel(state_df['switch_stim'].values[~np.isnan(state_df['switch_stim'].values)],
