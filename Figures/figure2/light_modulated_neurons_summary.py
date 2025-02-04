@@ -61,24 +61,21 @@ merged_df = pd.merge(all_mice, expression_df, on=['subject', 'subject_nr', 'sert
 merged_df = merged_df[merged_df['sert-cre'] == 1]
 merged_df['subject_nr'] = merged_df['subject_nr'].astype(int)
 
-"""
+
 # %% Plot percentage mod neurons
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.25, 1.75), dpi=dpi)
 
-this_cmap = ListedColormap([colors['subject_palette'][i] for i in np.sort(all_mice['subject_nr'])])
-
-f.subplots_adjust(bottom=0.2, left=0.35, right=0.85, top=0.9)
-sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=2.5, hue='subject_nr',
-              palette=this_cmap, legend=None, ax=ax1)
-ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 60], xlabel='',
+sns.swarmplot(x='sert-cre', y='perc_mod', data=all_mice, order=[1, 0], size=3, color='k',
+              legend=None, ax=ax1)
+ax1.set(xticklabels=['SERT', 'WT'], ylabel='Mod. neurons (%)', ylim=[-1, 62], xlabel='',
         yticks=[0, 30, 60])
 
 sns.despine(trim=True)
-# plt.tight_layout()
+plt.tight_layout()
 
 plt.savefig(join(fig_path, 'light_mod_summary.pdf'))
-"""
+
 
 # %% Plot percentage mod neurons vs expression
 colors, dpi = figure_style()
@@ -86,8 +83,8 @@ f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 
 
 sns.regplot(data=merged_df, x='perc_mod', y='rel_fluo', ax=ax1, ci=None,
-            scatter_kws={'alpha': 1, 's': 3, 'color': 'k'},
-            line_kws={'color': 'k', 'lw': 1})
+            scatter_kws={'alpha': 1, 's': 5, 'color': 'k'},
+            line_kws={'color': 'tab:red', 'lw': 1})
 
 ax1.set(xlim=[0, 62], xticks=[0, 30, 60], yticks=[0, 175, 350])
 ax1.tick_params(axis='x', which='major', pad=2)
@@ -95,7 +92,7 @@ ax1.set_ylabel('Relative expression (%)', rotation=90, labelpad=2)
 ax1.set_xlabel('5-HT modulated neurons (%)', rotation=0, labelpad=2)
 r, p = pearsonr(merged_df['rel_fluo'], merged_df['perc_mod'])
 print(f'correlation p-value: {p:.3f}')
-ax1.text(25, 300, '**', fontsize=10, ha='center')
+ax1.text(30, 300, '**', fontsize=12, ha='center')
 
 
 f.subplots_adjust(bottom=0.3, left=0.32, right=0.88, top=0.9)

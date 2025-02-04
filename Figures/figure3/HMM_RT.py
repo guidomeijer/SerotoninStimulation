@@ -64,12 +64,12 @@ for i, subject in enumerate(subjects['subject']):
                 
         # Log transform and then z-score reaction times per contrast
         trials_df['rt'] = np.log10(trials_df['rt'])
-        """
+        
         trials_df['abs_contrast'] = np.abs(trials_df['signed_contrast'])
         for ii, this_contrast in enumerate(np.unique(trials_df['abs_contrast'])):
             trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'] = zscore(
                 trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'])
-        """
+        
         input_arr = trials_df['rt'].values.reshape(-1, 1)
         
         """
@@ -80,12 +80,19 @@ for i, subject in enumerate(subjects['subject']):
         post_prob = arhmm.filter(input_arr)
         """
         
+        # Fit HMM 
+        hmm = ssm.HMM(2, 1, observations='gaussian')
+        hmm.fit(input_arr, method='em')
+        predicted_states = hmm.most_likely_states(input_arr)
+        post_prob = hmm.filter(input_arr)
+        """
+        
         # Fit HMM
         simple_hmm = ssm.HMM(2, 1, observations='gaussian')  
         lls = simple_hmm.fit(input_arr, method='em', transitions='sticky')
         predicted_states = simple_hmm.most_likely_states(input_arr)
         post_prob = simple_hmm.filter(input_arr)
-          
+        """
         # Determine the engaged state as the one with the lowest RT
         # engaged state = 1, disengaged state = 0
         if (np.median(trials_df['rt'].values[predicted_states == 0])
