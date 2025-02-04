@@ -121,7 +121,7 @@ f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
 )
 # this plots the colored region names
 for i in grouped_df.index:
-    ax1.text(grouped_df.loc[i, 'max_mod_index'],
+    ax1.text(grouped_df.loc[i, 'mod_index'],
              grouped_df.loc[i, 'latency'],
              grouped_df.loc[i, 'full_region'],
              ha='center', va='center',

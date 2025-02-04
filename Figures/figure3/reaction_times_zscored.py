@@ -15,7 +15,7 @@ from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
                             figure_style, load_subjects, behavioral_criterion)
 
 # Settings
-WIN_STARTS = np.arange(-20, 50)
+WIN_STARTS = np.arange(-20, 20)
 WIN_SIZE = 10
 PLOT_SESSIONS = False
 trial_win_labels = WIN_STARTS + (WIN_SIZE/2)

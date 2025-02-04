@@ -14,12 +14,13 @@ from matplotlib.patches import Rectangle
 from stim_functions import paths, query_ephys_sessions, load_subjects, figure_style
 from atlaselectrophysiology.load_histology import download_histology_data
 from pathlib import Path
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 
 # Settings
 #RAW_DATA_PATH = 'E:\\Flatiron\\mainenlab\\Subjects'
-RAW_DATA_PATH = 'D:\\Flatiron\\mainenlab\\Subjects'
+#RAW_DATA_PATH = 'D:\\Flatiron\\mainenlab\\Subjects'
+RAW_DATA_PATH = 'C:\\Users\\guido\\Data\\Flatiron\\mainenlab\\Subjects'
 SUBJECTS = ['ZFM-03330', 'ZFM-02600']
 AP_EXT = [-4400, -4600]
 EXP_WIN_XY = [190, 130]  # top left point
