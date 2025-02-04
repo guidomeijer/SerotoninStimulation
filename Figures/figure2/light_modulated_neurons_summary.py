@@ -61,6 +61,7 @@ merged_df = pd.merge(all_mice, expression_df, on=['subject', 'subject_nr', 'sert
 merged_df = merged_df[merged_df['sert-cre'] == 1]
 merged_df['subject_nr'] = merged_df['subject_nr'].astype(int)
 
+"""
 # %% Plot percentage mod neurons
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1), dpi=dpi)
@@ -77,23 +78,21 @@ sns.despine(trim=True)
 # plt.tight_layout()
 
 plt.savefig(join(fig_path, 'light_mod_summary.pdf'))
+"""
 
 # %% Plot percentage mod neurons vs expression
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1.1), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 
-this_cmap = ListedColormap([colors['subject_palette'][i] for i in merged_df['subject_nr']])
 
 sns.regplot(data=merged_df, x='perc_mod', y='rel_fluo', ax=ax1, ci=None,
-            scatter_kws={'c': range(merged_df.shape[0]), 'color': None,
-                         'cmap': this_cmap, 'alpha': 1, 's': 3},
+            scatter_kws={'alpha': 1, 's': 3, 'color': 'k'},
             line_kws={'color': 'k', 'lw': 1})
 
-ax1.set(xlim=[0, 52], xticks=[0, 30, 60],
-        yticks=[0, 175, 350])
+ax1.set(xlim=[0, 62], xticks=[0, 30, 60], yticks=[0, 175, 350])
 ax1.tick_params(axis='x', which='major', pad=2)
-ax1.set_ylabel('Rel. expression (%)', rotation=90, labelpad=2)
-ax1.set_xlabel('Mod. neurons (%)', rotation=0, labelpad=2)
+ax1.set_ylabel('Relative expression (%)', rotation=90, labelpad=2)
+ax1.set_xlabel('5-HT modulated neurons (%)', rotation=0, labelpad=2)
 r, p = pearsonr(merged_df['rel_fluo'], merged_df['perc_mod'])
 print(f'correlation p-value: {p:.3f}')
 ax1.text(25, 300, '**', fontsize=10, ha='center')
