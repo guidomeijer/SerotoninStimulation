@@ -72,29 +72,34 @@ for i, subject in enumerate(subjects['subject']):
         trials_df.loc[(trials_df['laser_probability'] == 0.75)
                       & (trials_df['laser_stimulation'] == 0), 'laser_stimulation'] = 1
     
-        # Get states centered at opto block switches
+        # Get RT centered at opto block switches
         this_block_df, this_end_df = pd.DataFrame(), pd.DataFrame()
         all_blocks = 0
         trials_df['opto_block_switch'] = np.concatenate((
             [False], np.diff(trials_df['laser_stimulation']) != 0))
-        opto_block_switch_ind = trials_df[trials_df['opto_block_switch']].index
-        for b, trial_ind in enumerate(opto_block_switch_ind):
+        opto_block_switch_ind = np.concatenate((trials_df[trials_df['opto_block_switch']].index,
+                                                [trials_df.shape[0]]))
+        for b, trial_ind in enumerate(opto_block_switch_ind[:-1]):
             all_blocks += 1
+            
+            # Get block length
+            this_block_length = opto_block_switch_ind[b+1] - trial_ind
+            print(this_block_length)
+            these_win_starts = WIN_STARTS[WIN_STARTS <= (this_block_length - WIN_SIZE) + 1]
             
             # Binned trials
             these_rts, these_trial_bins = [], []
-            for tt, this_start in enumerate(WIN_STARTS-1):
+            for tt, this_start in enumerate(these_win_starts-1):
                 trial_win = trials_df[trial_ind+this_start:trial_ind+this_start+WIN_SIZE]
                 if trial_win.shape[0] == WIN_SIZE:
                     these_rts.append(trial_win['rt'].mean())
                     these_trial_bins.append(trial_win_labels[tt])
-
+            
             this_block_df = pd.concat((this_block_df, pd.DataFrame(data={
                 'rt': np.array(these_rts), 'trial_bin': np.array(these_trial_bins),
                 'opto_switch': all_blocks,
                 'opto': trials_df.loc[trial_ind, 'laser_stimulation']})), ignore_index=True)
-            
-                    
+                                
         # Get reaction time medians
         rt_opto_median.append(trials_df.loc[trials_df['laser_stimulation'] == 1, 'rt'].median())
         rt_no_opto_median.append(trials_df.loc[trials_df['laser_stimulation'] == 0, 'rt'].median())
@@ -108,14 +113,14 @@ for i, subject in enumerate(subjects['subject']):
     block_df = pd.concat((block_df, pd.DataFrame(data={
         'rt': this_rt,
         'rt_bl': this_rt - np.mean(this_rt.values[:np.sum(trial_win_labels < -5)]),
-        'trial': trial_win_labels, 'subject': subject,
+        'trial': this_rt.index, 'subject': subject,
         'sert-cre': sert_cre,
         'opto': 1})))
     this_rt = this_block_df[this_block_df['opto'] == 0].groupby('trial_bin').mean(numeric_only=True)['rt']
     block_df = pd.concat((block_df, pd.DataFrame(data={
         'rt': this_rt,
         'rt_bl': this_rt - np.mean(this_rt.values[:np.sum(trial_win_labels < -5)]),
-        'trial': trial_win_labels, 'subject': subject,
+        'trial': this_rt.index, 'subject': subject,
         'sert-cre': sert_cre,
         'opto': 0})))
     
