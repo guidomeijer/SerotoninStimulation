@@ -95,7 +95,7 @@ mod_matrix['order'] = np.max(mod_matrix.iloc[:, 11:20], axis=1)
 mod_matrix = mod_matrix.sort_values(by='order', axis=0)
 mod_matrix.drop('order', axis=1, inplace=True)
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
 im_mod = ax1.imshow(np.flipud(mod_matrix), aspect='auto', extent=[-1, 3, 0, mod_matrix.shape[0]],
                     cmap='coolwarm', clim=[-0.1, 0.1], interpolation='none')
 ax1.set(yticks=np.arange(mod_matrix.shape[0])+0.5, yticklabels=mod_matrix.index,

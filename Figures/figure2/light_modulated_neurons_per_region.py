@@ -93,7 +93,7 @@ sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 
 # %%
-f, ax1 = plt.subplots(1, 1, figsize=(2.3, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.9, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df,
             order=ordered_regions_pm['full_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
@@ -116,14 +116,15 @@ PROPS = {'boxprops':{'facecolor':'none', 'edgecolor':'none'}, 'medianprops':{'co
 ORDER = mod_neurons.groupby('full_region').mean(numeric_only=True)['mod_index'].sort_values(
     ascending=False).reset_index()['full_region']
 
-f, ax1 = plt.subplots(1, 1, figsize=(2, 1.9), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(2, 2.1), dpi=dpi)
 sns.stripplot(x='mod_index', y='full_region', ax=ax1, data=mod_neurons, order=ORDER,
               size=2, color='grey', zorder=1)
 sns.boxplot(x='mod_index', y='full_region', ax=ax1, data=mod_neurons, showmeans=True,
             order=ORDER, meanprops={"marker": "|", "markeredgecolor": "red", "markersize": "8"},
             fliersize=0, zorder=2, **PROPS)
 ax1.plot([0, 0], ax1.get_ylim(), ls='--', color='black', zorder=0)
-ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticklabels=[-1, -0.5, 0, 0.5, 1])
+ax1.set(ylabel='', xlabel='Modulation index', xlim=[-1.05, 1.05], xticks=[-1, -0.5, 0, 0.5, 1],
+        xticklabels=[-1, -0.5, 0, 0.5, 1])
 #ax1.spines['bottom'].set_position(('data', np.floor(ax1.get_ylim()[0]) - 0.4))
 plt.tight_layout()
 sns.despine(trim=True)
