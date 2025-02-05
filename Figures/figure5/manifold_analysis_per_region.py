@@ -18,9 +18,9 @@ from stim_functions import (figure_style, paths, load_subjects, high_level_regio
                             remap, combine_regions)
 from sklearn.decomposition import PCA
 
-N_DIM = 10
+N_DIM = 3
 #SPLIT_ON = 'stim_side'
-SPLIT_ON = 'choice'
+SPLIT_ON = 'firstMovement_times'
 T_BEFORE = 0.03  #s
 DROP_REGIONS = ['root', 'AI', 'BC', 'ZI', 'RSP']
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
@@ -91,7 +91,7 @@ for r, region in enumerate(np.unique(regions)):
     for t in range(n_timepoints):
         l_dist = np.linalg.norm(L_opto[regions == region, t] - L_no_opto[regions == region, t])
         r_dist = np.linalg.norm(R_opto[regions == region, t] - R_no_opto[regions == region, t])
-        this_dist[t] = np.mean([l_dist, r_dist])
+        this_dist[t] = np.max([l_dist, r_dist])
     dist_opto[region] = this_dist
     
     # Do the same for shuffle
@@ -102,7 +102,7 @@ for r, region in enumerate(np.unique(regions)):
                                     - L_no_opto_choice_shuf[regions == region, t, ii])
             r_dist = np.linalg.norm(R_opto_choice_shuf[regions == region, t, ii]
                                     - R_no_opto_choice_shuf[regions == region, t, ii])
-            this_dist[t, ii] = np.mean([l_dist, r_dist])
+            this_dist[t, ii] = np.max([l_dist, r_dist])
     dist_opto_shuffle[region] = this_dist
 
 # Get Eucledian distances in neural space between choice left and right
@@ -127,7 +127,7 @@ for r, region in enumerate(np.unique(regions)):
                                        - R_opto_choice_shuf[regions == region, t, ii])
             no_opto_dist = np.linalg.norm(L_no_opto_choice_shuf[regions == region, t, ii]
                                           - R_no_opto_choice_shuf[regions == region, t, ii])
-            this_dist[t, ii] = np.mean([opto_dist, no_opto_dist])
+            this_dist[t, ii] = np.max([opto_dist, no_opto_dist])
     dist_choice_shuffle[region] = this_dist
                    
 # Do PCA
@@ -210,7 +210,35 @@ for r, region in enumerate(pca_fit.keys()):
                 dot_prod / (np.linalg.norm(choice_vec) * np.linalg.norm(opto_vec))))
             dot_pca_shuffle[region][t, ii] = np.abs(dot_prod)
             
-                   
+    
+# Get Eucledian distances in PCA space between opto and no opto
+dist_opto_pca, dist_choice_pca = dict(), dict()
+for r, region in enumerate(np.unique(regions)):
+    if region in DROP_REGIONS:
+        continue
+    
+    # Get Eucledian distance between opto and no opto 
+    this_dist = np.empty(n_timepoints)
+    for t in range(n_timepoints):
+        l_dist = np.linalg.norm(pca_fit[region][split_ids == 'L_opto'][t, :]
+                                - pca_fit[region][split_ids == 'L_no_opto'][t, :])
+        
+        r_dist = np.linalg.norm(pca_fit[region][split_ids == 'R_opto'][t, :]
+                                - pca_fit[region][split_ids == 'R_no_opto'][t, :])
+        this_dist[t] = np.max([l_dist, r_dist])
+    dist_opto_pca[region] = this_dist
+    
+    # Get Eucledian distance between L and R
+    this_dist = np.empty(n_timepoints)
+    for t in range(n_timepoints):
+        opto_dist = np.linalg.norm(pca_fit[region][split_ids == 'L_opto'][t, :]
+                                   - pca_fit[region][split_ids == 'R_opto'][t, :])
+        
+        no_opto_dist = np.linalg.norm(pca_fit[region][split_ids == 'L_no_opto'][t, :]
+                                      - pca_fit[region][split_ids == 'R_no_opto'][t, :])
+        this_dist[t] = np.max([opto_dist, no_opto_dist])
+    dist_choice_pca[region] = this_dist
+               
 # %% Get summary per region over the last couple of points before the choice
 
 summary_df = pd.DataFrame(data={
@@ -269,6 +297,30 @@ sns.despine(trim=True)
 plt.subplots_adjust(bottom=0.21, wspace=0.3, left=0.15)
 plt.savefig(join(fig_path, 'choice_and_opto.pdf'))
 
+# %% Plot choice and opto distance PCA
+
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3, 1.75), dpi=dpi, sharey=True)
+
+for i, region in enumerate(dist_choice.keys()):
+    ax1.plot(time_ax, dist_choice_pca[region], color=colors[region])
+    ax1.text(time_ax[-1] + 0.005, dist_choice_pca[region][-1], region, color=colors[region],
+             va='center')
+ax1.set(ylabel='PCA distance', title='Choice', yticks=[0, 50, 100, 150],
+        xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-150, -100, -50, 0])
+
+for i, region in enumerate(dist_opto.keys()):
+    ax2.plot(time_ax, dist_opto_pca[region], color=colors[region])
+    ax2.text(time_ax[-1] + 0.005, dist_opto_pca[region][-1], region, color=colors[region],
+             va='center')
+ax2.set(title='5-HT', xticks=[-0.15, -0.1, -0.05, 0], xticklabels=[-150, -100, -50, 0],
+        yticks=[0, 50, 100, 150])
+
+f.text(0.5, 0.04, 'Time to choice (ms)', ha='center')
+
+sns.despine(trim=True)
+plt.subplots_adjust(bottom=0.21, wspace=0.3, left=0.15)
+plt.savefig(join(fig_path, 'choice_and_opto_pca.pdf'))
+asd
 
 # %% Plot dot product
 

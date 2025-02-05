@@ -20,9 +20,7 @@ from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
 N_DIM = 3
-#SPLIT_ON = 'stim_side'
-SPLIT_ON = 'choice'
-T_BEFORE = 0.03  #s
+CENTER_ON = 'firstMovement_times'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
 CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r', 'R_no_opto': 'Blues_r',
               'L_collapsed': 'Reds_r', 'R_collapsed': 'Purples_r', 'no_opto_collapsed': 'Oranges_r', 'opto_collapsed': 'Blues_r'})
@@ -37,7 +35,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
 print('Loading in data..')
-ses_paths = glob(join(load_path, 'manifold', f'{SPLIT_ON}', '*.npy'))
+ses_paths = glob(join(load_path, 'manifold', f'{CENTER_ON}', '*.npy'))
 count = 0
 dist_df = pd.DataFrame()
 for i, ses_path in enumerate(ses_paths):
@@ -157,17 +155,61 @@ for i, ses_path in enumerate(ses_paths):
                 dot_prod / (np.linalg.norm(choice_vec) * np.linalg.norm(opto_vec))))
             dot_pca_shuffle[t, ii] = np.abs(dot_prod)
             
+    # Get distance in PCA space
+    choice_dist_pca = np.empty(n_timepoints)
+    for t in range(n_timepoints):
+        this_opto_dist = np.linalg.norm(pca_fit[split_ids == 'L_opto'][t, :]
+                                        - pca_fit[split_ids == 'R_opto'][t, :])
+        this_no_opto_dist = np.linalg.norm(pca_fit[split_ids == 'L_no_opto'][t, :]
+                                           - pca_fit[split_ids == 'R_no_opto'][t, :])
+        choice_dist_pca[t] = np.max([this_opto_dist, this_no_opto_dist])
+        
+    opto_dist_pca = np.empty(n_timepoints)
+    for t in range(n_timepoints):
+        this_l_dist = np.linalg.norm(pca_fit[split_ids == 'L_opto'][t, :]
+                                     - pca_fit[split_ids == 'L_no_opto'][t, :])
+        this_r_dist = np.linalg.norm(pca_fit[split_ids == 'R_opto'][t, :]
+                                     - pca_fit[split_ids == 'R_no_opto'][t, :])
+        opto_dist_pca[t] = np.max([this_l_dist, this_r_dist])
+        
     # Add to dataframe
     dist_df = pd.concat((dist_df, pd.DataFrame(data={
         'opto_dist': opto_dist, 'choice_dist': choice_dist, 'dot_pca': dot_pca,
-        'time': time_ax, 'sesion': pid})))
+        'choice_dist_pca': choice_dist_pca, 'opto_dist_pca': opto_dist_pca,
+        'time': time_ax, 'session': pid})))
 
+    """
+    # Plot PCA trajectories for this session
+    fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
+    ax = fig.add_subplot(projection='3d')
+    ax.view_init(elev=-160, azim=220)
+    for sp in SPLITS:
+        cmap = mpl.colormaps.get_cmap(CMAPS[sp])
+        col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
+        ax.plot(pca_fit[split_ids == sp, 0],
+                pca_fit[split_ids == sp, 1],
+                pca_fit[split_ids == sp, 2],
+                color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
+        ax.scatter(pca_fit[split_ids == sp, 0],
+                   pca_fit[split_ids == sp, 1],
+                   pca_fit[split_ids == sp, 2],
+                   color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
+    """
 
 # %%
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(1.75*3, 1.75), dpi=dpi)
 sns.lineplot(data=dist_df, x='time', y='opto_dist', ax=ax1, errorbar='se',
              err_kws={'lw': 0})
 sns.lineplot(data=dist_df, x='time', y='choice_dist', ax=ax1, errorbar='se',
+             err_kws={'lw': 0})
+
+
+sns.lineplot(data=dist_df, x='time', y='opto_dist_pca', ax=ax2, errorbar='se',
+             err_kws={'lw': 0})
+sns.lineplot(data=dist_df, x='time', y='choice_dist_pca', ax=ax2, errorbar='se',
+             err_kws={'lw': 0})
+
+sns.lineplot(data=dist_df, x='time', y='dot_pca', ax=ax3, units='session',
              err_kws={'lw': 0})
 
