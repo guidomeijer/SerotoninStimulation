@@ -23,11 +23,19 @@ one = ONE()
 # Settings
 SPLIT_ON = 'choice'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
-CENTER_ON = 'firstMovement_times'
-BIN_SIZE = 0.0125
-SMOOTHING = 0.02
-T_BEFORE = 0.15
-T_AFTER = 0
+#CENTER_ON = 'firstMovement_times'
+CENTER_ON = 'stimOn_times'
+
+#BIN_SIZE = 0.0125
+#SMOOTHING = 0.02
+#T_BEFORE = 0.15
+#T_AFTER = 0
+
+BIN_SIZE = 0.025
+SMOOTHING = 0.05
+T_BEFORE = 0
+T_AFTER = 0.5
+
 MIN_FR = 0.1
 MIN_RT = 0.1
 MAX_RT = 1
@@ -37,9 +45,9 @@ N_SHUFFLES = 500
 # Set paths
 # These data are too large to put on the repo so will be saved in the one cache dir
 _, s_path = paths(save_dir='cache')
-if not isdir(join(s_path, 'manifold', SPLIT_ON)):
-    mkdir(join(s_path, 'manifold', SPLIT_ON))
-save_path = join(s_path, 'manifold', SPLIT_ON)
+if not isdir(join(s_path, 'manifold', CENTER_ON)):
+    mkdir(join(s_path, 'manifold', CENTER_ON))
+save_path = join(s_path, 'manifold', CENTER_ON)
 _, load_path = paths(save_dir='repo')
 
 # Load in light modulated neurons
