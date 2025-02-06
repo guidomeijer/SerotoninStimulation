@@ -54,11 +54,22 @@ summary_df = summary_df[summary_df['modulated'] >= MIN_MOD_NEURONS]
 # Get ordered regions
 ordered_regions = summary_df.sort_values('perc_mod', ascending=False).reset_index()
 
+# Summary statistics per session
+per_ses_df = light_neurons[light_neurons['sert-cre'] == 1].groupby(
+    ['full_region', 'pid']).sum(numeric_only=True)
+per_ses_df['mod_index'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(
+    ['full_region', 'pid']).median(numeric_only=True)['mod_index']
+per_ses_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(['full_region', 'pid']).size()
+per_ses_df['perc_mod'] = (per_ses_df['modulated'] / per_ses_df['n_neurons']) * 100
+per_ses_df = per_ses_df[per_ses_df['n_neurons'] >= MIN_NEURONS_PER_MOUSE]
+per_ses_df = per_ses_df.groupby('full_region').filter(lambda x: len(x) >= MIN_REC)
+per_ses_df = per_ses_df.reset_index()
+
 # Summary statistics per mouse
 per_mouse_df = light_neurons[light_neurons['sert-cre'] == 1].groupby(
     ['full_region', 'subject']).sum(numeric_only=True)
 per_mouse_df['mod_index'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(
-    ['full_region', 'subject']).median(numeric_only=True)['mod_index']
+    ['full_region', 'subject']).mean(numeric_only=True)['mod_index']
 per_mouse_df['n_neurons'] = light_neurons[light_neurons['sert-cre'] == 1].groupby(['full_region', 'subject']).size()
 per_mouse_df['perc_mod'] = (per_mouse_df['modulated'] / per_mouse_df['n_neurons']) * 100
 per_mouse_df = per_mouse_df[per_mouse_df['n_neurons'] >= MIN_NEURONS_PER_MOUSE]
@@ -69,10 +80,13 @@ per_mouse_df = per_mouse_df.reset_index()
 per_mouse_df['subject_nr'] = [subjects.loc[subjects['subject'] == i, 'subject_nr'].values[0]
                               for i in per_mouse_df['subject']]
 
-# Get ordered regions per mouse
+# Get ordered regions 
 ordered_regions_pm = per_mouse_df.groupby('full_region').mean(numeric_only=True).sort_values('perc_mod', ascending=False).reset_index()
 ordered_regions_pm['color'] = [colors[i] for i in ordered_regions_pm['full_region']]
+ordered_regions_ps = per_ses_df.groupby('full_region').mean(numeric_only=True).sort_values('perc_mod', ascending=False).reset_index()
+ordered_regions_ps['color'] = [colors[i] for i in ordered_regions_ps['full_region']]
 
+"""
 # %% Plot percentage modulated neurons per region
 
 this_cmap = [colors['subject_palette'][i] for i in np.unique(per_mouse_df['subject_nr'])]
@@ -92,9 +106,10 @@ ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arang
 plt.subplots_adjust(left=0.4, bottom=0.2, right=0.95)
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
+"""
 
 # %%
-f, ax1 = plt.subplots(1, 1, figsize=(1.9, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.8, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df,
             order=ordered_regions_pm['full_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
@@ -108,7 +123,24 @@ ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 82], xticks=np.arang
 #plt.tight_layout()
 plt.subplots_adjust(top=0.9, left=0.35, bottom=0.2, right=0.95)
 sns.despine(trim=True)
-plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region_no-color.pdf'))
+plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
+
+# %%
+f, ax1 = plt.subplots(1, 1, figsize=(1.8, 2), dpi=dpi)
+sns.barplot(x='perc_mod', y='full_region', data=per_ses_df,
+            order=ordered_regions_pm['full_region'],
+            color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
+sns.swarmplot(x='perc_mod', y='full_region', data=per_ses_df,
+              order=ordered_regions_pm['full_region'],
+              color='k', ax=ax1, size=2, legend=None)
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 82], xticks=np.arange(0, 81, 20))
+#ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
+#           handletextpad=0.1)
+
+#plt.tight_layout()
+plt.subplots_adjust(top=0.9, left=0.35, bottom=0.2, right=0.95)
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_ses_region.pdf'))
 
 # %%
 
