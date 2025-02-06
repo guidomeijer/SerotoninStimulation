@@ -24,23 +24,23 @@ one = ONE()
 # Settings
 SPLIT_ON = 'choice'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
-CENTER_ON = 'firstMovement_times'
-#CENTER_ON = 'stimOn_times'
+#CENTER_ON = 'firstMovement_times'
+CENTER_ON = 'stimOn_times'
 
 #BIN_SIZE = 0.0125
 #SMOOTHING = 0.02
 #T_BEFORE = 0.15
 #T_AFTER = 0
 
-BIN_SIZE = 0.0125
-SMOOTHING = 0.02
-T_BEFORE = 0.15
-T_AFTER = 0
+#BIN_SIZE = 0.0125
+#SMOOTHING = 0.02
+#T_BEFORE = 0.3
+#T_AFTER = 0
 
-#BIN_SIZE = 0.025
-#SMOOTHING = 0.05
-#T_BEFORE = 0
-#T_AFTER = 0.5
+BIN_SIZE = 0.025
+SMOOTHING = 0.05
+T_BEFORE = 0
+T_AFTER = 0.5
 
 MIN_FR = 0.1
 MIN_RT = 0.1
