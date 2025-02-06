@@ -178,7 +178,7 @@ for i, ses_path in enumerate(ses_paths):
         'choice_dist_pca': choice_dist_pca, 'opto_dist_pca': opto_dist_pca,
         'time': time_ax, 'session': pid})))
 
-    """
+    
     # Plot PCA trajectories for this session
     fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
     ax = fig.add_subplot(projection='3d')
@@ -194,7 +194,7 @@ for i, ses_path in enumerate(ses_paths):
                    pca_fit[split_ids == sp, 1],
                    pca_fit[split_ids == sp, 2],
                    color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
-    """
+    
 
 # %%
 
@@ -210,6 +210,6 @@ sns.lineplot(data=dist_df, x='time', y='opto_dist_pca', ax=ax2, errorbar='se',
 sns.lineplot(data=dist_df, x='time', y='choice_dist_pca', ax=ax2, errorbar='se',
              err_kws={'lw': 0})
 
-sns.lineplot(data=dist_df, x='time', y='dot_pca', ax=ax3, units='session',
+sns.lineplot(data=dist_df, x='time', y='dot_pca', ax=ax3, 
              err_kws={'lw': 0})
 

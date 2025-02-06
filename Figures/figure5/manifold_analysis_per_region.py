@@ -320,7 +320,7 @@ f.text(0.5, 0.04, 'Time to choice (ms)', ha='center')
 sns.despine(trim=True)
 plt.subplots_adjust(bottom=0.21, wspace=0.3, left=0.15)
 plt.savefig(join(fig_path, 'choice_and_opto_pca.pdf'))
-asd
+
 
 # %% Plot dot product
 
