@@ -11,6 +11,7 @@ from os import mkdir
 import pandas as pd
 from copy import deepcopy
 import random
+from sklearn.utils import shuffle
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.task.closed_loop import generate_pseudo_blocks
 from stim_functions import (paths, combine_regions, load_subjects,
@@ -23,18 +24,23 @@ one = ONE()
 # Settings
 SPLIT_ON = 'choice'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
-#CENTER_ON = 'firstMovement_times'
-CENTER_ON = 'stimOn_times'
+CENTER_ON = 'firstMovement_times'
+#CENTER_ON = 'stimOn_times'
 
 #BIN_SIZE = 0.0125
 #SMOOTHING = 0.02
 #T_BEFORE = 0.15
 #T_AFTER = 0
 
-BIN_SIZE = 0.025
-SMOOTHING = 0.05
-T_BEFORE = 0
-T_AFTER = 0.5
+BIN_SIZE = 0.0125
+SMOOTHING = 0.02
+T_BEFORE = 0.15
+T_AFTER = 0
+
+#BIN_SIZE = 0.025
+#SMOOTHING = 0.05
+#T_BEFORE = 0
+#T_AFTER = 0.5
 
 MIN_FR = 0.1
 MIN_RT = 0.1
@@ -169,9 +175,18 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
             else:
                 peths_choice_shuf[split] = np.dstack((peths_choice_shuf[split], this_peth))
                 
+        """
         # Generate pseudo stimulation blocks for opto shuffle
         opto_pseudo = generate_pseudo_blocks(trials.shape[0], first5050=0)
-        opto_pseudo = opto_pseudo == 0.2
+        opto_pseudo = opto_pseudo == 0.2   
+        while (np.sum((trials[SPLIT_ON] == -1) & (opto_pseudo == 1)) < MIN_TRIALS
+               or np.sum((trials[SPLIT_ON] == 1) & (opto_pseudo == 1)) < MIN_TRIALS
+               or np.sum((trials[SPLIT_ON] == -1) & (opto_pseudo == 0)) < MIN_TRIALS
+               or np.sum((trials[SPLIT_ON] == 1) & (opto_pseudo == 0)) < MIN_TRIALS):
+            opto_pseudo = generate_pseudo_blocks(trials.shape[0], first5050=0)
+            opto_pseudo = opto_pseudo == 0.2
+        """
+        opto_pseudo = shuffle(trials['laser_stimulation'].values)
         
         for split in SPLITS:
                
@@ -188,7 +203,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
             elif split == 'R_no_opto':
                 this_peth = np.mean(binned_spikes[
                     (trials[SPLIT_ON] == 1) & (opto_pseudo == 0), :, :], axis=0)
-    
+            
             # Add to 3d array
             if ii == 0:
                 peths_opto_shuf[split] = this_peth
