@@ -11,6 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, combine_regions, load_subjects
+colors, dpi = figure_style()
 
 # Settings
 MIN_NEURONS_PER_MOUSE = 5
@@ -70,16 +71,16 @@ per_mouse_df['subject_nr'] = [subjects.loc[subjects['subject'] == i, 'subject_nr
 
 # Get ordered regions per mouse
 ordered_regions_pm = per_mouse_df.groupby('full_region').mean(numeric_only=True).sort_values('perc_mod', ascending=False).reset_index()
+ordered_regions_pm['color'] = [colors[i] for i in ordered_regions_pm['full_region']]
 
 # %% Plot percentage modulated neurons per region
 
-colors, dpi = figure_style()
 this_cmap = [colors['subject_palette'][i] for i in np.unique(per_mouse_df['subject_nr'])]
 
 f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
-sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df,
-            order=ordered_regions_pm['full_region'],
-            color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
+ax_bar = sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df,
+                     order=ordered_regions_pm['full_region'],
+                     color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
 sns.swarmplot(x='perc_mod', y='full_region', data=per_mouse_df,
               order=ordered_regions_pm['full_region'],
               hue='subject_nr', palette=this_cmap, ax=ax1, size=2, legend=None)

@@ -28,6 +28,7 @@ mod_over_time = pd.read_pickle(join(save_path, 'mod_over_time.pickle'))
 all_neurons = pd.merge(mod_over_time, mod_neurons,
                            on=['pid', 'subject', 'date', 'neuron_id', 'region'])
 all_neurons['full_region'] = combine_regions(all_neurons['region'], abbreviate=True)
+all_neurons['full_region_name'] = combine_regions(all_neurons['region'], abbreviate=False)
 
 # Get max modulation
 all_neurons['max_mod_index'] = [i[np.argmax(np.abs(i))] for i in all_neurons['mod_idx']]
@@ -70,6 +71,11 @@ sert_neurons['mod_index_abs'] = sert_neurons['mod_index'].abs()
 # Group by region
 grouped_df = sert_neurons.groupby('full_region').median(
     numeric_only=True).reset_index().reset_index()
+stderr_df = sert_neurons.groupby('full_region_name').sem(
+    numeric_only=True).reset_index().reset_index()
+grouped_df['latency_sem'] = stderr_df['latency'] * 1000
+grouped_df['mod_index_sem'] = stderr_df['mod_index']
+grouped_df['full_region_name'] = stderr_df['full_region_name']
 
 # Convert to ms
 grouped_df['latency'] = grouped_df['latency'] * 1000
@@ -135,3 +141,27 @@ ax1.text(0, 200, '**', fontsize=10, ha='center')
 sns.despine(offset=2, trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'modulation_latency_vs_index.pdf'))
+
+
+# %%
+
+slope, intercept = np.polyfit(grouped_df['mod_index'], grouped_df['latency'], 1)
+x_fit = np.linspace(grouped_df['mod_index'].min(), grouped_df['mod_index'].max(), 100)
+y_fit = slope * x_fit + intercept
+
+f, ax1 = plt.subplots(1, 1, figsize=(3.6, 2), dpi=dpi)
+ax1.plot(x_fit, y_fit, color='k', lw=1.5, label='_nolegend_')
+ax1.errorbar(grouped_df['mod_index'], grouped_df['latency'],
+             xerr=grouped_df['mod_index_sem'], yerr=grouped_df['latency_sem'],
+             fmt='none', ecolor=[0.7, 0.7, 0.7], capsize=2, capthick=1, zorder=0)
+for _, row in grouped_df.iterrows():
+    ax1.scatter(row['mod_index'], row['latency'], color=row['color'], s=20, marker='s', zorder=0)
+ax1.text(0, 200, '**', fontsize=12, ha='center')
+    
+ax1.set(yticks=[0, 100, 200], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
+        ylabel='Modulation latency (ms)', xlabel='Modulation index')
+ax1.legend(labels=grouped_df['full_region_name'], bbox_to_anchor=(1.05, 1.1))
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'modulation_latency_vs_index_errorbars.pdf'))
