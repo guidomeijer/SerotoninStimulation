@@ -57,15 +57,16 @@ sns.lineplot(data=ripple_df, x='time', y='ripple_bl', errorbar='se', hue='sert-c
              hue_order=[1, 0], palette=[colors['sert'], colors['wt']],
              err_kws={'lw': 0}, ax=ax1)
 #ax1.text(2, 0.32, f'n = {np.unique(ripple_df["subject"]).shape[0]} mice', ha='left', va='center')
-ax1.set(xlabel='Time from stimulation onset (s)', ylabel=u'Δ ripple frequency (rip./s)',
-        xticks=[-1, 0, 1, 2, 3, 4], ylim=[-0.3, 0.1], yticks=[-0.3, -0.2, -0.1, 0, 0.1],
+ax1.set(ylabel=u'Δ ripple frequency (rip./s)',
+        xlabel='', xticks=[], ylim=[-0.3, 0.1], yticks=[-0.3, -0.2, -0.1, 0, 0.1],
         yticklabels=[-0.3, -0.2, -0.1, 0, 0.1])
-
+ax1.plot([0, 1], [ax1.get_ylim()[0]-0.01, ax1.get_ylim()[0]-0.01], color='k', lw=0.75, clip_on=False)
+ax1.text(0.5, ax1.get_ylim()[0]-0.02, '1s', ha='center', va='top')
 handles, previous_labels = ax1.get_legend_handles_labels()
 ax1.legend(title='', handles=handles, labels=['SERT', 'WT'])
 add_significance(np.unique(ripple_df['time']), p_values, ax1)
 
-sns.despine(trim=True)
+sns.despine(trim=True, bottom=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'ripples_stim.pdf'))
 
