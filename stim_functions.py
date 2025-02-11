@@ -186,7 +186,7 @@ def figure_style():
     colors = {'subject_palette': subject_pal,
               'grey': [0.7, 0.7, 0.7],
               'sert': sns.color_palette('Dark2')[0],
-              'wt': [0.7, 0.7, 0.7],
+              'wt': [0.6, 0.6, 0.6],
               'awake': sns.color_palette('Dark2')[2],
               'anesthesia': sns.color_palette('Dark2')[3],
               'enhanced': sns.color_palette('colorblind')[3],
@@ -248,41 +248,18 @@ def figure_style():
     return colors, dpi
 
 
-"""
- 'OFC': sns.color_palette('Dark2')[0],
- 'mPFC': sns.color_palette('Dark2')[1],
- 'M2': sns.color_palette('Dark2')[2],
- 'Amyg': sns.color_palette('Dark2')[3],
- 'Hipp': sns.color_palette('Dark2')[4],
- 'VIS': sns.color_palette('Dark2')[5],
- 'Pir': sns.color_palette('Dark2')[6],
- 'SC': sns.color_palette('Dark2')[7],
- 'Thal': sns.color_palette('tab10')[9],
- 'PAG': sns.color_palette('Set1')[7],
- 'BC': sns.color_palette('Accent')[0],
- 'Str': sns.color_palette('Accent')[1],
- 'MRN': sns.color_palette('Accent')[2],
- 'OLF': sns.color_palette('tab10')[8],
- 'Orbitofrontal cortex': sns.color_palette('Dark2')[0],
- 'Medial prefrontal cortex': sns.color_palette('Dark2')[1],
- 'Secondary motor cortex': sns.color_palette('Dark2')[2],
- 'Amygdala': sns.color_palette('Dark2')[3],
- 'Hippocampus': sns.color_palette('Dark2')[4],
- 'Visual cortex': sns.color_palette('Dark2')[5],
- 'Piriform': sns.color_palette('Dark2')[6],
- 'Superior colliculus': sns.color_palette('Dark2')[7],
- 'Periaqueductal gray': sns.color_palette('Set1')[7],
- 'Barrel cortex': sns.color_palette('Set2')[0],
- 'Thalamus': sns.color_palette('tab10')[9],
- 'Tail of the striatum': sns.color_palette('Set2')[1],
- 'Midbrain reticular nucleus': sns.color_palette('Accent')[2],
- 'Olfactory areas': sns.color_palette('tab10')[8],
- 'Substantia nigra': [0.75, 0.75, 0.75],
- 'Striatum': sns.color_palette('Accent')[1],
- 'Retrosplenial cortex': 'r',
- 'RSP': 'r',
- 'SNr': [0.75, 0.75, 0.75],
- """
+def add_significance(x, p_values, ax, alpha=0.05):
+    p_sig = p_values < alpha
+    start_end = np.where(np.concatenate(([0], np.diff(p_sig).astype(int))))[0]
+    if p_sig[0] is True:
+        start_end = np.concatenate(([0], start_end))
+    if p_sig[-1] is True:
+        start_end = np.concatenate((start_end, [1]))
+    for i, ind in enumerate(start_end[::2]):
+        y = ax.get_ylim()[1]
+        ax.plot([x[ind], x[start_end[i+1]]], [y + (y*0.05), y + (y*0.05)], color='k', lw=1.5,
+                clip_on=False)
+        
 
 
 def get_artifact_neurons():
