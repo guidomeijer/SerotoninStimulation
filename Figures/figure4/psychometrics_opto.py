@@ -19,7 +19,7 @@ from one.api import ONE
 one = ONE()
 
 # Settings
-MIN_TRIALS = 200
+MIN_TRIALS = 400
 PLOT_SINGLE_ANIMALS = False
 subjects = load_subjects()
 colors, dpi = figure_style()
@@ -30,6 +30,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 bias_df, lapse_df, psy_df = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 for i, nickname in enumerate(subjects['subject']):
+    print(f'Subject {nickname} ({i} of {subjects.shape[0]})')
     
     # Only use sert-cre animals
     if subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0] == 0:
@@ -59,6 +60,18 @@ for i, nickname in enumerate(subjects['subject']):
     bias_fit_stim = get_bias(trials.loc[(trials['laser_stimulation'] == 1) & (trials['probe_trial'] == 0)])
     bias_fit_no_stim = get_bias(trials.loc[(trials['laser_stimulation'] == 0) & (trials['probe_trial'] == 0)])
 
+    # Get bias 
+    trials_select = (trials['laser_stimulation'] == 1) & (trials['probe_trial'] == 0) & (trials['signed_contrast'] == 0) & (trials['probabilityLeft'] == 0.2)
+    bias_r_opto = (trials.loc[trials_select, 'correct'].sum() / trials.loc[trials_select, 'correct'].shape[0]) * 100
+    trials_select = (trials['laser_stimulation'] == 0) & (trials['probe_trial'] == 0) & (trials['signed_contrast'] == 0) & (trials['probabilityLeft'] == 0.2)
+    bias_r_no_opto = (trials.loc[trials_select, 'correct'].sum() / trials.loc[trials_select, 'correct'].shape[0]) * 100
+    trials_select = (trials['laser_stimulation'] == 1) & (trials['probe_trial'] == 0) & (trials['signed_contrast'] == 0) & (trials['probabilityLeft'] == 0.8)
+    bias_l_opto = (trials.loc[trials_select, 'correct'].sum() / trials.loc[trials_select, 'correct'].shape[0]) * 100
+    trials_select = (trials['laser_stimulation'] == 0) & (trials['probe_trial'] == 0) & (trials['signed_contrast'] == 0) & (trials['probabilityLeft'] == 0.8)
+    bias_l_no_opto = (trials.loc[trials_select, 'correct'].sum() / trials.loc[trials_select, 'correct'].shape[0]) * 100
+    bias_opto = bias_r_opto - bias_l_opto
+    bias_no_opto = bias_r_no_opto - bias_l_no_opto
+
     # Get performance
     perf_opto = (trials.loc[trials['laser_stimulation'] == 1, 'correct'].sum()
                  / trials.loc[trials['laser_stimulation'] == 1, 'correct'].shape[0]) * 100
@@ -76,7 +89,8 @@ for i, nickname in enumerate(subjects['subject']):
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'], 'rt_no_stim': rt_no_stim,
         'rt_stim': rt_stim, 'rt_catch_no_stim': rt_catch_no_stim, 'rt_catch_stim': rt_catch_stim,
         'bias_fit_stim': bias_fit_stim, 'bias_fit_no_stim': bias_fit_no_stim,
-        'perf_stim': perf_opto, 'perf_no_stim': perf_no_opto})))
+        'perf_stim': perf_opto, 'perf_no_stim': perf_no_opto,
+        'bias_opto': bias_opto, 'bias_no_opto': bias_no_opto})))
 
     # Get fit parameters
     these_trials = trials[(trials['probabilityLeft'] == 0.8) & (trials['laser_stimulation'] == 0)
@@ -86,7 +100,7 @@ for i, nickname in enumerate(subjects['subject']):
                          these_trials.groupby('signed_contrast').mean()['right_choice'])
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'], 'opto_stim': 0, 'prob_left': 0.8,
-        'bias': pars[0], 'threshold': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
+        'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
     these_trials = trials[(trials['probabilityLeft'] == 0.2) & (trials['laser_stimulation'] == 0)
                           & (trials['laser_probability'] != 0.75)]
     stim_levels = np.sort(these_trials['signed_contrast'].unique())
@@ -94,7 +108,7 @@ for i, nickname in enumerate(subjects['subject']):
                          these_trials.groupby('signed_contrast').mean()['right_choice'])
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'], 'opto_stim': 0, 'prob_left': 0.2,
-        'bias': pars[0], 'threshold': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
+        'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
     these_trials = trials[(trials['probabilityLeft'] == 0.8) & (trials['laser_stimulation'] == 1)
                           & (trials['laser_probability'] != 0.25)]
     stim_levels = np.sort(these_trials['signed_contrast'].unique())
@@ -102,7 +116,7 @@ for i, nickname in enumerate(subjects['subject']):
                          these_trials.groupby('signed_contrast').mean()['right_choice'])
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'], 'opto_stim': 1, 'prob_left': 0.8,
-        'bias': pars[0], 'threshold': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
+        'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
     these_trials = trials[(trials['probabilityLeft'] == 0.2) & (trials['laser_stimulation'] == 1)
                           & (trials['laser_probability'] != 0.25)]
     stim_levels = np.sort(these_trials['signed_contrast'].unique())
@@ -110,9 +124,8 @@ for i, nickname in enumerate(subjects['subject']):
                          these_trials.groupby('signed_contrast').mean()['right_choice'])
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'],
-        'expression': subjects.loc[i, 'expression'],
         'opto_stim': 1, 'prob_left': 0.2,
-        'bias': pars[0], 'threshold': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
+        'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
 
     # Plot
     if PLOT_SINGLE_ANIMALS:
@@ -148,23 +161,27 @@ psy_avg_block_df = psy_avg_block_df.reset_index()
 # %% Plot
 
 # Get percentage increase
+#perc_bias = ((psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'bias'].values
+#               - psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 0, 'bias'].values)
+#              / psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'bias'].values) * 100
 perc_bias = ((bias_df['bias_fit_stim'] - bias_df['bias_fit_no_stim']) / bias_df['bias_fit_stim']).values * 100
+#perc_bias = ((bias_df['bias_opto'] - bias_df['bias_no_opto']) / bias_df['bias_opto']).values * 100
 perc_rt = ((bias_df['rt_stim'] - bias_df['rt_no_stim']) / bias_df['rt_stim']).values * 100
 perc_lapse = ((psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'lapse_both'].values
                - psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 0, 'lapse_both'].values)
               / psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'lapse_both'].values) * 100
-perc_threshold = ((psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'threshold'].values
-                   - psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 0, 'threshold'].values)
-                  / psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'threshold'].values) * 100
+perc_slope = ((psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'slope'].values
+                   - psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 0, 'slope'].values)
+                  / psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'slope'].values) * 100
 perc_perf = ((bias_df['perf_stim'] - bias_df['perf_no_stim']) / bias_df['perf_stim']).values * 100
-perc_df = pd.DataFrame(data={'Performance': perc_perf, 'Threshold': perc_threshold, 'Bias': perc_bias,
+perc_df = pd.DataFrame(data={'Performance': perc_perf, 'slope': perc_slope, 'Bias': perc_bias,
                              'Lapse rate': perc_lapse})
 
 # Do statistics
 p_bias = stats.ttest_1samp(perc_bias, 0)[1]
 p_rt = stats.ttest_1samp(perc_rt, 0)[1]
 p_lapse = stats.ttest_1samp(perc_lapse, 0)[1]
-p_threshold = stats.ttest_1samp(perc_threshold, 0)[1]
+p_slope = stats.ttest_1samp(perc_slope, 0)[1]
 p_perf = stats.ttest_1samp(perc_perf, 0)[1]
 
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
@@ -194,11 +211,11 @@ ax1.set_ylabel('Bias', labelpad=-5)
 
 for i, subject in enumerate(psy_avg_block_df['subject']):
     ax2.plot([1, 2], 
-             [psy_avg_block_df.loc[(psy_avg_block_df['subject'] == subject) & (psy_avg_block_df['opto_stim'] == 0), 'threshold'],
-              psy_avg_block_df.loc[(psy_avg_block_df['subject'] == subject) & (psy_avg_block_df['opto_stim'] == 1), 'threshold']],
+             [psy_avg_block_df.loc[(psy_avg_block_df['subject'] == subject) & (psy_avg_block_df['opto_stim'] == 0), 'slope'],
+              psy_avg_block_df.loc[(psy_avg_block_df['subject'] == subject) & (psy_avg_block_df['opto_stim'] == 1), 'slope']],
              color='k', marker='o', ms=3.5, markeredgewidth=0.5, markeredgecolor='w')
 ax2.text(1.5, 35, '*', ha='center', fontsize=10)
-ax2.set(xlabel='', xticks=[1, 2], xticklabels=['No stim.', 'Stim.'], ylabel='Threshold (σ)',
+ax2.set(xlabel='', xticks=[1, 2], xticklabels=['No stim.', 'Stim.'], ylabel='slope (σ)',
         ylim=[10, 40], yticks=[10, 20, 30, 40], xlim=[0.8, 2.2])
 
 

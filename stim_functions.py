@@ -1470,12 +1470,17 @@ def fit_psychfunc(stim_levels, n_trials, proportion):
     assert (stim_levels.shape == n_trials.shape == proportion.shape)
     if stim_levels.max() <= 1:
         stim_levels = stim_levels * 100
-
+    
+    # Fit psychometric function
     pars, _ = psy.mle_fit_psycho(np.vstack((stim_levels, n_trials, proportion)),
                                  P_model='erf_psycho_2gammas',
                                  parstart=np.array([0, 20, 0.05, 0.05]),
                                  parmin=np.array([-100, 5, 0, 0]),
                                  parmax=np.array([100, 100, 1, 1]))
+    
+    # Transform the slope paramter such that large values = steeper slope
+    pars[1] = (1/pars[1])*100
+    
     return pars
 
 
