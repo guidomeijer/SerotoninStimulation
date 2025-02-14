@@ -14,7 +14,7 @@ import random
 from sklearn.utils import shuffle
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.task.closed_loop import generate_pseudo_blocks
-from stim_functions import (paths, combine_regions, load_subjects,
+from stim_functions import (paths, combine_regions, load_subjects, binned_rate_timewarped,
                             high_level_regions, load_trials, calculate_peths)
 from one.api import ONE
 from iblatlas.atlas import AllenAtlas
@@ -24,23 +24,18 @@ one = ONE()
 # Settings
 SPLIT_ON = 'choice'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
-#CENTER_ON = 'firstMovement_times'
-CENTER_ON = 'stimOn_times'
+CENTER_ON = 'firstMovement_times'
+#CENTER_ON = 'stimOn_times'
 
-#BIN_SIZE = 0.0125
-#SMOOTHING = 0.02
-#T_BEFORE = 0.15
-#T_AFTER = 0
+BIN_SIZE = 0.0125
+SMOOTHING = 0.02
+T_BEFORE = 0.3
+T_AFTER = 0
 
-#BIN_SIZE = 0.0125
-#SMOOTHING = 0.02
-#T_BEFORE = 0.3
-#T_AFTER = 0
-
-BIN_SIZE = 0.025
-SMOOTHING = 0.05
-T_BEFORE = 0
-T_AFTER = 0.5
+#BIN_SIZE = 0.025
+#SMOOTHING = 0.05
+#T_BEFORE = 0
+#T_AFTER = 0.5
 
 MIN_FR = 0.1
 MIN_RT = 0.1
@@ -51,9 +46,7 @@ N_SHUFFLES = 500
 # Set paths
 # These data are too large to put on the repo so will be saved in the one cache dir
 _, s_path = paths(save_dir='cache')
-if not isdir(join(s_path, 'manifold', CENTER_ON)):
-    mkdir(join(s_path, 'manifold', CENTER_ON))
-save_path = join(s_path, 'manifold', CENTER_ON)
+save_path = join(s_path, 'manifold', f'{CENTER_ON}')
 _, load_path = paths(save_dir='repo')
 
 # Load in light modulated neurons
@@ -102,7 +95,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         | (trials[(trials[SPLIT_ON] == 1) & (trials['laser_stimulation'] == 0)].shape[0] < MIN_TRIALS)):
         print('Not enough trials for one of the splits')
         continue
-
+    
     # Get peri-event time histogram and binned spikes for all trials
     peths, binned_spikes = calculate_peths(spikes.times, spikes.clusters,
                                            these_neurons['neuron_id'].values,
