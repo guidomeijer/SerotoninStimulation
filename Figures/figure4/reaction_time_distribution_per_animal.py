@@ -16,9 +16,6 @@ from one.api import ONE
 one = ONE()
 colors, dpi = figure_style()
 
-# Settings
-MIN_TRIALS = 400
-
 # Query which subjects to use and create eid list per subject
 subjects = load_subjects()
 
@@ -35,7 +32,9 @@ for i, subject in enumerate(subjects['subject']):
     
     # Query sessions
     eids = query_opto_sessions(subject, include_ephys=True, one=one)
-    eids = behavioral_criterion(eids, min_perf=0.7, verbose=False, one=one)
+    eids = behavioral_criterion(eids, verbose=False, one=one)
+    if len(eids) < 2:
+        continue
 
     # Loop over sessions
     trials = pd.DataFrame()
@@ -50,8 +49,7 @@ for i, subject in enumerate(subjects['subject']):
         these_trials['trial'] = these_trials.index.values
         these_trials['session'] = j
         trials = pd.concat((trials, these_trials), ignore_index=True)
-    if trials.shape[0] < MIN_TRIALS:
-        continue
+
     print(f'{subject}: {trials.shape[0]} trials')
         
     # Remove probe trials
@@ -83,24 +81,13 @@ for i, subject in enumerate(subjects['subject']):
     all_trials_rt = pd.concat((all_trials_rt, trials))
     
     
-    # %% Plot example animal
-    """
-    f, axs = plt.subplots(1, 5, figsize=(8.75, 1.75), dpi=dpi)
-    for ii, this_contrast in enumerate([0, 0.0625, 0.125, 0.25, 1]):
-        sns.histplot(data=trials[trials['abs_contrast'] == this_contrast], x='time_to_choice',
-                     hue='laser_stimulation', binwidth=0.025, ax=axs[ii])
-        axs[ii].set(xlim=[0, 1], xlabel='Reaction time (s)')
-        #ax1.set(xscale='log')
-    
-    plt.suptitle(f'{subject}')
-    sns.despine(trim=True)
-    plt.tight_layout()
-    """
-    f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+    # %% Plot animal
+  
+    f, ax1 = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
 
     sns.histplot(data=trials, x='time_to_choice', hue='laser_stimulation', binwidth=0.05, ax=ax1,
                  palette=[colors['no-stim'], colors['stim']])
-    ax1.legend(labels=['5-HT', 'No 5-HT'])
+    ax1.legend(labels=['5-HT', 'No 5-HT'], bbox_to_anchor=(0.4, 1), prop={'size': 5})
     ax1.set(xlim=[0, 2], xlabel='Reaction time (s)', xticks=[0, 0.5, 1, 1.5, 2],
             xticklabels=[0, 0.5, 1, 1.5, 2])
     #ax1.set(xscale='log')
@@ -110,22 +97,3 @@ for i, subject in enumerate(subjects['subject']):
     plt.savefig(join(fig_path, f'{subject}_reaction_times.pdf'))
     
     
-# %%
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-sns.barplot(data=rt_perc_df, x='contrast', y='perc_rt', errorbar='se', ax=ax1)
-ax1.set(ylabel='5-HT induced reaction time\nincrease (%)', xticks=np.arange(5),
-        xticklabels=[0, 6.25, 12.5, 25, 100], xlabel='Stimulus contrast (%)')
-
-sns.despine(trim=True)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'reaction_time_per_contrast.pdf'))
-
-
-# %%
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-
-np.sum(all_trials_rt.loc[all_trials_rt['laser_stimulation'] == 1, 'rt_zscored'] > 2)
-np.sum(all_trials_rt.loc[all_trials_rt['laser_stimulation'] == 0, 'rt_zscored'] > 2)
-
-sns.despine(trim=True)
-plt.tight_layout()

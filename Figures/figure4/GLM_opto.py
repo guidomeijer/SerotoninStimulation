@@ -16,6 +16,7 @@ from one.api import ONE
 one = ONE()
 
 # Settings
+MIN_SES = 2
 subjects = load_subjects(behavior=True)
 f_path, save_path = paths()
 fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-1])
@@ -23,12 +24,16 @@ colors, dpi = figure_style()
 
 results_df = pd.DataFrame()
 for i, nickname in enumerate(subjects['subject']):
-    print(f'{nickname} ({i} of {subjects.shape[0]})')
+    
+    # Only use sert-cre animals
+    if subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0] == 0:
+        continue    
+    print(f'{nickname}')
 
     # Query sessions
     eids = query_opto_sessions(nickname, one=one)
     eids = behavioral_criterion(eids, verbose=False, one=one)
-    if len(eids) == 0:
+    if len(eids) < MIN_SES:
         continue
 
     # Get trials DataFrame
@@ -62,7 +67,7 @@ long_df = pd.melt(results_df.loc[results_df['sert-cre'] == 1,
                                  ['100', '25', '12.5', '6.25', 'previous_choice',
                                   'block_id', 'laser_stimulation']])
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.65, 2), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.65, 1.75), dpi=dpi)
 sns.barplot(data=long_df, x='variable', y='value', color='grey', zorder=1, linewidth=0)
 ax1.text(2.5, 2.5, f'n = {np.sum(results_df["sert-cre"] == 1)} mice')
 #ax1.plot(ax1.get_xlim(), [0, 0], color='grey', zorder=0)

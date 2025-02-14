@@ -15,10 +15,10 @@ from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
                             figure_style, load_subjects, behavioral_criterion)
 
 # Settings
-MIN_SES = 2
 WIN_STARTS = np.arange(-20, 20)
 WIN_SIZE = 10
 PLOT_SESSIONS = False
+MIN_SES = 2
 trial_win_labels = WIN_STARTS + (WIN_SIZE/2)
 
 # Paths
@@ -58,14 +58,6 @@ for i, subject in enumerate(subjects['subject']):
         #trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
         trials_df['rt'] = trials_df['feedback_times'] - trials_df['goCue_times']
         trials_df = trials_df[~np.isnan(trials_df['rt'])]
-        
-        # Log transform and then z-score reaction times per contrast
-        trials_df['rt'] = np.log10(trials_df['rt'])
-        trials_df['abs_contrast'] = np.abs(trials_df['signed_contrast'])
-        for ii, this_contrast in enumerate(np.unique(trials_df['abs_contrast'])):
-            trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'] = zscore(
-                trials_df.loc[trials_df['abs_contrast'] == this_contrast, 'rt'])
-                    
        
         # Remove probe trials
         trials_df.loc[(trials_df['laser_probability'] == 0.25)
@@ -147,7 +139,7 @@ leg.get_title().set_fontsize('6')
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(path.join(fig_path, 'reaction_time_opto_block_bl_zscore.pdf'))
+plt.savefig(path.join(fig_path, 'reaction_time_opto_block_bl.pdf'))
 
 # %%
 f, ax1 = plt.subplots(1, 1, figsize=(2, 1.75), dpi=dpi)
@@ -167,20 +159,20 @@ leg.get_title().set_fontsize('6')
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(path.join(fig_path, 'reaction_time_opto_block_zscore.pdf'))
+plt.savefig(path.join(fig_path, 'reaction_time_opto_block.pdf'))
 
 
 # %%
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.5, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1.75), dpi=dpi)
 for i in rt_df.index:
     ax1.plot([0, 1], [rt_df.loc[i, 'rt_opto'], rt_df.loc[i, 'rt_opto']], marker='o', color='k',
              markersize=2)
 ax1.set(xticks=[0, 1], xticklabels=['5-HT', 'No 5-HT'], ylabel='Median reaction time (s)',
-        yticks=np.arange(0, 1.5, 0.2), xlim=[-0.2, 1.2])
-ax1.text(0.5, 1.3, 'n.s.', ha='center', va='center')
+        yticks=np.arange(0.3, 0.61, 0.1), xlim=[-0.2, 1.2])
+ax1.text(0.5, 0.58, 'n.s.', ha='center', va='center')
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(path.join(fig_path, 'reaction_time_median_zscore.pdf'))
+plt.savefig(path.join(fig_path, 'reaction_time_median.pdf'))
 

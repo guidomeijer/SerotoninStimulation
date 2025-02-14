@@ -17,6 +17,7 @@ from one.api import ONE
 one = ONE()
 
 # Settings
+MIN_SES = 2
 PLOT_SINGLE_ANIMALS = False
 subjects = load_subjects()
 
@@ -33,7 +34,7 @@ for i, nickname in enumerate(subjects['subject']):
 
     # Apply behavioral criterion
     eids = behavioral_criterion(eids, verbose=False, one=one)
-    if len(eids) == 0:
+    if len(eids) < MIN_SES:
         continue
 
     # Get trials DataFrame

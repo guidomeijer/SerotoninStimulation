@@ -19,8 +19,8 @@ from one.api import ONE
 one = ONE()
 
 # Settings
-MIN_TRIALS = 400
-PLOT_SINGLE_ANIMALS = False
+MIN_SES = 2
+PLOT_SINGLE_ANIMALS = True
 subjects = load_subjects()
 colors, dpi = figure_style()
 
@@ -41,7 +41,7 @@ for i, nickname in enumerate(subjects['subject']):
 
     # Apply behavioral criterion
     eids = behavioral_criterion(eids, verbose=False, one=one)
-    if len(eids) == 0:
+    if len(eids) < MIN_SES:
         continue
 
     # Get trials DataFrame
@@ -52,9 +52,6 @@ for i, nickname in enumerate(subjects['subject']):
         these_trials['session'] = ses_count
         trials = pd.concat((trials, these_trials), ignore_index=True)
         ses_count = ses_count + 1
-
-    if len(trials) < MIN_TRIALS:
-        continue
 
     # Get bias from fitted curves
     bias_fit_stim = get_bias(trials.loc[(trials['laser_stimulation'] == 1) & (trials['probe_trial'] == 0)])
@@ -97,7 +94,8 @@ for i, nickname in enumerate(subjects['subject']):
                           & (trials['laser_probability'] != 0.75)]
     stim_levels = np.sort(these_trials['signed_contrast'].unique())
     pars = fit_psychfunc(stim_levels, these_trials.groupby('signed_contrast').size(),
-                         these_trials.groupby('signed_contrast').mean()['right_choice'])
+                         these_trials.groupby('signed_contrast').mean()['right_choice'],
+                         transform_slope=True)
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'], 'opto_stim': 0, 'prob_left': 0.8,
         'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
@@ -105,7 +103,8 @@ for i, nickname in enumerate(subjects['subject']):
                           & (trials['laser_probability'] != 0.75)]
     stim_levels = np.sort(these_trials['signed_contrast'].unique())
     pars = fit_psychfunc(stim_levels, these_trials.groupby('signed_contrast').size(),
-                         these_trials.groupby('signed_contrast').mean()['right_choice'])
+                         these_trials.groupby('signed_contrast').mean()['right_choice'],
+                         transform_slope=True)
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'], 'opto_stim': 0, 'prob_left': 0.2,
         'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
@@ -113,7 +112,8 @@ for i, nickname in enumerate(subjects['subject']):
                           & (trials['laser_probability'] != 0.25)]
     stim_levels = np.sort(these_trials['signed_contrast'].unique())
     pars = fit_psychfunc(stim_levels, these_trials.groupby('signed_contrast').size(),
-                         these_trials.groupby('signed_contrast').mean()['right_choice'])
+                         these_trials.groupby('signed_contrast').mean()['right_choice'],
+                         transform_slope=True)
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'], 'opto_stim': 1, 'prob_left': 0.8,
         'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
@@ -121,7 +121,8 @@ for i, nickname in enumerate(subjects['subject']):
                           & (trials['laser_probability'] != 0.25)]
     stim_levels = np.sort(these_trials['signed_contrast'].unique())
     pars = fit_psychfunc(stim_levels, these_trials.groupby('signed_contrast').size(),
-                         these_trials.groupby('signed_contrast').mean()['right_choice'])
+                         these_trials.groupby('signed_contrast').mean()['right_choice'],
+                         transform_slope=True)
     psy_df = pd.concat((psy_df, pd.DataFrame(index=[len(psy_df)+1], data={
         'subject': nickname, 'sert-cre': subjects.loc[i, 'sert-cre'],
         'opto_stim': 1, 'prob_left': 0.2,
@@ -174,7 +175,7 @@ perc_slope = ((psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'slope']
                    - psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 0, 'slope'].values)
                   / psy_avg_block_df.loc[psy_avg_block_df['opto_stim'] == 1, 'slope'].values) * 100
 perc_perf = ((bias_df['perf_stim'] - bias_df['perf_no_stim']) / bias_df['perf_stim']).values * 100
-perc_df = pd.DataFrame(data={'Performance': perc_perf, 'slope': perc_slope, 'Bias': perc_bias,
+perc_df = pd.DataFrame(data={'Performance': perc_perf, 'Slope': perc_slope, 'Bias': perc_bias,
                              'Lapse rate': perc_lapse})
 
 # Do statistics
@@ -187,7 +188,7 @@ p_perf = stats.ttest_1samp(perc_perf, 0)[1]
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
 sns.swarmplot(data=pd.melt(perc_df), x='variable', y='value', color='k', size=3)
 ax1.plot(ax1.get_xlim(), [0, 0], ls='--', color='grey')
-ax1.text(1, 35, '*', ha='center', va='center', fontsize=12)
+#ax1.text(1, 10, f'p={np.round(p_slope, 2)}', ha='center', va='center', fontsize=5)
 ax1.set(ylabel='5-HT induced change (%)', xlabel='', yticks=[-40, -20, 0, 20, 40])
 ax1.set_xticklabels(ax1.get_xmajorticklabels(), rotation=40, ha='right')
 
