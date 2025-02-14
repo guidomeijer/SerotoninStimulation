@@ -16,6 +16,7 @@ import statsmodels.api as sm
 from sklearn.model_selection import KFold
 from scipy.stats import binned_statistic
 from scipy.signal import convolve
+from scipy.stats import binned_statistic_2d
 from scipy.signal.windows import gaussian
 import pathlib
 from brainbox import singlecell
@@ -656,9 +657,9 @@ def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimsi
     trials.loc[(trials['signed_contrast'] == 0) & (trials['contrastRight'].isnull()),
                'stim_side'] = -1
     
-    trials['time_to_choice'] = trials['feedback_times'] - trials['goCue_times']
+    trials['time_to_choice'] = trials['feedback_times'] - trials['stimOn_times']
     if 'firstMovement_times' in trials.columns.values:
-        trials['reaction_times'] = trials['firstMovement_times'] - trials['goCue_times']
+        trials['reaction_times'] = trials['firstMovement_times'] - trials['stimOn_times']
     if invert_choice:
         trials['choice'] = -trials['choice']
     if invert_stimside:
@@ -962,6 +963,50 @@ def calculate_peths(
     peths = dict({'means': peth_means, 'stds': peth_stds, 'tscale': tscale, 'cscale': ids})
     return peths, binned_spikes
 
+
+def binned_rate_timewarped(
+        spike_times, spike_clusters, trials_df,
+        start='stimOn_times',
+        end='firstMovement_times',
+        n_bins=20):
+    
+    
+    # Precompute unique neuron IDs and number of neurons
+    neuron_ids = np.unique(spike_clusters)
+    n_neurons = neuron_ids.shape[0]
+    n_trials = trials_df.shape[0]
+    
+    # Initialize binned_rate array
+    binned_rate = np.zeros((n_trials, n_neurons, n_bins))
+    
+    # Loop over trials
+    for i, (start_time, end_time) in enumerate(zip(trials_df[start], trials_df[end])):
+        
+        # Define bin edges
+        bin_edges = np.linspace(start_time, end_time, n_bins+1)
+        bin_width = np.mean(np.diff(bin_edges))  # Compute bin width
+    
+        # Use digitize to assign each spike to a bin
+        bin_indices = np.digitize(spike_times, bin_edges) - 1  # Subtract 1 to get 0-based index
+    
+        # Mask to keep only spikes within the trial interval
+        valid_spikes = (spike_times >= start_time) & (spike_times <= end_time)
+        
+        # Filter spike data
+        valid_clusters = spike_clusters[valid_spikes]
+        valid_bins = bin_indices[valid_spikes]
+    
+        # Use binned_statistic_2d to count spikes per neuron per bin
+        spike_counts, _, _, _ = binned_statistic_2d(
+            valid_clusters, valid_bins, None, statistic='count',
+            bins=[n_neurons, n_bins], range=[[0, n_neurons], [0, n_bins]]
+        )
+    
+        # Convert to firing rate
+        binned_rate[i, :, :] = spike_counts / bin_width
+    
+    return binned_rate, neuron_ids           
+            
 
 def peri_multiple_events_time_histogram(
         spike_times, spike_clusters, events, event_ids, cluster_id,
