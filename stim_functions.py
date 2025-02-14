@@ -1435,7 +1435,7 @@ def query_opto_sessions(subject, include_ephys=False, one=None):
     return [sess['url'][-36:] for sess in sessions]
 
 
-def behavioral_criterion(eids, min_perf=0.75, min_trials=100, return_excluded=False,
+def behavioral_criterion(eids, min_perf=0.7, min_trials=200, max_rt=0.7, return_excluded=False,
                          verbose=True, one=None):
     if one is None:
         one = ONE()
@@ -1443,15 +1443,17 @@ def behavioral_criterion(eids, min_perf=0.75, min_trials=100, return_excluded=Fa
     for j, eid in enumerate(eids):
         try:
             trials = load_trials(eid, one=one)
+            trials['rt'] = trials['feedback_times'] - trials['goCue_times']
             perf = (np.sum(trials.loc[np.abs(trials['signed_contrast']) == 1, 'feedbackType'] == 1)
                     / trials[np.abs(trials['signed_contrast']) == 1].shape[0])
             details = one.get_details(eid)
-            if (perf > min_perf) & (trials.shape[0] > min_trials):
+            if (perf > min_perf) & (trials.shape[0] > min_trials) & (trials['rt'].median() < max_rt):
                 use_eids.append(eid)
             else:
                 if verbose:
-                    print('%s %s excluded (perf: %.2f, n_trials: %d)'
-                          % (details['subject'], details['start_time'][:10], perf, trials.shape[0]))
+                    print('%s %s excluded (perf: %.2f, n_trials: %d, rt: %.2f)'
+                          % (details['subject'], details['start_time'][:10], perf, trials.shape[0],
+                             trials['rt'].median()))
                 excl_eids.append(eid)
         except Exception:
             if verbose:
@@ -1462,7 +1464,7 @@ def behavioral_criterion(eids, min_perf=0.75, min_trials=100, return_excluded=Fa
         return use_eids
 
 
-def fit_psychfunc(stim_levels, n_trials, proportion):
+def fit_psychfunc(stim_levels, n_trials, proportion, transform_slope=False):
     # Fit a psychometric function with two lapse rates
     #
     # Returns vector pars with [bias, threshold, lapselow, lapsehigh]
@@ -1479,7 +1481,8 @@ def fit_psychfunc(stim_levels, n_trials, proportion):
                                  parmax=np.array([100, 100, 1, 1]))
     
     # Transform the slope paramter such that large values = steeper slope
-    pars[1] = (1/pars[1])*100
+    if transform_slope:
+        pars[1] = (1/pars[1])*100
     
     return pars
 

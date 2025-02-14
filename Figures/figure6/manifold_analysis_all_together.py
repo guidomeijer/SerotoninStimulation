@@ -211,14 +211,14 @@ for t in range(n_timepoints):
                                        - pca_fit[split_ids == 'R_no_opto'][t, :])
     choice_dist_pca[t] = np.max([this_opto_dist, this_no_opto_dist])
 
-opto_dist_pca_choice_shuf = np.empty((n_timepoints, L_opto_choice_shuf.shape[2]))
+choice_dist_pca_shuf = np.empty((n_timepoints, L_opto_choice_shuf.shape[2]))
 for ii in range(pca_choice_shuf.shape[2]):
     for t in range(n_timepoints):
-        l_dist = np.linalg.norm(pca_choice_shuf[split_ids == 'L_opto', :, ii][t, :]
-                                - pca_choice_shuf[split_ids == 'L_no_opto', :, ii][t, :])
-        r_dist = np.linalg.norm(pca_choice_shuf[split_ids == 'R_opto', :, ii][t, :]
-                                - pca_choice_shuf[split_ids == 'R_no_opto', :, ii][t, :])
-        opto_dist_pca_choice_shuf[t, ii] = np.max([l_dist, r_dist])
+        this_opto_dist = np.linalg.norm(pca_choice_shuf[split_ids == 'L_opto', :, ii][t, :]
+                                - pca_choice_shuf[split_ids == 'R_opto', :, ii][t, :])
+        this_no_opto_dist = np.linalg.norm(pca_choice_shuf[split_ids == 'L_opto', :, ii][t, :]
+                                - pca_choice_shuf[split_ids == 'R_opto', :, ii][t, :])
+        choice_dist_pca_shuf[t, ii] = np.max([this_opto_dist, this_no_opto_dist])
 
 opto_dist_pca = np.empty(n_timepoints)
 for t in range(n_timepoints):
@@ -358,5 +358,36 @@ ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - norm. dot produc
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, f'trajectories_all_together_{CENTER_ON}.pdf'))
+
+
+# %%
+f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(1.75*3, 1.75), dpi=dpi)
+
+ax1.fill_between(time_ax,
+                 np.quantile(choice_dist_pca_shuf, 0.05, axis=1),
+                 np.quantile(choice_dist_pca_shuf, 0.95, axis=1),
+                 color='lightgrey')
+ax1.plot(time_ax, choice_dist_pca, marker='o')
+ax1.set(xlabel='Time to choice (s)',ylabel='Choice distance (PC score)', yticks=[0, 100, 200])
+
+
+ax2.fill_between(time_ax,
+                 np.quantile(opto_dist_pca_shuf, 0.05, axis=1),
+                 np.quantile(opto_dist_pca_shuf, 0.95, axis=1),
+                 color='lightgrey')
+ax2.plot(time_ax, opto_dist_pca, marker='o')
+ax2.set(xlabel='Time to choice (s)', ylabel='5-HT distance (PC score)', yticks=[0, 50, 100])
+
+ax3.fill_between(time_ax,
+                 np.quantile(dot_pca_shuffle, 0.05, axis=1),
+                 np.quantile(dot_pca_shuffle, 0.95, axis=1),
+                 color='lightgrey')
+ax3.plot(time_ax, dot_pca, marker='o')
+ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - norm. dot product)',
+        yticks=np.arange(0, 1.1, 0.2))
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, f'trajectories_all_together_PCA_{CENTER_ON}.pdf'))
 
 

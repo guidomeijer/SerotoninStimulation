@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from glob import glob
 from scipy import stats
-from matplotlib.patches import Rectangle
+import matplotlib.animation as animation
 import pandas as pd
 import matplotlib as mpl
 from stim_functions import (figure_style, paths, load_subjects, high_level_regions,
@@ -19,6 +19,8 @@ from stim_functions import (figure_style, paths, load_subjects, high_level_regio
 from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
+# Settings
+PLOT_SES = False
 N_DIM = 3
 CENTER_ON = 'firstMovement_times'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
@@ -126,7 +128,7 @@ for i, ses_path in enumerate(ses_paths):
                           opto_vec / np.linalg.norm(opto_vec))
         angle_pca[t] = np.degrees(np.arccos(
             dot_prod / (np.linalg.norm(choice_vec) * np.linalg.norm(opto_vec))))
-        dot_pca[t] = np.abs(dot_prod)
+        dot_pca[t] = 1 - np.abs(dot_prod)
         
         # Determine whether the dot product is more orthogonal than expected by chance
         z_score = dot_prod / (1 / np.sqrt(choice_vec.shape[0]))
@@ -180,36 +182,45 @@ for i, ses_path in enumerate(ses_paths):
 
     
     # Plot PCA trajectories for this session
-    fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
-    ax = fig.add_subplot(projection='3d')
-    ax.view_init(elev=-160, azim=220)
-    for sp in SPLITS:
-        cmap = mpl.colormaps.get_cmap(CMAPS[sp])
-        col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
-        ax.plot(pca_fit[split_ids == sp, 0],
-                pca_fit[split_ids == sp, 1],
-                pca_fit[split_ids == sp, 2],
-                color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
-        ax.scatter(pca_fit[split_ids == sp, 0],
-                   pca_fit[split_ids == sp, 1],
-                   pca_fit[split_ids == sp, 2],
-                   color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
-    
-
+    if PLOT_SES:
+        fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
+        ax = fig.add_subplot(projection='3d')
+        ax.view_init(elev=-160, azim=220)
+        for sp in SPLITS:
+            cmap = mpl.colormaps.get_cmap(CMAPS[sp])
+            col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
+            ax.plot(pca_fit[split_ids == sp, 0],
+                    pca_fit[split_ids == sp, 1],
+                    pca_fit[split_ids == sp, 2],
+                    color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
+            ax.scatter(pca_fit[split_ids == sp, 0],
+                       pca_fit[split_ids == sp, 1],
+                       pca_fit[split_ids == sp, 2],
+                       color=col, edgecolors=col, s=10, depthshade=False, zorder=1)            
+        ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
+        
+        def rotate(angle):
+            ax.view_init(elev=20, azim=angle)
+            
+        # Create animation
+        ani = animation.FuncAnimation(fig, rotate, frames=np.arange(0, 360, 2), interval=50)
+        ani.save(join(f_path, 'Extra plots', 'Manifold', f'{pid}.gif'), writer='pillow', fps=20)
+        plt.close(fig)
+        
 # %%
 
-f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(1.75*3, 1.75), dpi=dpi)
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(1.75*2, 1.75), dpi=dpi)
 sns.lineplot(data=dist_df, x='time', y='opto_dist', ax=ax1, errorbar='se',
-             err_kws={'lw': 0})
+             err_kws={'lw': 0}, label='Opto')
 sns.lineplot(data=dist_df, x='time', y='choice_dist', ax=ax1, errorbar='se',
-             err_kws={'lw': 0})
+             err_kws={'lw': 0}, label='Choice')
+ax1.set(ylabel='Distance (spks/s)', xlabel='Time to choice (s)')
+ax1.legend()
 
-
-sns.lineplot(data=dist_df, x='time', y='opto_dist_pca', ax=ax2, errorbar='se',
+sns.lineplot(data=dist_df, x='time', y='dot_pca', ax=ax2, 
              err_kws={'lw': 0})
-sns.lineplot(data=dist_df, x='time', y='choice_dist_pca', ax=ax2, errorbar='se',
-             err_kws={'lw': 0})
+ax2.set(ylabel='Orthogonality\n(1 - norm. dot prod.)', xlabel='Time to choice (s)')
 
-sns.lineplot(data=dist_df, x='time', y='dot_pca', ax=ax3, 
-             err_kws={'lw': 0})
-
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, f'pca_trajectories_per_ses_{CENTER_ON}.pdf'))
