@@ -968,7 +968,7 @@ def binned_rate_timewarped(
         spike_times, spike_clusters, trials_df,
         start='stimOn_times',
         end='firstMovement_times',
-        n_bins=20):
+        n_bins=10):
     
     
     # Precompute unique neuron IDs and number of neurons
@@ -1001,7 +1001,7 @@ def binned_rate_timewarped(
             valid_clusters, valid_bins, None, statistic='count',
             bins=[n_neurons, n_bins], range=[[0, n_neurons], [0, n_bins]]
         )
-    
+        
         # Convert to firing rate
         binned_rate[i, :, :] = spike_counts / bin_width
     

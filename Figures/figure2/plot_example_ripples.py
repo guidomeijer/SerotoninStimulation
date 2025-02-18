@@ -14,9 +14,10 @@ from brainbox.plot import peri_event_time_histogram
 from brainbox.singlecell import calculate_peths
 from matplotlib.patches import Rectangle
 from stim_functions import (query_ephys_sessions, init_one, load_passive_opto_times, figure_style,
-                            paths)
-from serotonin_functions import load_lfp
+                            paths, load_lfp, plot_scalar_on_slice)
+from iblatlas.atlas import AllenAtlas
 one = init_one()
+ba = AllenAtlas(res_um=10)
 
 # Get paths
 f_path, save_path = paths()
@@ -65,7 +66,7 @@ ripple_start = std_cross[np.concatenate(([True], np.diff(std_cross) > 0.1))]
 
 # %% Plot
 colors, dpi = figure_style()
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi, gridspec_kw={'width_ratios': [2, 1]})
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
 time_select = (time > ripple_start[12] - 1) & (time < ripple_start[12]+0.8)
 ax1.scatter(ripple_start[10:14], [0.000075, 0.000075, 0.000075, 0.000075],
             marker='*', color='r', zorder=1)
@@ -74,6 +75,17 @@ ax1.plot([ax1.get_xlim()[0]+0.1, ax1.get_xlim()[0]+0.3], [-0.00008, -0.00008], c
 ax1.text(ax1.get_xlim()[0]+0.2, -0.000085, '0.2s', ha='center', va='top')
 ax1.axis('off')
 
+plt.subplots_adjust(bottom=0.1)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'example_ripple_detection.pdf'))
+
+f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
+plot_scalar_on_slice(np.array([]), np.array([]), ax=ax1, slice='coronal', coord=-2000, brain_atlas=ba, clevels=[0, 3])
+ax1.axis('off')
+plt.tight_layout()
+plt.savefig(join(fig_path, 'example_brain_regions.jpg'), dpi=1000)
+
+"""
 ax2.add_patch(Rectangle((0, -100), 1, 200, color='royalblue', alpha=0.25, lw=0))
 peri_event_time_histogram(ripple_start, np.ones(ripple_start.shape[0]), opto_times,
                           1, t_before=1, t_after=4, bin_size=BIN_SIZE, smoothing=SMOOTHING,
@@ -87,9 +99,7 @@ ax2.text(-1.05, SCALEBAR/2, f'{SCALEBAR} ripples s$^{-1}$', ha='right', va='cent
 ax2.plot([0, 1], [ax2.get_ylim()[0]-0.02, ax2.get_ylim()[0]-0.02], color='k', lw=0.75, clip_on=False)
 ax2.text(0.5, ax2.get_ylim()[0]-0.03, '1s', ha='center', va='top')
 ax2.axis('off')
+"""
 
-plt.subplots_adjust(bottom=0.1)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'example_ripple_detection.pdf'))
 
 

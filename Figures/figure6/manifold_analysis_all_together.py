@@ -22,7 +22,8 @@ from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
 N_DIM = 3
-CENTER_ON = 'firstMovement_times'
+#DATASET = 'firstMovement_times'
+DATASET = 'timewarped'
 #CENTER_ON = 'stimOn_times'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
 CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r', 'R_no_opto': 'Blues_r',
@@ -39,13 +40,17 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 # Load in data
 print('Loading in data..')
 regions = np.array([])
-ses_paths = glob(join(load_path, 'manifold', f'{CENTER_ON}', '*.npy'))
+ses_paths = glob(join(load_path, 'manifold', f'{DATASET}', '*.npy'))
 for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
     if this_dict['sert-cre'] == 0:
         continue
-    n_timepoints = this_dict['time'].shape[0]
-    time_ax = this_dict['time']
+    if DATASET == 'timewarped':
+        n_timepoints = this_dict['n_bins']
+        time_ax = np.arange(n_timepoints)
+    else:
+        n_timepoints = this_dict['time'].shape[0]
+        time_ax = this_dict['time']
     if i == 0:
         L_opto = np.empty((0, n_timepoints))
         R_opto = np.empty((0, n_timepoints))
@@ -253,14 +258,14 @@ for sp in SPLITS:
                pca_fit[split_ids == sp, 2],
                color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_trajectories_all_together_{CENTER_ON}.pdf'))
+plt.savefig(join(fig_path, f'pca_trajectories_all_together_{DATASET}.pdf'))
 
 def rotate(angle):
     ax.view_init(elev=20, azim=angle)
     
 # Create animation
 ani = animation.FuncAnimation(fig, rotate, frames=np.arange(0, 360, 2), interval=50)
-ani.save(join(fig_path, f'pca_trajectories_all_together_{CENTER_ON}.gif'), writer='pillow', fps=20)
+ani.save(join(fig_path, f'pca_trajectories_all_together_{DATASET}.gif'), writer='pillow', fps=20)
 
 # %% Plot PCA trajectories 
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
@@ -278,7 +283,7 @@ for sp in SPLITS:
                pca_fit[split_ids == sp, 2],
                color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_trajectories_all_together_front_{CENTER_ON}.pdf'))
+plt.savefig(join(fig_path, f'pca_trajectories_all_together_front_{DATASET}.pdf'))
 
 
 # %%
@@ -302,7 +307,7 @@ ax.scatter(pca_no_opto_col[:, 0], pca_no_opto_col[:, 1], pca_no_opto_col[:, 2],
            color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
 
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_opto_collapsed_all_together_{CENTER_ON}.pdf'))
+plt.savefig(join(fig_path, f'pca_opto_collapsed_all_together_{DATASET}.pdf'))
 
 # %%
 
@@ -325,7 +330,7 @@ ax.scatter(pca_r_col[:, 0], pca_r_col[:, 1], pca_r_col[:, 2],
            color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
 
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_choice_collapsed_all_together_{CENTER_ON}.pdf'))
+plt.savefig(join(fig_path, f'pca_choice_collapsed_all_together_{DATASET}.pdf'))
 
 
 # %%
@@ -357,7 +362,7 @@ ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - norm. dot produc
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, f'trajectories_all_together_{CENTER_ON}.pdf'))
+plt.savefig(join(fig_path, f'trajectories_all_together_{DATASET}.pdf'))
 
 
 # %%
@@ -388,6 +393,6 @@ ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - norm. dot produc
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(fig_path, f'trajectories_all_together_PCA_{CENTER_ON}.pdf'))
+plt.savefig(join(fig_path, f'trajectories_all_together_PCA_{DATASET}.pdf'))
 
 
