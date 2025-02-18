@@ -8,6 +8,7 @@ Created on Wed Jan 13 11:42:01 2021
 
 from os.path import join, realpath, dirname, split
 import matplotlib.pyplot as plt
+import seaborn as sns
 import cv2
 from glob import glob
 from matplotlib.patches import Rectangle
@@ -32,16 +33,16 @@ cap = cv2.VideoCapture(glob(join(ses_path, 'raw_video_data', '*.mp4'))[0])
 cap.set(1, 1000)
 ret, image = cap.retrieve()
 
+# %%
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=dpi)
 ax1.imshow(image)
-rect = Rectangle((roi_win[2], roi_win[3]), roi_win[0], roi_win[1], linewidth=1, edgecolor='red', facecolor='none')
+rect = Rectangle((roi_win[2], roi_win[3]), roi_win[0], roi_win[1], linewidth=1,
+                 edgecolor=sns.color_palette('Dark2')[1], facecolor='none')
+ax1.plot(XYs['nose_tip'][1000, 0], XYs['nose_tip'][1000, 1], marker='x',
+         color=sns.color_palette('Dark2')[2], markersize=5)
 ax1.add_patch(rect)
 ax1.axis('off')
-plt.savefig(join(fig_path, 'example_ROI.jpg'), dpi=600)
 
-f, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=dpi)
-ax1.imshow(image)
-ax1.plot(XYs['nose_tip'][1000, 0], XYs['nose_tip'][1000, 1], marker='x', color='red', markersize=5)
-ax1.axis('off')
-plt.savefig(join(fig_path, 'example_nose_tip.jpg'), dpi=600)
+plt.savefig(join(fig_path, 'example_video_frame.jpg'), dpi=600)
+

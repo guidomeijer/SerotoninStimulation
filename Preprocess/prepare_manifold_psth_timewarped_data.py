@@ -91,7 +91,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         spikes.times[np.isin(spikes.clusters, these_neurons['neuron_id'])],
         spikes.clusters[np.isin(spikes.clusters, these_neurons['neuron_id'])],
         trials, start=START, end=END, n_bins=N_BINS)
-
+    asd
     for split in SPLITS:
         
         # Split trials and get mean spike rate per split
