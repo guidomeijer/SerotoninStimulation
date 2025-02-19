@@ -22,8 +22,8 @@ from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
 N_DIM = 3
-#DATASET = 'firstMovement_times'
-DATASET = 'timewarped'
+DATASET = 'firstMovement_times'
+#DATASET = 'timewarped'
 #CENTER_ON = 'stimOn_times'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
 CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r', 'R_no_opto': 'Blues_r',
@@ -260,12 +260,14 @@ for sp in SPLITS:
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
 plt.savefig(join(fig_path, f'pca_trajectories_all_together_{DATASET}.pdf'))
 
+"""
 def rotate(angle):
     ax.view_init(elev=20, azim=angle)
     
 # Create animation
 ani = animation.FuncAnimation(fig, rotate, frames=np.arange(0, 360, 2), interval=50)
 ani.save(join(fig_path, f'pca_trajectories_all_together_{DATASET}.gif'), writer='pillow', fps=20)
+"""
 
 # %% Plot PCA trajectories 
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
