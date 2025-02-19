@@ -30,7 +30,7 @@ CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r
               'L_collapsed': 'Reds_r', 'R_collapsed': 'Purples_r', 'no_opto_collapsed': 'Oranges_r', 'opto_collapsed': 'Blues_r'})
 
 # Initialize
-pca = PCA(n_components=N_DIM)
+pca = PCA(n_components=N_DIM, svd_solver='randomized', random_state=42)
 colors, dpi = figure_style()
 
 # Get paths
@@ -133,7 +133,7 @@ for ii in range(this_dict['n_shuffles']):
                             R_no_opto_shuf[:, :, ii].T))
     if np.sum(np.isnan(all_splits)) == 0:
         pca_shuffle = np.dstack((pca_shuffle, pca.fit_transform(all_splits)))
-        
+
 pca_choice_shuf = np.empty((all_splits.shape[0], N_DIM, 0))
 for ii in range(this_dict['n_shuffles']):
     all_splits = np.vstack((L_opto_choice_shuf[:, :, ii].T,
@@ -162,13 +162,13 @@ pca_no_opto_col = (pca_fit[split_ids == 'L_no_opto'] + pca_fit[split_ids == 'R_n
 dot_pca, angle_pca = np.empty(n_timepoints), np.empty(n_timepoints)
 p_value = np.empty(n_timepoints)
 for t in range(n_timepoints):
-    
+
     #choice_vec = pca_fit[split_ids == 'L_no_opto'][t] - pca_fit[split_ids == 'R_no_opto'][t]
     #opto_vec = pca_fit[split_ids == 'R_opto'][t] - pca_fit[split_ids == 'R_no_opto'][t]
-    
+
     choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
     opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
-    
+
     dot_prod = np.dot(choice_vec / np.linalg.norm(choice_vec),
                       opto_vec / np.linalg.norm(opto_vec))
     angle_pca[t] = np.degrees(np.arccos(
@@ -194,13 +194,13 @@ for ii in range(pca_shuffle.shape[2]):
                        + pca_shuffle[split_ids == 'R_no_opto', :, ii]) / 2
 
     for t in range(n_timepoints):
-        
+
         #choice_vec = pca_shuffle[split_ids == 'L_no_opto', :, ii][t] - pca_shuffle[split_ids == 'R_no_opto', :, ii][t]
         #opto_vec = pca_shuffle[split_ids == 'R_opto', :, ii][t] - pca_shuffle[split_ids == 'R_no_opto', :, ii][t]
-        
+
         choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
         opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
-        
+
         dot_prod = np.dot(choice_vec / np.linalg.norm(choice_vec),
                           opto_vec / np.linalg.norm(opto_vec))
         angle_pca_shuffle[t, ii] = np.degrees(np.arccos(
@@ -241,11 +241,11 @@ for ii in range(pca_shuffle.shape[2]):
         r_dist = np.linalg.norm(pca_shuffle[split_ids == 'R_opto', :, ii][t, :]
                                 - pca_shuffle[split_ids == 'R_no_opto', :, ii][t, :])
         opto_dist_pca_shuf[t, ii] = np.max([l_dist, r_dist])
-        
-# %% Plot PCA trajectories 
+
+# %% Plot PCA trajectories
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-140, azim=190)
+ax.view_init(elev=200, azim=210)
 for sp in SPLITS:
     cmap = mpl.colormaps.get_cmap(CMAPS[sp])
     col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -263,16 +263,16 @@ plt.savefig(join(fig_path, f'pca_trajectories_all_together_{DATASET}.pdf'))
 """
 def rotate(angle):
     ax.view_init(elev=20, azim=angle)
-    
+
 # Create animation
 ani = animation.FuncAnimation(fig, rotate, frames=np.arange(0, 360, 2), interval=50)
 ani.save(join(fig_path, f'pca_trajectories_all_together_{DATASET}.gif'), writer='pillow', fps=20)
 """
 
-# %% Plot PCA trajectories 
+# %% Plot PCA trajectories
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=0, azim=10)
+ax.view_init(elev=181, azim=190)
 for sp in SPLITS:
     cmap = mpl.colormaps.get_cmap(CMAPS[sp])
     col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -288,51 +288,6 @@ ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
 plt.savefig(join(fig_path, f'pca_trajectories_all_together_front_{DATASET}.pdf'))
 
 
-# %%
-
-fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
-ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-175, azim=190)
-
-cmap = mpl.colormaps.get_cmap(CMAPS['opto_collapsed'])
-col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
-ax.plot(pca_opto_col[:, 0], pca_opto_col[:, 1], pca_opto_col[:, 2],
-        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
-ax.scatter(pca_opto_col[:, 0], pca_opto_col[:, 1], pca_opto_col[:, 2],
-           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
-
-cmap = mpl.colormaps.get_cmap(CMAPS['no_opto_collapsed'])
-col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
-ax.plot(pca_no_opto_col[:, 0], pca_no_opto_col[:, 1], pca_no_opto_col[:, 2],
-        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
-ax.scatter(pca_no_opto_col[:, 0], pca_no_opto_col[:, 1], pca_no_opto_col[:, 2],
-           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
-
-ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_opto_collapsed_all_together_{DATASET}.pdf'))
-
-# %%
-
-fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
-ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-175, azim=190)
-
-cmap = mpl.colormaps.get_cmap(CMAPS['L_collapsed'])
-col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
-ax.plot(pca_l_col[:, 0], pca_l_col[:, 1], pca_l_col[:, 2],
-        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
-ax.scatter(pca_l_col[:, 0], pca_l_col[:, 1], pca_l_col[:, 2],
-           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
-
-cmap = mpl.colormaps.get_cmap(CMAPS['R_collapsed'])
-col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
-ax.plot(pca_r_col[:, 0], pca_r_col[:, 1], pca_r_col[:, 2],
-        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
-ax.scatter(pca_r_col[:, 0], pca_r_col[:, 1], pca_r_col[:, 2],
-           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
-
-ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_choice_collapsed_all_together_{DATASET}.pdf'))
 
 
 # %%
@@ -398,3 +353,52 @@ plt.tight_layout()
 plt.savefig(join(fig_path, f'trajectories_all_together_PCA_{DATASET}.pdf'))
 
 
+
+"""
+# %%
+
+fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
+ax = fig.add_subplot(projection='3d')
+ax.view_init(elev=-175, azim=190)
+
+cmap = mpl.colormaps.get_cmap(CMAPS['opto_collapsed'])
+col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
+ax.plot(pca_opto_col[:, 0], pca_opto_col[:, 1], pca_opto_col[:, 2],
+        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
+ax.scatter(pca_opto_col[:, 0], pca_opto_col[:, 1], pca_opto_col[:, 2],
+           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
+
+cmap = mpl.colormaps.get_cmap(CMAPS['no_opto_collapsed'])
+col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
+ax.plot(pca_no_opto_col[:, 0], pca_no_opto_col[:, 1], pca_no_opto_col[:, 2],
+        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
+ax.scatter(pca_no_opto_col[:, 0], pca_no_opto_col[:, 1], pca_no_opto_col[:, 2],
+           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
+
+ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
+plt.savefig(join(fig_path, f'pca_opto_collapsed_all_together_{DATASET}.pdf'))
+
+# %%
+
+fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
+ax = fig.add_subplot(projection='3d')
+ax.view_init(elev=-175, azim=190)
+
+cmap = mpl.colormaps.get_cmap(CMAPS['L_collapsed'])
+col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
+ax.plot(pca_l_col[:, 0], pca_l_col[:, 1], pca_l_col[:, 2],
+        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
+ax.scatter(pca_l_col[:, 0], pca_l_col[:, 1], pca_l_col[:, 2],
+           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
+
+cmap = mpl.colormaps.get_cmap(CMAPS['R_collapsed'])
+col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
+ax.plot(pca_r_col[:, 0], pca_r_col[:, 1], pca_r_col[:, 2],
+        color=col[len(col) // 2], linewidth=1, alpha=0.5, zorder=0)
+ax.scatter(pca_r_col[:, 0], pca_r_col[:, 1], pca_r_col[:, 2],
+           color=col, edgecolors=col, s=10, depthshade=False, zorder=1)
+
+ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
+plt.savefig(join(fig_path, f'pca_choice_collapsed_all_together_{DATASET}.pdf'))
+
+"""

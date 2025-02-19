@@ -157,7 +157,7 @@ def figure_style():
                         [matplotlib_colors.to_rgb('maroon'), np.array([0, 0, 0])])))
     state_dark_pal = sns.color_palette('Dark2')
     state_light_pal = sns.color_palette('Set2')
-   
+
     """
     state_dark_pal = sns.color_palette(
         np.concatenate((sns.color_palette('Dark2')[:5],
@@ -260,7 +260,7 @@ def add_significance(x, p_values, ax, alpha=0.05):
         y = ax.get_ylim()[1]
         ax.plot([x[ind], x[start_end[i+1]]], [y + (y*0.05), y + (y*0.05)], color='k', lw=1.5,
                 clip_on=False)
-        
+
 
 
 def get_artifact_neurons():
@@ -656,7 +656,7 @@ def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimsi
                'stim_side'] = 1
     trials.loc[(trials['signed_contrast'] == 0) & (trials['contrastRight'].isnull()),
                'stim_side'] = -1
-    
+
     trials['time_to_choice'] = trials['feedback_times'] - trials['stimOn_times']
     if 'firstMovement_times' in trials.columns.values:
         trials['reaction_times'] = trials['firstMovement_times'] - trials['stimOn_times']
@@ -969,44 +969,44 @@ def binned_rate_timewarped(
         start='stimOn_times',
         end='firstMovement_times',
         n_bins=10):
-    
-    
+
+
     # Precompute unique neuron IDs and number of neurons
     neuron_ids = np.unique(spike_clusters)
     n_neurons = neuron_ids.shape[0]
     n_trials = trials_df.shape[0]
-    
+
     # Initialize binned_rate array
     binned_rate = np.zeros((n_trials, n_neurons, n_bins))
-    
+
     # Loop over trials
     for i, (start_time, end_time) in enumerate(zip(trials_df[start], trials_df[end])):
-        
+
         # Define bin edges
         bin_edges = np.linspace(start_time, end_time, n_bins+1)
         bin_width = np.mean(np.diff(bin_edges))  # Compute bin width
-    
+
         # Use digitize to assign each spike to a bin
         bin_indices = np.digitize(spike_times, bin_edges) - 1  # Subtract 1 to get 0-based index
-    
+
         # Mask to keep only spikes within the trial interval
         valid_spikes = (spike_times >= start_time) & (spike_times <= end_time)
-        
+
         # Filter spike data
         valid_clusters = spike_clusters[valid_spikes]
         valid_bins = bin_indices[valid_spikes]
-    
+
         # Use binned_statistic_2d to count spikes per neuron per bin
         spike_counts, _, _, _ = binned_statistic_2d(
             valid_clusters, valid_bins, None, statistic='count',
             bins=[n_neurons, n_bins], range=[[0, n_neurons], [0, n_bins]]
         )
-        
+
         # Convert to firing rate
         binned_rate[i, :, :] = spike_counts / bin_width
-    
-    return binned_rate, neuron_ids           
-            
+
+    return binned_rate, neuron_ids
+
 
 def peri_multiple_events_time_histogram(
         spike_times, spike_clusters, events, event_ids, cluster_id,
@@ -1155,21 +1155,21 @@ def peri_multiple_events_time_histogram(
 
 
 def calculate_mi(spike_counts_A, spike_counts_B):
-       
+
     # Calculate joint probability distribution
     joint_hist, _, _ = np.histogram2d(spike_counts_A, spike_counts_B, bins=spike_counts_A.shape[0])
     joint_prob = joint_hist / np.sum(joint_hist)
-    
+
     # Calculate marginal probabilities
     marg_prob_A = np.sum(joint_prob, axis=1)
     marg_prob_B = np.sum(joint_prob, axis=0)
-    
+
     # Calculate mutual information
     non_zero_indices = joint_prob > 0
     mutual_info = np.sum(joint_prob[non_zero_indices] * \
                          np.log2(joint_prob[non_zero_indices] / \
                                  (np.outer(marg_prob_A, marg_prob_B))[non_zero_indices]))
-    
+
     return mutual_info
 
 
@@ -1203,17 +1203,17 @@ def get_dlc_XYs_old(one, eid, view='left', likelihood_thresh=0.9):
 
 
 def get_dlc_XYs(one, eid, view='left'):
-    
+
     # Load in DLC
     sl = SessionLoader(one=one, eid=eid)
     sl.load_pose(views=[view])
     dlc_df = sl.pose[f'{view}Camera']
-    
+
     # Transform to dict for backwards compatibility reasons
     X = [dlc_df[i].values for i in dlc_df.columns if i[-1] == 'x']
     Y = [dlc_df[i].values for i in dlc_df.columns if i[-1] == 'y']
     key_names = [i[:-2] for i in dlc_df.columns if i[-1:] == 'x']
-    
+
     XYs = {}
     for i, this_key in enumerate(key_names):
         XYs[this_key] = np.array([X[i], Y[i]]).T
@@ -1517,18 +1517,18 @@ def fit_psychfunc(stim_levels, n_trials, proportion, transform_slope=False):
     assert (stim_levels.shape == n_trials.shape == proportion.shape)
     if stim_levels.max() <= 1:
         stim_levels = stim_levels * 100
-    
+
     # Fit psychometric function
     pars, _ = psy.mle_fit_psycho(np.vstack((stim_levels, n_trials, proportion)),
                                  P_model='erf_psycho_2gammas',
                                  parstart=np.array([0, 20, 0.05, 0.05]),
                                  parmin=np.array([-100, 5, 0, 0]),
                                  parmax=np.array([100, 100, 1, 1]))
-    
+
     # Transform the slope paramter such that large values = steeper slope
     if transform_slope:
         pars[1] = (1/pars[1])*100
-    
+
     return pars
 
 
@@ -1625,7 +1625,7 @@ def fit_glm(behav, prior_blocks=True, opto_stim=False, folds=3):
 
     # add extra parameters to GLM
     model_str = 'choice ~ 1 + stimulus_side:C(contrast, Treatment) + previous_choice + block_id + laser_stimulation'
-  
+
     # drop NaNs
     behav = behav.dropna(subset=['trial_feedback_type', 'choice', 'previous_choice']).reset_index(drop=True)
 
@@ -1679,6 +1679,6 @@ def fit_glm(behav, prior_blocks=True, opto_stim=False, folds=3):
 
     # average prediction accuracy over the K folds
     params['accuracy'] = np.mean(acc)
-   
+
 
     return params  # wide df
