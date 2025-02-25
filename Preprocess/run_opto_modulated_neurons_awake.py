@@ -28,7 +28,7 @@ MIN_FR = 0.1
 _, save_path = paths()
 
 # Query sessions
-rec = query_ephys_sessions(anesthesia='no&both', one=one)
+rec = query_ephys_sessions(one=one)
 
 if OVERWRITE:
     light_neurons = pd.DataFrame()
