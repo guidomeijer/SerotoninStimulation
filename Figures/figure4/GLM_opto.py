@@ -53,10 +53,10 @@ for i, nickname in enumerate(subjects['subject']):
 
     # Remove no-go trials
     trials = trials[trials['choice'] != 0]
-
+    
     # Fit GLM
     params_all = fit_glm(trials)
-
+    
     # Add to dataframe
     results_df = pd.concat((results_df, params_all), ignore_index=True)
     results_df.loc[results_df.shape[0]-1, 'subject'] = nickname
@@ -64,17 +64,24 @@ for i, nickname in enumerate(subjects['subject']):
    
 # %% Plot
 long_df = pd.melt(results_df.loc[results_df['sert-cre'] == 1,
-                                 ['100', '25', '12.5', '6.25', 'previous_choice',
-                                  'block_id', 'laser_stimulation']])
+                                 ['100_1', '100_0', '25_1', '25_0', '12_1', '12_0', '6_1', '6_0',
+                                  'previous_choice_0', 'previous_choice_1', 'prior_0', 'prior_1']])
+long_df['pair'] = [i[:-2] for i in long_df['variable']]
+long_df['5HT'] = [i[-1] for i in long_df['variable']]
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.65, 1.75), dpi=dpi)
-sns.barplot(data=long_df, x='variable', y='value', color='grey', zorder=1, linewidth=0)
-ax1.text(2.5, 2.5, f'n = {np.sum(results_df["sert-cre"] == 1)} mice')
+f, ax1 = plt.subplots(1, 1, figsize=(2.2, 2), dpi=dpi)
+sns.barplot(data=long_df, x='pair', y='value', hue='5HT', hue_order=['1', '0'],
+            palette=[colors['stim'], colors['no-stim']], zorder=1, linewidth=0)
+
+
+#ax1.text(2.5, 2.5, f'n = {np.sum(results_df["sert-cre"] == 1)} mice')
 #ax1.plot(ax1.get_xlim(), [0, 0], color='grey', zorder=0)
-ax1.set(ylabel='GLM weight', xticks=np.arange(7), xlabel='', yticks=[0, 1, 2, 3], xlim=[-1, 7])
-ax1.set_xticklabels(['100%', '25%', '12.5%', '6.25%', 'Prev. choice', 'Prior', '5-HT'],
+ax1.set(ylabel='GLM weight', xticks=np.arange(6), xlabel='', yticks=[0, 1, 2, 3], xlim=[-0.75, 5.75])
+ax1.set_xticklabels(['100%', '25%', '12.5%', '6.25%', 'Prev. choice', 'Prior'],
                     rotation=40, ha='right')
+handles, previous_labels = ax1.get_legend_handles_labels()
+ax1.legend(title='', handles=handles, labels=['5-HT', 'no 5-HT'])
 
-sns.despine(trim=True)
+sns.despine(trim=False)
 plt.tight_layout()
-plt.savefig(path.join(fig_path, 'GLM.pdf'))
+plt.savefig(path.join(fig_path, 'GLM_5HT_split.pdf'))

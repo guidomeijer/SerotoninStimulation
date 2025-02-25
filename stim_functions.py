@@ -61,7 +61,7 @@ def init_one(local=False, open_one=OPEN_ONE):
     return one
 
 
-def load_subjects(anesthesia='all', behavior=None):
+def load_subjects(anesthesia='no&both', behavior=None):
     assert anesthesia in ['no', 'yes', 'both', 'all', 'no&both', 'yes&both']
     subjects = pd.read_csv(join(pathlib.Path(__file__).parent.resolve(), 'subjects.csv'),
                            delimiter=';|,', engine='python')
@@ -284,7 +284,7 @@ def remove_artifact_neurons(df):
     return df
 
 
-def query_ephys_sessions(aligned=True, behavior_crit=False, n_trials=0, anesthesia='no',
+def query_ephys_sessions(aligned=True, behavior_crit=False, n_trials=0, anesthesia='no&both',
                          acronym=None, one=None):
     assert anesthesia in ['no', 'both', 'yes', 'all', 'no&both', 'yes&both']
     if one is None:
@@ -1622,31 +1622,37 @@ def fit_glm(behav, prior_blocks=True, opto_stim=False, folds=3):
 
     # drop trials with contrast-level 50, only rarely present (should not be its own regressor)
     behav = behav[np.abs(behav.signed_contrast) != 50]
-
-    # add extra parameters to GLM
-    model_str = 'choice ~ 1 + stimulus_side:C(contrast, Treatment) + previous_choice + block_id + laser_stimulation'
-
+    
+    # create extra columns for 5-HT and no 5-HT trials
+    behav['previous_choice_0'] = behav['previous_choice'] * (1 - behav['laser_stimulation'])
+    behav['previous_choice_1'] = behav['previous_choice'] * behav['laser_stimulation']
+    behav['prior_0'] = behav['block_id'] * (1 - behav['laser_stimulation'])
+    behav['prior_1'] = behav['block_id'] * behav['laser_stimulation']
+    
+    # Loop through unique contrast values
+    for contrast in behav['contrast'].unique():
+        behav[f'{int(contrast)}_0'] = np.zeros(behav.shape[0])
+        behav.loc[behav['contrast'] == contrast, f'{int(contrast)}_0'] = (
+            behav.loc[behav['contrast'] == contrast, 'stim_side']
+            * (1 - behav['laser_stimulation']))
+        behav[f'{int(contrast)}_1'] = np.zeros(behav.shape[0])
+        behav.loc[behav['contrast'] == contrast, f'{int(contrast)}_1'] = (
+            behav.loc[behav['contrast'] == contrast, 'stim_side']
+            * behav['laser_stimulation'])
+    
     # drop NaNs
     behav = behav.dropna(subset=['trial_feedback_type', 'choice', 'previous_choice']).reset_index(drop=True)
 
-    # use patsy to easily build design matrix
-    endog, exog = patsy.dmatrices(model_str, data=behav, return_type='dataframe')
-
-    # remove the one column (with 0 contrast) that has no variance
-    if 'stimulus_side:C(contrast, Treatment)[0.0]' in exog.columns:
-        exog.drop(columns=['stimulus_side:C(contrast, Treatment)[0.0]'], inplace=True)
+    # create input for GLM (0 = no 5HT, 1 = 5HT)
+    endog = pd.DataFrame(data={'choice': behav['choice']})
+    exog = behav[[
+        'previous_choice_0', 'previous_choice_1', 'prior_0', 'prior_1',
+        '6_0', '6_1', '12_0', '12_1', '25_0', '25_1', '100_0', '100_1']].copy()
+    exog['bias'] = 1
+    exog['opto'] = behav['laser_stimulation']
 
     # recode choices for logistic regression
     endog['choice'] = endog['choice'].map({-1:0, 1:1})
-
-    # rename columns
-    exog.rename(columns={'Intercept': 'bias',
-             'stimulus_side:C(contrast, Treatment)[6.25]': '6.25',
-             'stimulus_side:C(contrast, Treatment)[12.5]': '12.5',
-             'stimulus_side:C(contrast, Treatment)[25.0]': '25',
-             'stimulus_side:C(contrast, Treatment)[50.0]': '50',
-             'stimulus_side:C(contrast, Treatment)[100.0]': '100'},
-             inplace=True)
 
     # NOW FIT THIS WITH STATSMODELS - ignore NaN choices
     logit_model = sm.Logit(endog, exog)

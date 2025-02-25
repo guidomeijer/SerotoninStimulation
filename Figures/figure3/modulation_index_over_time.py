@@ -99,7 +99,7 @@ f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
 im_mod = ax1.imshow(np.flipud(mod_matrix), aspect='auto', extent=[-1, 3, 0, mod_matrix.shape[0]],
                     cmap='coolwarm', clim=[-0.1, 0.1], interpolation='none')
 ax1.set(yticks=np.arange(mod_matrix.shape[0])+0.5, yticklabels=mod_matrix.index,
-        xticks=[-1, 0, 1, 2, 3], xlabel='Time from stimulation onset (s)')
+        xticks=[-1, 0, 1, 2, 3], xlabel='Time from 5-HT onset (s)')
 cbar = plt.colorbar(im_mod)
 cbar.ax.set_ylabel('Modulation index', rotation=270)
 cbar.ax.set_yticks([-0.1, 0, 0.1])

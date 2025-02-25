@@ -17,7 +17,7 @@ from stim_functions import (paths, figure_style, load_passive_opto_times, load_s
 one = init_one()
 
 # Settings
-OVERWRITE = True
+OVERWRITE = False
 TIME_BINS = np.arange(-0.5, 4.1, 0.1)
 BIN_SIZE = 0.1  # seconds
 BASELINE = [0.5, 0]  # seconds
@@ -46,7 +46,7 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
 
         # Skip if session is already done
         if not OVERWRITE:
-            if eid in results_df['eid']:
+            if eid in results_df['eid'].values:
                 print('Already processed, skipping')
                 continue
 
@@ -121,10 +121,10 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
 
     # Plot this animal
     colors, dpi = figure_style()
-    pupil_size = pupil_size.reset_index(drop=True)
+    plot_ses = results_df[results_df['subject'] == nickname].reset_index(drop=True)
 
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), dpi=dpi)
-    sns.lineplot(x='time', y='diameter', estimator=np.nanmean, data=pupil_size,
+    sns.lineplot(x='time', y='diameter', estimator=np.nanmean, data=plot_ses,
                  color='k', errorbar='se', ax=ax1, legend=None)
     ylim = ax1.get_ylim()
     ax1.add_patch(Rectangle((0, 0), 1, 500, color='royalblue', alpha=0.25, lw=0))
@@ -132,7 +132,7 @@ for k, nickname in enumerate(np.unique(rec['subject'])):
             ylabel='Pupil size (%)', xlabel='Time (s)', ylim=ylim,
             xticks=np.arange(-1, TIME_BINS[-1]+0.1))
 
-    sns.lineplot(x='time', y='baseline_subtracted', estimator=np.nanmean, data=pupil_size,
+    sns.lineplot(x='time', y='baseline_subtracted', estimator=np.nanmean, data=plot_ses,
                  color='k', errorbar='se', ax=ax2, legend=None)
     ylim = ax2.get_ylim()
     ax2.add_patch(Rectangle((0, -100), 1, 200, color='royalblue', alpha=0.25, lw=0))

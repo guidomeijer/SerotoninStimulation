@@ -134,7 +134,6 @@ for i in grouped_df.index:
              color=grouped_df.loc[i, 'color'], fontsize=6, fontweight='bold')
 ax1.set(yticks=[0, 100, 200], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
         ylabel='Modulation latency (ms)', xlabel='Modulation index')
-r, p = pearsonr(grouped_df['max_mod_index'], grouped_df['latency'])
 # ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
 ax1.text(0, 200, '**', fontsize=10, ha='center')
 
@@ -144,6 +143,8 @@ plt.savefig(join(fig_path, 'modulation_latency_vs_index.pdf'))
 
 
 # %%
+
+r, p = pearsonr(grouped_df['mod_index'], grouped_df['latency'])
 
 slope, intercept = np.polyfit(grouped_df['mod_index'], grouped_df['latency'], 1)
 x_fit = np.linspace(grouped_df['mod_index'].min(), grouped_df['mod_index'].max(), 100)
@@ -156,7 +157,7 @@ ax1.errorbar(grouped_df['mod_index'], grouped_df['latency'],
              fmt='none', ecolor=[0.7, 0.7, 0.7], capsize=2, capthick=1, zorder=0)
 for _, row in grouped_df.iterrows():
     ax1.scatter(row['mod_index'], row['latency'], color=row['color'], s=20, marker='s', zorder=0)
-ax1.text(0, 200, '**', fontsize=12, ha='center')
+ax1.text(0, 200, '*', fontsize=12, ha='center')
     
 ax1.set(yticks=[0, 100, 200], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
         ylabel='Modulation latency (ms)', xlabel='Modulation index')
