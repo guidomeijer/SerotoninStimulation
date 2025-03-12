@@ -21,6 +21,7 @@ from one.api import ONE
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
+scaler = StandardScaler()
 
 # Settings
 SPLIT_ON = 'choice'
@@ -33,19 +34,18 @@ SMOOTHING = 0.02
 T_BEFORE = 0.3
 T_AFTER = 0
 
-BIN_SIZE = 0.0125
-SMOOTHING = 0.02
-T_BEFORE = 0.3
-T_AFTER = 0
-
 #BIN_SIZE = 0.025
 #SMOOTHING = 0.05
 #T_BEFORE = 0
 #T_AFTER = 0.5
 
+# Good values
+#MIN_RT = 0
+#MAX_RT = 1.2
+
 MIN_FR = 0.1
-MIN_RT = 0.1
-MAX_RT = 1
+MIN_RT = 0.2
+MAX_RT = 1.2
 MIN_TRIALS = 10  # per split
 N_SHUFFLES = 500
 
@@ -126,7 +126,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
                 (trials[SPLIT_ON] == 1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
         
         # Normalize each neuron by mean subtracting and dividing over std
-        peth_dict[split] = StandardScaler(peth_dict[split])
+        #peth_dict[split] = scaler.fit_transform(peth_dict[split])
         
     # Get shuffled data
     for ii in range(N_SHUFFLES):
@@ -170,6 +170,9 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
             elif split == 'R_no_opto':
                 this_peth = np.mean(binned_spikes[
                     (tr_c2 == 1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
+                
+            # Normalize each neuron by mean subtracting and dividing over std
+            #this_peth = scaler.fit_transform(this_peth)
     
             # Add to 3d array
             if ii == 0:
@@ -205,6 +208,9 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
             elif split == 'R_no_opto':
                 this_peth = np.mean(binned_spikes[
                     (trials[SPLIT_ON] == 1) & (opto_pseudo == 0), :, :], axis=0)
+            
+            # Normalize each neuron by mean subtracting and dividing over std
+            #this_peth = scaler.fit_transform(this_peth)
             
             # Add to 3d array
             if ii == 0:
