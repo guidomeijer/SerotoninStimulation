@@ -30,7 +30,8 @@ CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r
               'L_collapsed': 'Reds_r', 'R_collapsed': 'Purples_r', 'no_opto_collapsed': 'Oranges_r', 'opto_collapsed': 'Blues_r'})
 
 # Initialize
-pca = PCA(n_components=N_DIM, svd_solver='randomized', random_state=42)
+#pca = PCA(n_components=N_DIM, svd_solver='randomized', random_state=42)
+pca = PCA(n_components=N_DIM)
 colors, dpi = figure_style()
 
 # Get paths

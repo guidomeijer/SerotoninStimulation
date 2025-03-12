@@ -357,6 +357,38 @@ sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'dot_prod_regions.pdf'))
 
+#%% Correlation
+
+plot_regions = np.unique(dist_pca_df['region'])
+
+choice_over_shuf = [dist - dist_pca_df.loc[dist_pca_df['region'] == plot_regions[i], 'choice_dist_shuf'].mean()
+                    for i, dist in enumerate(choice_dist_pca_regions)]
+
+dot_over_shuf = [dist - dist_pca_df.loc[dist_pca_df['region'] == plot_regions[i], 'dot_shuf'].mean()
+                  for i, dist in enumerate(dot_pca_regions)]
+
+r, p = stats.pearsonr(choice_over_shuf, dot_pca_regions)
+print(f'p={np.round(p, 3)} r={np.round(r, 2)}')
+
+slope, intercept = np.polyfit(choice_over_shuf, dot_pca_regions, 1)
+x_fit = np.linspace(0, 120, 100)
+y_fit = slope * x_fit + intercept
+
+f, ax1 = plt.subplots(1, 1, figsize=(2.7, 2), dpi=dpi)
+ax1.plot(x_fit, y_fit, color='k', zorder=0)
+for i in range(plot_regions.shape[0]):
+    ax1.scatter(choice_over_shuf[i], dot_pca_regions[i], label=plot_regions[i],
+                color=colors[plot_regions[i]], s=15, clip_on=False, zorder=1)
+ax1.text(25, 1.1, '**', ha='center', va='center', fontsize=12, clip_on=False)
+ax1.set(xlim=[0, 50], xlabel='Choice distance over chance\n(PC score)',
+        ylabel='Orthogonality\n(1 - norm. dot prod.)', ylim=[0, 1],
+        xticks=[0, 25, 50], yticks=[0, 1])
+ax1.legend(bbox_to_anchor=(1.15, 1.2))
+
+sns.despine(trim=True)
+plt.tight_layout()
+plt.savefig(join(fig_path, 'choice_dot_corr.pdf'))
+
 # %%
 
 
