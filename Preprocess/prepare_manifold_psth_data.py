@@ -12,6 +12,7 @@ import pandas as pd
 from copy import deepcopy
 import random
 from sklearn.utils import shuffle
+from sklearn.preprocessing import StandardScaler
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.task.closed_loop import generate_pseudo_blocks
 from stim_functions import (paths, combine_regions, load_subjects, binned_rate_timewarped,
@@ -26,6 +27,11 @@ SPLIT_ON = 'choice'
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
 CENTER_ON = 'firstMovement_times'
 #CENTER_ON = 'stimOn_times'
+
+BIN_SIZE = 0.0125
+SMOOTHING = 0.02
+T_BEFORE = 0.3
+T_AFTER = 0
 
 BIN_SIZE = 0.0125
 SMOOTHING = 0.02
@@ -105,7 +111,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
     
     for split in SPLITS:
         
-        # Split trials and get mean spike rate per split
+        # Split trials and get the mean spike rate over trials
         if split == 'L_opto':
             peth_dict[split] = np.mean(binned_spikes[
                 (trials[SPLIT_ON] == -1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
@@ -118,6 +124,9 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         elif split == 'R_no_opto':
             peth_dict[split] = np.mean(binned_spikes[
                 (trials[SPLIT_ON] == 1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
+        
+        # Normalize each neuron by mean subtracting and dividing over std
+        peth_dict[split] = StandardScaler(peth_dict[split])
         
     # Get shuffled data
     for ii in range(N_SHUFFLES):
