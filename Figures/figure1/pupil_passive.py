@@ -36,7 +36,7 @@ p_values = np.array(p_values)
 
 # Plot
 colors, dpi = figure_style()
-f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+f, ax1 = plt.subplots(figsize=(1.6, 1.7), dpi=dpi)
 ax1.add_patch(Rectangle((0, -4), 1, 11, color='royalblue', alpha=0.25, lw=0))
 sns.lineplot(data=pupil_df, x='time', y='baseline_subtracted', hue='expression',
              errorbar='se', ax=ax1, err_kws={'lw': 0}, hue_order=[1, 0],
@@ -46,7 +46,7 @@ ax1.plot([0, 1], [ax1.get_ylim()[0]-0.2, ax1.get_ylim()[0]-0.2], color='k', lw=0
 ax1.text(0.5, ax1.get_ylim()[0]-0.4, '1s', ha='center', va='top')
 #ax1.text(2, -2.5, f'n = {np.unique(pupil_df["subject"]).shape[0]} mice')
 handles, previous_labels = ax1.get_legend_handles_labels()
-ax1.legend(title='', handles=handles, labels=['SERT', 'WT'])
+ax1.legend(title='', handles=handles, labels=['SERT', 'WT'], bbox_to_anchor=(0.35, 0.3))
 add_significance(np.unique(pupil_df['time']), p_values, ax1)
 
 sns.despine(trim=True, bottom=True)

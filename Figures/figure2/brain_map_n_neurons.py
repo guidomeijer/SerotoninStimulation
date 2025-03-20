@@ -29,7 +29,8 @@ all_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
 all_neurons = all_neurons[all_neurons['region'] != 'void']
 print(f'{all_neurons.shape[0]} neurons')
 print(f'{np.unique(all_neurons["subject"]).shape[0]} mice')
-print(f'{np.unique(all_neurons["pid"]).shape[0]} recordings')
+print(f'{np.unique(all_neurons["eid"]).shape[0]} recording sessions')
+print(f'{np.unique(all_neurons["pid"]).shape[0]} probe insertions')
 
 # Add genotype
 subjects = load_subjects()

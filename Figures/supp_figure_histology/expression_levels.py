@@ -29,7 +29,7 @@ WIN_HEIGHT = 30
 fig_path, save_path = paths()
 
 # Query subjects
-rec = query_ephys_sessions(anesthesia='all')
+rec = query_ephys_sessions(anesthesia='no&both')
 subjects = load_subjects()
 subjects = subjects.sort_values(by='sert-cre', ascending=False)
 
