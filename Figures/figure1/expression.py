@@ -21,9 +21,10 @@ expr_df = pd.read_csv(join(save_path, 'expression_levels.csv'))
 # Plot overview plot
 f, ax1 = plt.subplots(1, 1, figsize=(1.2, 1.25), dpi=dpi)
 sns.swarmplot(x='sert-cre', y='rel_fluo', data=expr_df, order=[1, 0], color='k', ax=ax1,
-              legend=None, size=3)
+              legend=None, size=2.5)
+ax1.text(1, 380, f'n={np.sum(expr_df["sert-cre"])}')
 ax1.set(xticklabels=['SERT', 'WT'], ylabel='Relative fluoresence (%)', xlabel='',
-        yticks=[0, 100, 200, 300, 400])
+        yticks=[0, 200, 400])
 
 plt.tight_layout()
 sns.despine(trim=True)
