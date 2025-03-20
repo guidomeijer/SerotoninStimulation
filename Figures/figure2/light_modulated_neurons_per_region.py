@@ -8,6 +8,7 @@ By: Guido Meijer
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from scipy import stats
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, combine_regions, load_subjects
@@ -86,27 +87,12 @@ ordered_regions_pm['color'] = [colors[i] for i in ordered_regions_pm['full_regio
 ordered_regions_ps = per_ses_df.groupby('full_region').mean(numeric_only=True).sort_values('perc_mod', ascending=False).reset_index()
 ordered_regions_ps['color'] = [colors[i] for i in ordered_regions_ps['full_region']]
 
-"""
-# %% Plot percentage modulated neurons per region
+# Do stats per region
+p_values = dict()
+for region in np.unique(per_ses_df['full_region']):
+    p_values[region] = stats.ttest_1samp(per_ses_df.loc[per_ses_df['full_region'] == region,
+                                                        'perc_mod'], 5)[1]
 
-this_cmap = [colors['subject_palette'][i] for i in np.unique(per_mouse_df['subject_nr'])]
-
-f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
-ax_bar = sns.barplot(x='perc_mod', y='full_region', data=per_mouse_df,
-                     order=ordered_regions_pm['full_region'],
-                     color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
-sns.swarmplot(x='perc_mod', y='full_region', data=per_mouse_df,
-              order=ordered_regions_pm['full_region'],
-              hue='subject_nr', palette=this_cmap, ax=ax1, size=2, legend=None)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 80], xticks=np.arange(0, 81, 20))
-#ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
-#           handletextpad=0.1)
-
-#plt.tight_layout()
-plt.subplots_adjust(left=0.4, bottom=0.2, right=0.95)
-sns.despine(trim=True)
-plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
-"""
 
 # %%
 f, ax1 = plt.subplots(1, 1, figsize=(1.8, 2), dpi=dpi)
@@ -128,12 +114,12 @@ plt.savefig(join(fig_path, 'perc_light_modulated_neurons_per_region.pdf'))
 # %%
 f, ax1 = plt.subplots(1, 1, figsize=(1.8, 2), dpi=dpi)
 sns.barplot(x='perc_mod', y='full_region', data=per_ses_df,
-            order=ordered_regions_pm['full_region'],
+            order=ordered_regions_ps['full_region'],
             color=[0.6, 0.6, 0.6], ax=ax1, errorbar=None)
 sns.swarmplot(x='perc_mod', y='full_region', data=per_ses_df,
-              order=ordered_regions_pm['full_region'],
-              color='k', ax=ax1, size=2, legend=None)
-ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 82], xticks=np.arange(0, 81, 20))
+              order=ordered_regions_ps['full_region'],
+              color='k', ax=ax1, size=1.5, legend=None)
+ax1.set(xlabel='Modulated neurons (%)', ylabel='', xlim=[0, 101], xticks=np.arange(0, 101, 20))
 #ax1.legend(frameon=False, bbox_to_anchor=(0.8, 1.1), prop={'size': 5}, title='Mouse',
 #           handletextpad=0.1)
 
