@@ -17,7 +17,6 @@ from statsmodels.stats.multicomp import MultiComparison
 
 # Settings
 var = 'mod_index'
-#var = 'mod_index_late'
 MIN_NEURONS = 5
 
 # Get paths
@@ -83,7 +82,7 @@ sns.barplot(data=perc_mod, x='type', y='percentage', errorbar='se',
             hue_order=['NS', 'WS1', 'WS2'],
             palette=[colors['NS'], colors['WS1'], colors['WS2']], ax=ax1)
 """
-sns.swarmplot(data=perc_mod_merged, x='region', y='percentage', hue='type',
+sns.swarmplot(data=perc_mod, x='type', y='percentage', 
               hue_order=['NS', 'WS1', 'WS2'], dodge=True, legend=False, size=3,
               palette=['gray', 'gray', 'gray'], ax=ax1)
 """

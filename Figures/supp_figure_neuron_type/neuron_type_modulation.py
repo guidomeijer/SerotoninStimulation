@@ -65,11 +65,11 @@ ax1.text(0.5, 90, '*', ha='center', va='center', fontsize=12)
 sns.violinplot(data=merged_df[merged_df['modulated']], x='type', y='mod_index',
                ax=ax2, palette=[colors['NS'], colors['WS']], linewidth=0.5)
 ax2.set(ylabel='Modulation index', xticklabels=['Narrow\nspiking', 'Wide\nspiking'],
-        xlabel='', yticks=[-1, -0.5, 0, 0.5, 1])
+        xlabel='', yticks=[-1, -0.5, 0, 0.5, 1], ylim=[-1, 1])
 ax2.text(0.5, 1, 'n.s.', ha='center', va='center', fontsize=7)
 
 
 sns.despine(trim=True)
-plt.tight_layout()
+plt.tight_layout(w_pad=3)
 plt.savefig(join(fig_path, 'neuron_type_modulation.pdf'))
 
