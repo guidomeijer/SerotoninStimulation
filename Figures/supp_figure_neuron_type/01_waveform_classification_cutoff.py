@@ -121,10 +121,11 @@ ax.hist(waveforms_df.loc[waveforms_df['type'] == 'NS', 'firing_rate'], histtype=
          color=colors['NS'], density=True, bins=100, cumulative=True, label='Narrow spiking (NS)')
 ax.hist(waveforms_df.loc[waveforms_df['type'] == 'WS', 'firing_rate'], histtype='step',
          color=colors['WS'], density=True, bins=100, cumulative=True, label='Regular spiking (WS)')
-ax.set(xlabel='Firing rate (spks/s)', ylabel='Density')
+ax.set(xlabel='Firing rate (spks/s)', ylabel='Density', xticks=[0, 50, 100])
+ax.text(50, 0.8, '***', fontsize=10, ha='center', va='center')
 custom_lines = [Line2D([0], [0], color=colors['NS'], lw=1),
                 Line2D([0], [0], color=colors['WS'], lw=1)]
-ax.legend(custom_lines, ['NS', 'WS'], frameon=False, prop={'size':5}, loc='right')
+ax.legend(custom_lines, ['NS', 'WS'])
 fix_hist_step_vertical_line_at_end(ax)
 
 plt.tight_layout()
