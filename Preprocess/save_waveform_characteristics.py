@@ -11,16 +11,16 @@ import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
 from stim_functions import paths, query_ephys_sessions, get_neuron_qc, get_artifact_neurons
 from one.api import ONE
-from ibllib.atlas import AllenAtlas
+from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
 one = ONE()
 
 # Settings
-OVERWRITE = False
+OVERWRITE = True
 _, save_path = paths()
 
 # Query sessions
-rec = query_ephys_sessions(anesthesia='all', one=one)
+rec = query_ephys_sessions(one=one)
 
 # Get artifact neurons
 artifact_neurons = get_artifact_neurons()

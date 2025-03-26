@@ -11,7 +11,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import seaborn.objects as so
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_ind, ttest_rel
 from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, load_subjects, combine_regions
 
@@ -34,19 +34,42 @@ subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     merged_df.loc[merged_df['subject'] == nickname,
                   'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+merged_df = merged_df[merged_df['sert-cre'] == 1]
+
+ns_perc = (merged_df[(merged_df['type'] == 'NS') & merged_df['modulated']].groupby('subject').size()
+           / merged_df[merged_df['type'] == 'NS'].groupby('subject').size()) * 100
+ws_perc = (merged_df[(merged_df['type'] == 'WS') & merged_df['modulated']].groupby('subject').size() 
+           / merged_df[merged_df['type'] == 'WS'].groupby('subject').size()) * 100
+per_mouse_df = pd.concat((ns_perc, ws_perc), axis=1)
+per_mouse_df = per_mouse_df.rename(columns={0: 'NS', 1: 'WS'})
+
+_, p = ttest_ind(merged_df.loc[(merged_df['type'] == 'WS') & merged_df['modulated'], 'mod_index'],
+                 merged_df.loc[(merged_df['type'] == 'NS') & merged_df['modulated'], 'mod_index'])
+print(f'Modulation index: p = {p:.2f}')
+
+_, p = ttest_rel(per_mouse_df['NS'], per_mouse_df['WS'])
+print(f'Percentage: p = {p:.2f}')
 
 # %%
-_, p = ttest_ind(merged_df.loc[merged_df['type'] == 'WS', 'mod_index'],
-                 merged_df.loc[merged_df['type'] == 'NS', 'mod_index'])
-print(f'p = {p:.2f}')
-
 colors, dpi = figure_style()
 
-f, ax1 = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-sns.violinplot(data=merged_df, x='type', y='mod_index',
-               ax=ax1, palette=[colors['NS'], colors['WS']])
-ax1.set(ylabel='Modulation index', xticklabels=['Narrow\nspiking', 'Wide\nspiking'],
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(1.75*2, 1.75), dpi=dpi)
+
+for i in per_mouse_df.index:
+    ax1.plot([0, 1], [per_mouse_df.loc[i, 'NS'], per_mouse_df.loc[i, 'WS']], color='k', marker='o',
+             markersize=2.5)
+ax1.set(xticks=[0, 1], xticklabels=['Narrow\nspiking', 'Wide\nspiking'], yticks=[0, 50, 100],
+        xlim=[-0.25, 1.25], ylabel='5-HT modulated neurons (%)')
+ax1.text(0.5, 90, '*', ha='center', va='center', fontsize=12)
+
+sns.violinplot(data=merged_df[merged_df['modulated']], x='type', y='mod_index',
+               ax=ax2, palette=[colors['NS'], colors['WS']], linewidth=0.5)
+ax2.set(ylabel='Modulation index', xticklabels=['Narrow\nspiking', 'Wide\nspiking'],
         xlabel='', yticks=[-1, -0.5, 0, 0.5, 1])
-ax1.text(0.5, 1, 'n.s.', ha='center', va='center', fontsize=7)
+ax2.text(0.5, 1, 'n.s.', ha='center', va='center', fontsize=7)
+
+
 sns.despine(trim=True)
 plt.tight_layout()
+plt.savefig(join(fig_path, 'neuron_type_modulation.pdf'))
+
