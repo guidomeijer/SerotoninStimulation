@@ -19,14 +19,13 @@ from stim_functions import (figure_style, paths, load_subjects, high_level_regio
 from sklearn.decomposition import PCA
 
 N_DIM = 3
-#SPLIT_ON = 'stim_side'
-SPLIT_ON = 'firstMovement_times'
+CENTER_ON = 'firstMovement_times'
 CHOICE_5HT_WIN = [-0.05, 0]
-ORTH_WIN = [-0.05, 0]
+ORTH_WIN = [-0.01, 0]
 DROP_REGIONS = ['root', 'AI', 'BC', 'ZI', 'RSP']
-SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto']
-CMAPS = dict({'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r', 'R_no_opto': 'Blues_r',
-              'L_collapsed': 'Reds_r', 'R_collapsed': 'Purples_r', 'no_opto_collapsed': 'Greys_r', 'opto_collapsed': 'Blues_r'})
+CMAPS = dict({
+    'L': 'Reds_r', 'R': 'Purples_r', 'no_opto': 'Oranges_r', 'opto': 'Blues_r',
+    'L_opto': 'Reds_r', 'R_opto': 'Purples_r', 'L_no_opto': 'Oranges_r', 'R_no_opto': 'Blues_r'})
 
 # Initialize
 pca = PCA(n_components=N_DIM)
@@ -39,7 +38,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 # Load in data
 print('Loading in data..')
 regions = np.array([])
-ses_paths = glob(join(load_path, 'manifold', f'{SPLIT_ON}', '*.npy'))
+ses_paths = glob(join(load_path, 'manifold', f'{CENTER_ON}', '*.npy'))
 for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
     if this_dict['sert-cre'] == 0:
@@ -47,236 +46,155 @@ for i, ses_path in enumerate(ses_paths):
     n_timepoints = this_dict['time'].shape[0]
     time_ax = this_dict['time']
     if i == 0:
+        L = np.empty((0, n_timepoints))
+        R = np.empty((0, n_timepoints))
+        opto = np.empty((0, n_timepoints))
+        no_opto = np.empty((0, n_timepoints))
         L_opto = np.empty((0, n_timepoints))
         R_opto = np.empty((0, n_timepoints))
         L_no_opto = np.empty((0, n_timepoints))
         R_no_opto = np.empty((0, n_timepoints))
 
+        opto_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
+        no_opto_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
+        L_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
+        R_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
         L_opto_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
         R_opto_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
         L_no_opto_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
         R_no_opto_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
 
-        L_opto_choice_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
-        R_opto_choice_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
-        L_no_opto_choice_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
-        R_no_opto_choice_shuf = np.empty((0, n_timepoints, this_dict['n_shuffles']))
-
+    L = np.vstack((L, this_dict['L']))
+    R = np.vstack((R, this_dict['R']))
+    opto = np.vstack((opto, this_dict['opto']))
+    no_opto = np.vstack((no_opto, this_dict['no_opto']))
     L_opto = np.vstack((L_opto, this_dict['L_opto']))
     R_opto = np.vstack((R_opto, this_dict['R_opto']))
     L_no_opto = np.vstack((L_no_opto, this_dict['L_no_opto']))
     R_no_opto = np.vstack((R_no_opto, this_dict['R_no_opto']))
 
-    L_opto_shuf = np.vstack((L_opto_shuf, this_dict['opto_shuffle']['L_opto']))
-    R_opto_shuf = np.vstack((R_opto_shuf, this_dict['opto_shuffle']['R_opto']))
-    L_no_opto_shuf = np.vstack((L_no_opto_shuf, this_dict['opto_shuffle']['L_no_opto']))
-    R_no_opto_shuf = np.vstack((R_no_opto_shuf, this_dict['opto_shuffle']['R_no_opto']))
-
-    L_opto_choice_shuf = np.vstack((L_opto_choice_shuf, this_dict['choice_shuffle']['L_opto']))
-    R_opto_choice_shuf = np.vstack((R_opto_choice_shuf, this_dict['choice_shuffle']['R_opto']))
-    L_no_opto_choice_shuf = np.vstack((L_no_opto_choice_shuf, this_dict['choice_shuffle']['L_no_opto']))
-    R_no_opto_choice_shuf = np.vstack((R_no_opto_choice_shuf, this_dict['choice_shuffle']['R_no_opto']))
-
-    #regions = np.concatenate((regions, high_level_regions(this_dict['region'], input_atlas='Beryl')))
+    L_shuf = np.vstack((L_shuf, this_dict['shuffle']['L']))
+    R_shuf = np.vstack((R_shuf, this_dict['shuffle']['R']))
+    opto_shuf = np.vstack((opto_shuf, this_dict['shuffle']['opto']))
+    no_opto_shuf = np.vstack((no_opto_shuf, this_dict['shuffle']['no_opto']))
+    L_opto_shuf = np.vstack((L_opto_shuf, this_dict['shuffle']['L_opto']))
+    R_opto_shuf = np.vstack((R_opto_shuf, this_dict['shuffle']['R_opto']))
+    L_no_opto_shuf = np.vstack((L_no_opto_shuf, this_dict['shuffle']['L_no_opto']))
+    R_no_opto_shuf = np.vstack((R_no_opto_shuf, this_dict['shuffle']['R_no_opto']))
+    
     regions = np.concatenate((regions, combine_regions(remap(this_dict['region']))))
 
+# %%
 # Get Eucledian distances in neural space between opto and no opto
-print('Calculating Eucledian distances..')
 dist_opto, dist_opto_shuffle = dict(), dict()
-for r, region in enumerate(np.unique(regions)):
-    if region in DROP_REGIONS:
-        continue
-
-    # Get Eucledian distance between opto and no opto per time point for L and R choices seperately
-    this_dist = np.empty(n_timepoints)
-    for t in range(n_timepoints):
-        l_dist = np.linalg.norm(L_opto[regions == region, t] - L_no_opto[regions == region, t])
-        r_dist = np.linalg.norm(R_opto[regions == region, t] - R_no_opto[regions == region, t])
-        this_dist[t] = np.max([l_dist, r_dist])
-    dist_opto[region] = this_dist
-
-    # Do the same for shuffle
-    this_dist = np.empty((n_timepoints, L_opto_shuf.shape[2]))
-    for ii in range(L_opto_shuf.shape[2]):
-        for t in range(n_timepoints):
-            l_dist = np.linalg.norm(L_opto_choice_shuf[regions == region, t, ii]
-                                    - L_no_opto_choice_shuf[regions == region, t, ii])
-            r_dist = np.linalg.norm(R_opto_choice_shuf[regions == region, t, ii]
-                                    - R_no_opto_choice_shuf[regions == region, t, ii])
-            this_dist[t, ii] = np.max([l_dist, r_dist])
-    dist_opto_shuffle[region] = this_dist
-
-# Get Eucledian distances in neural space between choice left and right
 dist_choice, dist_choice_shuffle = dict(), dict()
+dot_pca, dot_pca_shuffle = dict(), dict()   
 for r, region in enumerate(np.unique(regions)):
     if region in DROP_REGIONS:
         continue
-
-    # Get Eucledian distance between choice L and R
-    this_dist = np.empty(n_timepoints)
+    print('Processing {region}')
+    
+    # Get Eucledian distance between opto and no opto per time point for L and R choices seperately
+    dist_opto[region] = np.empty(n_timepoints)
     for t in range(n_timepoints):
-        opto_dist = np.linalg.norm(L_opto[regions == region, t] - R_opto[regions == region, t])
-        no_opto_dist = np.linalg.norm(L_no_opto[regions == region, t] - R_no_opto[regions == region, t])
-        this_dist[t] = np.mean([opto_dist, no_opto_dist])
-    dist_choice[region] = this_dist
-
+        dist_opto[region][t] = np.linalg.norm(opto[regions == region, t] - no_opto[regions == region, t])
+    
     # Do the same for shuffle
-    this_dist = np.empty((n_timepoints, L_opto_shuf.shape[2]))
-    for ii in range(L_opto_shuf.shape[2]):
+    dist_opto_shuffle[region] = np.empty((n_timepoints, opto_shuf.shape[2]))
+    for ii in range(opto_shuf.shape[2]):
         for t in range(n_timepoints):
-            opto_dist = np.linalg.norm(L_opto_choice_shuf[regions == region, t, ii]
-                                       - R_opto_choice_shuf[regions == region, t, ii])
-            no_opto_dist = np.linalg.norm(L_no_opto_choice_shuf[regions == region, t, ii]
-                                          - R_no_opto_choice_shuf[regions == region, t, ii])
-            this_dist[t, ii] = np.max([opto_dist, no_opto_dist])
-    dist_choice_shuffle[region] = this_dist
+            dist_opto_shuffle[region][t, ii] = np.linalg.norm(opto_shuf[regions == region, t, ii]
+                                                              - no_opto_shuf[regions == region, t, ii])
+        
+    # Get Eucledian distance between opto and no opto per time point for L and R choices seperately
+    dist_choice[region] = np.empty(n_timepoints)
+    for t in range(n_timepoints):
+        dist_choice[region][t] = np.linalg.norm(L[regions == region, t] - R[regions == region, t])
+    
+    # Do the same for shuffle
+    dist_choice_shuffle[region] = np.empty((n_timepoints, L_shuf.shape[2]))
+    for ii in range(L_shuf.shape[2]):
+        for t in range(n_timepoints):
+            dist_choice_shuffle[region][t, ii] = np.linalg.norm(L_shuf[regions == region, t, ii]
+                                                                - R_shuf[regions == region, t, ii])
 
-# Do PCA
-print('Fitting PCA..')
-pca_fit, pca_shuffle, pca_choice_shuf = dict(), dict(), dict()
-for r, region in enumerate(np.unique(regions)):
-    if region in DROP_REGIONS:
-        continue
-    print(f'Starting fits for {region}')
-
-    # Do PCA on all splits simultaneously to get them in the same PCA space
+    # Get dot product
+    # Do PCA for data split four ways
     all_splits = np.vstack((L_opto[regions == region].T, R_opto[regions == region].T,
                             L_no_opto[regions == region].T, R_no_opto[regions == region].T))
-    if all_splits.shape[1] < N_DIM:
-        continue
-    pca_fit[region] = pca.fit_transform(all_splits)
-
+    pca_fit = pca.fit_transform(all_splits)
+    
     # Do PCA for shuffles
-    pca_shuffle[region] = np.empty((all_splits.shape[0], N_DIM, 0))
+    pca_shuffle = np.empty((all_splits.shape[0], N_DIM, 0))
     for ii in range(this_dict['n_shuffles']):
         all_splits = np.vstack((L_opto_shuf[regions == region, :, ii].T,
                                 R_opto_shuf[regions == region, :, ii].T,
                                 L_no_opto_shuf[regions == region, :, ii].T,
                                 R_no_opto_shuf[regions == region, :, ii].T))
         if np.sum(np.isnan(all_splits)) == 0:
-            pca_shuffle[region] = np.dstack((pca_shuffle[region], pca.fit_transform(all_splits)))
-
-    pca_choice_shuf[region] = np.empty((all_splits.shape[0], N_DIM, 0))
-    for ii in range(this_dict['n_shuffles']):
-        all_splits = np.vstack((L_opto_choice_shuf[regions == region, :, ii].T,
-                                R_opto_choice_shuf[regions == region, :, ii].T,
-                                L_no_opto_choice_shuf[regions == region, :, ii].T,
-                                R_no_opto_choice_shuf[regions == region, :, ii].T))
-        if np.sum(np.isnan(all_splits)) == 0:
-            pca_choice_shuf[region] = np.dstack((pca_choice_shuf[region], pca.fit_transform(all_splits)))
-
-# Get index to which split the PCA belongs to
-split_ids = np.concatenate((['L_opto'] * n_timepoints, ['R_opto'] * n_timepoints,
-                            ['L_no_opto'] * n_timepoints, ['R_no_opto'] * n_timepoints))
-
-# Calculate dot product between opto and stim vectors in PCA space
-# Collapse pca onto choice and opto dimensions
-dot_pca, dot_pca_shuffle = dict(), dict()
-angle_pca, angle_pca_shuffle = dict(), dict()
-p_value = dict()
-for r, region in enumerate(pca_fit.keys()):
-    pca_l_col = (pca_fit[region][split_ids == 'L_opto'] + pca_fit[region][split_ids == 'L_no_opto']) / 2
-    pca_r_col = (pca_fit[region][split_ids == 'R_opto'] + pca_fit[region][split_ids == 'R_no_opto']) / 2
-    pca_opto_col = (pca_fit[region][split_ids == 'L_opto'] + pca_fit[region][split_ids == 'R_opto']) / 2
-    pca_no_opto_col = (pca_fit[region][split_ids == 'L_no_opto'] + pca_fit[region][split_ids == 'R_no_opto']) / 2
-
+            pca_shuffle = np.dstack((pca_shuffle, pca.fit_transform(all_splits)))
+    
+    # Get index to which split the PCA belongs to
+    split_ids = np.concatenate((['L_opto'] * n_timepoints, ['R_opto'] * n_timepoints,
+                                ['L_no_opto'] * n_timepoints, ['R_no_opto'] * n_timepoints))
+    
+    # Calculate dot product between opto and stim vectors in PCA space
+    # Collapse pca onto choice and opto dimensions 
+    pca_l_col = (pca_fit[split_ids == 'L_opto'] + pca_fit[split_ids == 'L_no_opto']) / 2
+    pca_r_col = (pca_fit[split_ids == 'R_opto'] + pca_fit[split_ids == 'R_no_opto']) / 2
+    pca_opto_col = (pca_fit[split_ids == 'L_opto'] + pca_fit[split_ids == 'R_opto']) / 2
+    pca_no_opto_col = (pca_fit[split_ids == 'L_no_opto'] + pca_fit[split_ids == 'R_no_opto']) / 2
+    
     # Get the dot product and angle between the two vectors
-    dot_pca[region], angle_pca[region] = np.empty(n_timepoints), np.empty(n_timepoints)
-    p_value[region] = np.empty(n_timepoints)
+    dot_pca[region] = np.empty(n_timepoints)
     for t in range(n_timepoints):
+    
+        # Calculate normalized dot product
         choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
         opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
         dot_prod = np.dot(choice_vec / np.linalg.norm(choice_vec),
                           opto_vec / np.linalg.norm(opto_vec))
-        angle_pca[region][t] = np.degrees(np.arccos(
-            dot_prod / (np.linalg.norm(choice_vec) * np.linalg.norm(opto_vec))))
         dot_pca[region][t] = 1 - np.abs(dot_prod)
-
-        # Determine whether the dot product is more orthogonal than expected by chance
-        z_score = dot_prod / (1 / np.sqrt(choice_vec.shape[0]))
-        #z_score = (angle_pca[region][t] - 90) / (1 / np.sqrt(choice_vec.shape[0]))
-        p_value[region][t] = 1 - (stats.norm.sf(abs(z_score)) * 2)
-
+    
     # Do the same for all the shuffles
-    dot_pca_shuffle[region] = np.empty((n_timepoints, pca_shuffle[region].shape[2]))
-    angle_pca_shuffle[region] = np.empty((n_timepoints, pca_shuffle[region].shape[2]))
-    for ii in range(pca_shuffle[region].shape[2]):
-        pca_l_col = (pca_shuffle[region][split_ids == 'L_opto', :, ii]
-                     + pca_shuffle[region][split_ids == 'L_no_opto', :, ii]) / 2
-        pca_r_col = (pca_shuffle[region][split_ids == 'R_opto', :, ii]
-                     + pca_shuffle[region][split_ids == 'R_no_opto', :, ii]) / 2
-        pca_opto_col = (pca_shuffle[region][split_ids == 'L_opto', :, ii]
-                        + pca_shuffle[region][split_ids == 'R_opto', :, ii]) / 2
-        pca_no_opto_col = (pca_shuffle[region][split_ids == 'L_no_opto', :, ii]
-                           + pca_shuffle[region][split_ids == 'R_no_opto', :, ii]) / 2
-
+    dot_pca_shuffle[region] = np.empty((n_timepoints, pca_shuffle.shape[2]))
+    for ii in range(pca_shuffle.shape[2]):
+        pca_l_col = (pca_shuffle[split_ids == 'L_opto', :, ii]
+                     + pca_shuffle[split_ids == 'L_no_opto', :, ii]) / 2
+        pca_r_col = (pca_shuffle[split_ids == 'R_opto', :, ii]
+                     + pca_shuffle[split_ids == 'R_no_opto', :, ii]) / 2
+        pca_opto_col = (pca_shuffle[split_ids == 'L_opto', :, ii]
+                        + pca_shuffle[split_ids == 'R_opto', :, ii]) / 2
+        pca_no_opto_col = (pca_shuffle[split_ids == 'L_no_opto', :, ii]
+                           + pca_shuffle[split_ids == 'R_no_opto', :, ii]) / 2
+    
         for t in range(n_timepoints):
+            
+            # Calculate normalized dot product
             choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
             opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
+    
             dot_prod = np.dot(choice_vec / np.linalg.norm(choice_vec),
                               opto_vec / np.linalg.norm(opto_vec))
-            angle_pca_shuffle[region][t, ii] = np.degrees(np.arccos(
-                dot_prod / (np.linalg.norm(choice_vec) * np.linalg.norm(opto_vec))))
             dot_pca_shuffle[region][t, ii] = 1 - np.abs(dot_prod)
 
-
-# Get Eucledian distances in PCA space
-choice_dist_pca, choice_dist_pca_shuf = dict(), dict()
-opto_dist_pca, opto_dist_pca_shuf = dict(), dict()
-for r, region in enumerate(np.unique(regions)):
-    if region in DROP_REGIONS:
-        continue
-
-    choice_dist_pca[region] = np.empty(n_timepoints)
-    for t in range(n_timepoints):
-        this_opto_dist = np.linalg.norm(pca_fit[region][split_ids == 'L_opto'][t, :]
-                                        - pca_fit[region][split_ids == 'R_opto'][t, :])
-        this_no_opto_dist = np.linalg.norm(pca_fit[region][split_ids == 'L_no_opto'][t, :]
-                                           - pca_fit[region][split_ids == 'R_no_opto'][t, :])
-        choice_dist_pca[region][t] = np.max([this_opto_dist, this_no_opto_dist])
-
-    choice_dist_pca_shuf[region] = np.empty((n_timepoints, L_opto_choice_shuf.shape[2]))
-    for ii in range(pca_choice_shuf[region].shape[2]):
-        for t in range(n_timepoints):
-            this_opto_dist = np.linalg.norm(pca_choice_shuf[region][split_ids == 'L_opto', :, ii][t, :]
-                                    - pca_choice_shuf[region][split_ids == 'R_opto', :, ii][t, :])
-            this_no_opto_dist = np.linalg.norm(pca_choice_shuf[region][split_ids == 'L_opto', :, ii][t, :]
-                                    - pca_choice_shuf[region][split_ids == 'R_opto', :, ii][t, :])
-            choice_dist_pca_shuf[region][t, ii] = np.max([this_opto_dist, this_no_opto_dist])
-
-    opto_dist_pca[region] = np.empty(n_timepoints)
-    for t in range(n_timepoints):
-        this_l_dist = np.linalg.norm(pca_fit[region][split_ids == 'L_opto'][t, :]
-                                     - pca_fit[region][split_ids == 'L_no_opto'][t, :])
-        this_r_dist = np.linalg.norm(pca_fit[region][split_ids == 'R_opto'][t, :]
-                                     - pca_fit[region][split_ids == 'R_no_opto'][t, :])
-        opto_dist_pca[region][t] = np.max([this_l_dist, this_r_dist])
-
-    opto_dist_pca_shuf[region] = np.empty((n_timepoints, L_opto_shuf.shape[2]))
-    for ii in range(pca_shuffle[region].shape[2]):
-        for t in range(n_timepoints):
-            l_dist = np.linalg.norm(pca_shuffle[region][split_ids == 'L_opto', :, ii][t, :]
-                                    - pca_shuffle[region][split_ids == 'L_no_opto', :, ii][t, :])
-            r_dist = np.linalg.norm(pca_shuffle[region][split_ids == 'R_opto', :, ii][t, :]
-                                    - pca_shuffle[region][split_ids == 'R_no_opto', :, ii][t, :])
-            opto_dist_pca_shuf[region][t, ii] = np.max([l_dist, r_dist])
 
 
 # %% Prepare for plotting
 
 # Get mean over timewindow per region
-choice_dist_pca_regions = [np.mean(choice_dist_pca[i][
+choice_dist_pca_regions = [np.mean(dist_choice[i][
     (time_ax >= CHOICE_5HT_WIN[0]) & (time_ax <= CHOICE_5HT_WIN[1])])
-    for i in choice_dist_pca.keys()]
-choice_dist_pca_shuf_regions = [np.mean(choice_dist_pca_shuf[i][
+    for i in dist_choice.keys()]
+choice_dist_pca_shuf_regions = [np.mean(dist_choice_shuffle[i][
     (time_ax >= CHOICE_5HT_WIN[0]) & (time_ax <= CHOICE_5HT_WIN[1]), :], 0)
-    for i in choice_dist_pca_shuf.keys()]
-opto_dist_pca_regions = [np.mean(opto_dist_pca[i][
+    for i in dist_choice_shuffle.keys()]
+opto_dist_pca_regions = [np.mean(dist_opto[i][
     (time_ax >= CHOICE_5HT_WIN[0]) & (time_ax <= CHOICE_5HT_WIN[1])])
-    for i in opto_dist_pca.keys()]
-opto_dist_pca_shuf_regions = [np.mean(opto_dist_pca_shuf[i][
+    for i in dist_opto.keys()]
+opto_dist_pca_shuf_regions = [np.mean(dist_opto_shuffle[i][
     (time_ax >= CHOICE_5HT_WIN[0]) & (time_ax <= CHOICE_5HT_WIN[1]), :], 0)
-    for i in opto_dist_pca_shuf.keys()]
+    for i in dist_opto_shuffle.keys()]
 dot_pca_regions = [np.mean(dot_pca[i][
     (time_ax >= ORTH_WIN[0]) & (time_ax <= ORTH_WIN[1])])
     for i in dot_pca.keys()]
@@ -289,7 +207,7 @@ dist_pca_df = pd.DataFrame(data={
     'choice_dist_shuf': [item for sublist in choice_dist_pca_shuf_regions for item in sublist],
     'opto_dist_shuf': [item for sublist in opto_dist_pca_shuf_regions for item in sublist],
     'dot_shuf': [item for sublist in dot_pca_shuf_regions for item in sublist],
-    'region': [string for string, sublist in zip(choice_dist_pca_shuf.keys(), choice_dist_pca_shuf_regions) for _ in sublist]})
+    'region': [string for string, sublist in zip(dist_choice_shuffle.keys(), choice_dist_pca_shuf_regions) for _ in sublist]})
 
 # %% Choice distance
 
@@ -306,7 +224,7 @@ for i, this_dist in enumerate(choice_dist_pca_regions):
     elif this_dist > np.quantile(choice_dist_pca_shuf_regions[i], 1-(0.05/2)):
         ax1.text(i, this_dist+2, '*', ha='center', va='center', fontsize=7)
 ax1.tick_params(axis='x', labelrotation=90)
-ax1.set(xlabel='', ylabel='Choice distance (PCA score)',
+ax1.set(xlabel='', ylabel='Choice distance (spks/s)',
         yticks=[0, 40, 80, 120])
 
 sns.despine(trim=True)
@@ -328,7 +246,7 @@ for i, this_dist in enumerate(opto_dist_pca_regions):
     elif this_dist > np.quantile(opto_dist_pca_shuf_regions[i], 1-(0.05/2)):
         ax1.text(i, this_dist+6, '*', ha='center', va='center', fontsize=7)
 ax1.tick_params(axis='x', labelrotation=90)
-ax1.set(xlabel='', ylabel='5-HT distance (PCA score)',
+ax1.set(xlabel='', ylabel='5-HT distance (spks/s)',
         yticks=[0, 40, 80])
 
 sns.despine(trim=True)
