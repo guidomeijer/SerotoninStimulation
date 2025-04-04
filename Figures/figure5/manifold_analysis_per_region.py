@@ -21,7 +21,8 @@ from sklearn.decomposition import PCA
 N_DIM = 3
 CENTER_ON = 'firstMovement_times'
 CHOICE_5HT_WIN = [-0.05, 0]
-ORTH_WIN = [-0.01, 0]
+#ORTH_WIN = [-0.15, -0.1]
+ORTH_WIN = [-0.05, 0]
 DROP_REGIONS = ['root', 'AI', 'BC', 'ZI', 'RSP']
 CMAPS = dict({
     'L': 'Reds_r', 'R': 'Purples_r', 'no_opto': 'Oranges_r', 'opto': 'Blues_r',
@@ -92,7 +93,7 @@ dot_pca, dot_pca_shuffle = dict(), dict()
 for r, region in enumerate(np.unique(regions)):
     if region in DROP_REGIONS:
         continue
-    print('Processing {region}')
+    print(f'Processing {region}')
     
     # Get Eucledian distance between opto and no opto per time point for L and R choices seperately
     dist_opto[region] = np.empty(n_timepoints)
@@ -138,6 +139,29 @@ for r, region in enumerate(np.unique(regions)):
     split_ids = np.concatenate((['L_opto'] * n_timepoints, ['R_opto'] * n_timepoints,
                                 ['L_no_opto'] * n_timepoints, ['R_no_opto'] * n_timepoints))
     
+    """
+    mean_R = np.mean(pca_fit[split_ids == 'R_no_opto'], axis=0)
+    mean_L = np.mean(pca_fit[split_ids == 'L_no_opto'], axis=0)
+    mean_R_opto = np.mean(pca_fit[split_ids == 'R_opto'], axis=0)
+    mean_L_opto = np.mean(pca_fit[split_ids == 'L_opto'], axis=0)
+    choice_vector = mean_R - mean_L
+    opto_vector = 0.5 * ((mean_R_opto - mean_R) + (mean_L_opto - mean_L))
+    dot_pca[region] = 1 - np.abs(np.dot(choice_vector / np.linalg.norm(choice_vector),
+                                        opto_vector / np.linalg.norm(opto_vector)))
+    
+    dot_pca_shuffle[region] = np.empty(pca_shuffle.shape[2])
+    for ii in range(pca_shuffle.shape[2]):
+        mean_R = np.mean(pca_shuffle[split_ids == 'R_no_opto', :, ii], axis=0)
+        mean_L = np.mean(pca_shuffle[split_ids == 'L_no_opto', :, ii], axis=0)
+        mean_R_opto = np.mean(pca_shuffle[split_ids == 'R_opto', :, ii], axis=0)
+        mean_L_opto = np.mean(pca_shuffle[split_ids == 'L_opto', :, ii], axis=0)
+        
+        choice_vector = mean_R - mean_L
+        opto_vector = 0.5 * ((mean_R_opto - mean_R) + (mean_L_opto - mean_L))
+        dot_pca_shuffle[region][ii] = 1 - np.abs(np.dot(choice_vector / np.linalg.norm(choice_vector),
+                                                        opto_vector / np.linalg.norm(opto_vector)))
+        
+    """
     # Calculate dot product between opto and stim vectors in PCA space
     # Collapse pca onto choice and opto dimensions 
     pca_l_col = (pca_fit[split_ids == 'L_opto'] + pca_fit[split_ids == 'L_no_opto']) / 2
@@ -178,7 +202,7 @@ for r, region in enumerate(np.unique(regions)):
                               opto_vec / np.linalg.norm(opto_vec))
             dot_pca_shuffle[region][t, ii] = 1 - np.abs(dot_prod)
 
-
+    
 
 # %% Prepare for plotting
 
@@ -195,12 +219,23 @@ opto_dist_pca_regions = [np.mean(dist_opto[i][
 opto_dist_pca_shuf_regions = [np.mean(dist_opto_shuffle[i][
     (time_ax >= CHOICE_5HT_WIN[0]) & (time_ax <= CHOICE_5HT_WIN[1]), :], 0)
     for i in dist_opto_shuffle.keys()]
+
+"""
+# Get max orthogonality point per region
+dot_pca_regions, dot_pca_shuf_regions = [], []
+for i, region in enumerate(dot_pca.keys()):
+    max_orth_ind = np.argmax(dot_pca[region])
+    dot_pca_regions.append(dot_pca[region][max_orth_ind])
+    dot_pca_shuf_regions.append(dot_pca_shuffle[region][max_orth_ind, :])
+"""  
+
 dot_pca_regions = [np.mean(dot_pca[i][
     (time_ax >= ORTH_WIN[0]) & (time_ax <= ORTH_WIN[1])])
     for i in dot_pca.keys()]
 dot_pca_shuf_regions = [np.mean(dot_pca_shuffle[i][
     (time_ax >= ORTH_WIN[0]) & (time_ax <= ORTH_WIN[1]), :], 0)
     for i in dot_pca_shuffle.keys()]
+
 
 # Add shuffles to dataframe for plotting
 dist_pca_df = pd.DataFrame(data={

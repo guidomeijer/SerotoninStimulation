@@ -6,11 +6,13 @@ By: Guido Meijer
 """
 
 import numpy as np
+np.random.seed(42)
 from os.path import join, isdir
 from os import mkdir
 import pandas as pd
 from copy import deepcopy
 import random
+import shutil
 from sklearn.utils import shuffle
 from sklearn.preprocessing import StandardScaler
 from brainbox.io.one import SpikeSortingLoader
@@ -43,8 +45,8 @@ T_AFTER = 0
 #MAX_RT = 1
 
 MIN_FR = 0.1
-MIN_RT = 0.2
-MAX_RT = 1
+MIN_RT = 0.1
+MAX_RT = 1.2
 MIN_TRIALS = 10  # per split
 N_SHUFFLES = 500
 
@@ -52,6 +54,8 @@ N_SHUFFLES = 500
 # These data are too large to put on the repo so will be saved in the one cache dir
 _, s_path = paths(save_dir='cache')
 save_path = join(s_path, 'manifold', f'{CENTER_ON}')
+if isdir(save_path):
+    shutil.rmtree(save_path)
 if not isdir(save_path):
     mkdir(save_path)
 _, load_path = paths(save_dir='repo')
@@ -90,14 +94,15 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
     these_neurons = task_neurons[task_neurons['pid'] == pid]
         
     # Load in trials
-    trials = load_trials(eid, laser_stimulation=True)
+    all_trials = load_trials(eid, laser_stimulation=True)
     
-    # Exclude trials with too short or too long reaction times 
-    trials = trials[(trials['reaction_times'] <= MAX_RT) & (trials['reaction_times'] >= MIN_RT)]
+    # Exclude trials with too short or too long reaction times and exclude probe trials
+    incl_trials = (((all_trials['reaction_times'] <= MAX_RT) & (all_trials['reaction_times'] >= MIN_RT))
+                   & (all_trials['probe_trial'] == 0))
     
-    # Exclude probe trials
-    trials = trials[~((trials['laser_stimulation'] == 1) & (trials['laser_probability'] == 0.25))]
-    trials = trials[~((trials['laser_stimulation'] == 0) & (trials['laser_probability'] == 0.75))]
+    #incl_trials = ((all_trials['reaction_times'] <= MAX_RT) & (all_trials['reaction_times'] >= MIN_RT))
+    
+    trials = all_trials[incl_trials]
     
     # Check if there are enough trials for each split
     if ((trials[(trials['choice'] == -1) & (trials['laser_stimulation'] == 1)].shape[0] < MIN_TRIALS)
@@ -164,19 +169,39 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         L_peth = np.mean(binned_spikes[shuffled_choices == -1, :, :], axis=0)
         R_peth = np.mean(binned_spikes[shuffled_choices == 1, :, :], axis=0)
         
-        # Shuffle optogenetic stimulation
-        shuffled_opto = shuffle(trials['laser_stimulation'].values)
         
+        # Create artifical stimulation blocks as random permutation
+        laser_block_len = int(np.random.exponential(60))
+        while (laser_block_len <= 20) | (laser_block_len >= 100):
+            laser_block_len = int(np.random.exponential(60))
+        random_blocks = np.tile([0] * laser_block_len + [1] * laser_block_len, 100)
+        rand_offset = np.random.randint(100)
+        artifical_opto_blocks = random_blocks[rand_offset:all_trials.shape[0] + rand_offset]
+        permut_opto = artifical_opto_blocks[incl_trials]
+        """
+        
+        permut_opto = shuffle(trials['laser_stimulation'].values)
+        
+        """
         # Split trials
-        opto_peth = np.mean(binned_spikes[shuffled_opto == 1, :, :], axis=0)
-        no_opto_peth = np.mean(binned_spikes[shuffled_opto == 0, :, :], axis=0)
-            
+        opto_peth = np.mean(binned_spikes[permut_opto == 1, :, :], axis=0)
+        no_opto_peth = np.mean(binned_spikes[permut_opto == 0, :, :], axis=0)
+         
+        
         # For data split four ways shuffle the neural data over trials
         binned_spikes_shuf = np.random.permutation(binned_spikes)
         L_opto_peth = np.mean(binned_spikes_shuf[(trials['choice'] == -1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
         L_no_opto_peth = np.mean(binned_spikes_shuf[(trials['choice'] == -1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
         R_opto_peth = np.mean(binned_spikes_shuf[(trials['choice'] == 1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
         R_no_opto_peth = np.mean(binned_spikes_shuf[(trials['choice'] == 1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
+        
+        """
+        # For data split four ways
+        L_opto_peth = np.mean(binned_spikes[(trials['choice'] == -1) & (permut_opto == 1), :, :], axis=0)
+        L_no_opto_peth = np.mean(binned_spikes[(trials['choice'] == -1) & (permut_opto == 0), :, :], axis=0)
+        R_opto_peth = np.mean(binned_spikes[(trials['choice'] == 1) & (permut_opto == 1), :, :], axis=0)
+        R_no_opto_peth = np.mean(binned_spikes[(trials['choice'] == 1) & (permut_opto == 0), :, :], axis=0)
+        """
 
         # Center the data (mean subtraction)
         L_peth = L_peth - np.mean(L_peth, axis=0)
