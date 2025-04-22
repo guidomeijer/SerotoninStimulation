@@ -27,18 +27,15 @@ scaler = StandardScaler()
 
 # Settings
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto', 'L', 'R', 'opto', 'no_opto']
-CENTER_ON = 'firstMovement_times'
-#CENTER_ON = 'stimOn_times'
+#CENTER_ON = 'firstMovement_times'
+CENTER_ON = 'stimOn_times'
 
 BIN_SIZE = 0.0125
 SMOOTHING = 0.02
-T_BEFORE = 0.3
-T_AFTER = 0
-
-#BIN_SIZE = 0.025
-#SMOOTHING = 0.05
-#T_BEFORE = 0
-#T_AFTER = 0.5
+#T_BEFORE = 0.3
+#T_AFTER = 0
+T_BEFORE = 0
+T_AFTER = 0.4
 
 # Good values
 #MIN_RT = 0.2
@@ -143,8 +140,6 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         elif split == 'opto':
             peth_dict[split] = np.mean(binned_spikes[trials['laser_stimulation'] == 1, :, :], axis=0)
         
-        # Center the data (mean subtraction)
-        peth_dict[split] = peth_dict[split] - np.mean(peth_dict[split], axis=0)
         
     # Get shuffled data
     for ii in range(N_SHUFFLES):
@@ -169,20 +164,22 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         L_peth = np.mean(binned_spikes[shuffled_choices == -1, :, :], axis=0)
         R_peth = np.mean(binned_spikes[shuffled_choices == 1, :, :], axis=0)
         
-        
         # Create artifical stimulation blocks as random permutation
         laser_block_len = int(np.random.exponential(60))
         while (laser_block_len <= 20) | (laser_block_len >= 100):
             laser_block_len = int(np.random.exponential(60))
-        random_blocks = np.tile([0] * laser_block_len + [1] * laser_block_len, 100)
+        if np.round(np.random.rand()) == 0:
+            random_blocks = np.tile([0] * laser_block_len + [1] * laser_block_len, 100)
+        else:
+            random_blocks = np.tile([1] * laser_block_len + [0] * laser_block_len, 100)
         rand_offset = np.random.randint(100)
         artifical_opto_blocks = random_blocks[rand_offset:all_trials.shape[0] + rand_offset]
         permut_opto = artifical_opto_blocks[incl_trials]
-        """
         
+        """
         permut_opto = shuffle(trials['laser_stimulation'].values)
-        
         """
+        
         # Split trials
         opto_peth = np.mean(binned_spikes[permut_opto == 1, :, :], axis=0)
         no_opto_peth = np.mean(binned_spikes[permut_opto == 0, :, :], axis=0)
@@ -194,25 +191,7 @@ for i, pid in enumerate(np.unique(task_neurons['pid'])):
         L_no_opto_peth = np.mean(binned_spikes_shuf[(trials['choice'] == -1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
         R_opto_peth = np.mean(binned_spikes_shuf[(trials['choice'] == 1) & (trials['laser_stimulation'] == 1), :, :], axis=0)
         R_no_opto_peth = np.mean(binned_spikes_shuf[(trials['choice'] == 1) & (trials['laser_stimulation'] == 0), :, :], axis=0)
-        
-        """
-        # For data split four ways
-        L_opto_peth = np.mean(binned_spikes[(trials['choice'] == -1) & (permut_opto == 1), :, :], axis=0)
-        L_no_opto_peth = np.mean(binned_spikes[(trials['choice'] == -1) & (permut_opto == 0), :, :], axis=0)
-        R_opto_peth = np.mean(binned_spikes[(trials['choice'] == 1) & (permut_opto == 1), :, :], axis=0)
-        R_no_opto_peth = np.mean(binned_spikes[(trials['choice'] == 1) & (permut_opto == 0), :, :], axis=0)
-        """
-
-        # Center the data (mean subtraction)
-        L_peth = L_peth - np.mean(L_peth, axis=0)
-        R_peth = R_peth - np.mean(R_peth, axis=0)
-        opto_peth = opto_peth - np.mean(opto_peth, axis=0)
-        no_opto_peth = no_opto_peth - np.mean(no_opto_peth, axis=0)
-        L_opto_peth = L_opto_peth - np.mean(L_opto_peth, axis=0)
-        L_no_opto_peth = L_no_opto_peth - np.mean(L_no_opto_peth, axis=0)
-        R_no_opto_peth = R_no_opto_peth - np.mean(R_no_opto_peth, axis=0)
-        R_opto_peth = R_opto_peth - np.mean(R_opto_peth, axis=0)
-        
+                
         # Add to 3d array
         if ii == 0:
             peths_shuf['L'] = L_peth

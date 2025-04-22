@@ -2,8 +2,3 @@ statsmodels
 ibllib
 scikit-posthocs
 zetapy
-adjustText
-fitz
-pdf2image
-PyMuPDF
-umap

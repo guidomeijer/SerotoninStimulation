@@ -22,7 +22,7 @@ from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
 N_DIM = 3
-DATASET = 'firstMovement_times'
+DATASET = 'stimOn_times'
 CMAPS = dict({
     'R': 'Reds_r', 'L': 'Purples_r', 'no_opto': 'Oranges_r', 'opto': 'Blues_r',
     'L_opto': 'Blues_r', 'R_opto': 'Oranges_r', 'L_no_opto': 'Purples_r', 'R_no_opto': 'Reds_r'})
@@ -185,7 +185,7 @@ pca_no_opto_col = (pca_fit[split_ids == 'L_no_opto'] + pca_fit[split_ids == 'R_n
 
 # Get vectors
 choice_vec = ((pca_fit[split_ids == 'R_no_opto'] - pca_fit[split_ids == 'L_no_opto'])
-                     + (pca_fit[split_ids == 'R_opto'] - pca_fit[split_ids == 'L_opto'])) / 2
+              + (pca_fit[split_ids == 'R_opto'] - pca_fit[split_ids == 'L_opto'])) / 2
 mid_nonstim = (pca_fit[split_ids == 'L_no_opto'] + pca_fit[split_ids == 'R_no_opto']) / 2
 mid_stim = (pca_fit[split_ids == 'L_opto'] + pca_fit[split_ids == 'R_opto']) / 2
 opto_vec = mid_stim - mid_nonstim
@@ -252,7 +252,7 @@ for ii in range(pca_shuffle.shape[2]):
 
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-125, azim=-100)
+ax.view_init(elev=-150, azim=-170)
 for sp in ['L', 'R']:
     cmap = mpl.colormaps.get_cmap(CMAPS[sp])
     col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -282,7 +282,7 @@ plt.savefig(join(fig_path, f'pca_LR_all_together_{DATASET}.pdf'))
 
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-140, azim=-120)
+ax.view_init(elev=-134, azim=-109)
 for sp in ['opto', 'no_opto']:
     cmap = mpl.colormaps.get_cmap(CMAPS[sp])
     col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -312,7 +312,7 @@ plt.savefig(join(fig_path, f'pca_opto_all_together_{DATASET}.pdf'))
 # %% Plot PCA trajectories
 fig = plt.figure(figsize=(1.75, 1.75), dpi=dpi)
 ax = fig.add_subplot(projection='3d')
-ax.view_init(elev=-130, azim=-110)
+ax.view_init(elev=-165, azim=-115)
 for sp in ['L_opto', 'L_no_opto', 'R_opto', 'R_no_opto']:
     cmap = mpl.colormaps.get_cmap(CMAPS[sp])
     col = [cmap((n_timepoints - p) / n_timepoints) for p in range(n_timepoints)]
@@ -356,7 +356,7 @@ ax1.fill_between(time_ax,
 ax1.plot(time_ax, choice_dist, marker='o')
 add_significance(time_ax, (choice_dist < np.quantile(choice_dist_shuf, 0.975, axis=1)).astype(int), ax1)
 ax1.set(xlabel='Time to choice (s)',ylabel='Choice separation (spks/s)', 
-        yticks=[50, 250], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=[50, 210], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 
 ax2.fill_between(time_ax,
@@ -366,7 +366,7 @@ ax2.fill_between(time_ax,
 ax2.plot(time_ax, opto_dist, marker='o')
 add_significance(time_ax, (opto_dist < np.quantile(opto_dist_shuf, 0.975, axis=1)).astype(int), ax2)
 ax2.set(xlabel='Time to choice (s)', ylabel='5-HT separation (spks/s)',
-        yticks=[50, 110], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=[50, 90], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 ax3.fill_between(time_ax,
                  np.quantile(dot_pca_shuffle, 0.025, axis=1),
@@ -375,7 +375,7 @@ ax3.fill_between(time_ax,
 ax3.plot(time_ax, dot_pca, marker='o')
 add_significance(time_ax, (dot_pca < np.quantile(dot_pca_shuffle, 0.975, axis=1)).astype(int), ax3)
 ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - abs. norm. dot product)',
-        yticks=np.arange(0, 1.1, 0.2), xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=np.arange(0, 1.1, 0.2), xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 sns.despine(trim=True)
 plt.tight_layout()
