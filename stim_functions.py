@@ -35,20 +35,8 @@ from iblatlas.regions import BrainRegions
 from iblatlas.atlas import AllenAtlas
 from one.api import ONE
 
-# Whether to use released open-source data
-OPEN_ONE = False
 
-# Number of states of HMM
-N_STATES = 7
-N_STATES_TASK = 11
-N_STATES_REGIONS = {'Frontal cortex': 8, 'Amygdala': 6, 'Hippocampus': 7, 'Midbrain': 7,
-                    'Sensory cortex': 8, 'Striatum': 7, 'Thalamus': 5}
-N_STATES_TASK_REGIONS = {'Frontal cortex': 9, 'Amygdala': 12, 'Hippocampus': 13, 'Midbrain': 14,
-                         'Sensory cortex': 10, 'Striatum': 9, 'Thalamus': 7}
-N_STATES_CONT = 7
-
-
-def init_one(local=False, open_one=OPEN_ONE):
+def init_one(local=False, open_one=False):
     if local:
         mode='local'
     else:
@@ -61,21 +49,9 @@ def init_one(local=False, open_one=OPEN_ONE):
     return one
 
 
-def load_subjects(anesthesia='no&both', behavior=None):
-    assert anesthesia in ['no', 'yes', 'both', 'all', 'no&both', 'yes&both']
+def load_subjects():
     subjects = pd.read_csv(join(pathlib.Path(__file__).parent.resolve(), 'subjects.csv'),
                            delimiter=';|,', engine='python')
-    subjects = subjects[subjects['include'] == 1]
-    if anesthesia == 'yes':
-        subjects = subjects[subjects['anesthesia'] == 2]
-    elif anesthesia == 'no':
-        subjects = subjects[subjects['anesthesia'] == 0]
-    elif anesthesia == 'both':
-        subjects = subjects[subjects['anesthesia'] == 1]
-    elif anesthesia == 'no&both':
-        subjects = subjects[(subjects['anesthesia'] == 1) | (subjects['anesthesia'] == 0)]
-    elif anesthesia == 'yes&both':
-        subjects = subjects[(subjects['anesthesia'] == 1) | (subjects['anesthesia'] == 2)]
     subjects['subject_nr'] = subjects['subject_nr'].astype(int)
     subjects = subjects.reset_index(drop=True)
     return subjects
@@ -155,27 +131,6 @@ def figure_style():
     subject_pal = sns.color_palette(
         np.concatenate((sns.color_palette('tab20'),
                         [matplotlib_colors.to_rgb('maroon'), np.array([0, 0, 0])])))
-    state_dark_pal = sns.color_palette('Dark2')
-    state_light_pal = sns.color_palette('Set2')
-
-    """
-    state_dark_pal = sns.color_palette(
-        np.concatenate((sns.color_palette('Dark2')[:5],
-                        [sns.color_palette('Dark2')[6],
-                         sns.color_palette('Dark2')[7],
-                         sns.color_palette('tab10')[0],
-                        sns.color_palette('tab10')[3],
-                        sns.color_palette('tab10')[9],
-                        sns.color_palette('tab10')[6]])))
-    state_light_pal = sns.color_palette(
-        np.concatenate((sns.color_palette('Set2')[:5],
-                        [sns.color_palette('Set2')[6],
-                         sns.color_palette('Set2')[7],
-                         sns.color_palette('tab20')[1],
-                        sns.color_palette('tab20')[7],
-                        sns.color_palette('tab20')[19],
-                        sns.color_palette('tab20')[13]])))
-    """
     frontal = sns.color_palette('Dark2')[1]
     sensory = sns.color_palette('Dark2')[5]
     hipp = sns.color_palette('Dark2')[4]
@@ -192,16 +147,12 @@ def figure_style():
               'anesthesia': sns.color_palette('Dark2')[3],
               'enhanced': sns.color_palette('colorblind')[3],
               'suppressed': sns.color_palette('colorblind')[0],
-              'down-state': sns.color_palette('colorblind')[3],
-              'up-state': [1, 1, 1],
               'stim': 'dodgerblue',
               'no-stim': [0.65, 0.65, 0.65],
               'NS': sns.color_palette('Set2')[0],
               'WS': sns.color_palette('Set2')[1],
               'WS1': sns.color_palette('Set2')[1],
               'WS2': sns.color_palette('Set2')[2],
-              'states': state_dark_pal,
-              'states_light': state_light_pal,
               'main_states': sns.diverging_palette(20, 210, l=55, center='dark'),
               'Frontal cortex': frontal,
               'Sensory cortex': sensory,
@@ -252,15 +203,14 @@ def figure_style():
 def add_significance(x, p_values, ax, alpha=0.05):
     p_sig = p_values < alpha
     start_end = np.where(np.concatenate(([0], np.diff(p_sig).astype(int))))[0]
-    if p_sig[0] is True:
+    if p_sig[0] == True:
         start_end = np.concatenate(([0], start_end))
-    if p_sig[-1] is True:
-        start_end = np.concatenate((start_end, [1]))
-    for i, ind in enumerate(start_end[::2]):
-        y = ax.get_ylim()[1]
+    if p_sig[-1] == True:
+        start_end = np.concatenate((start_end, [p_sig.shape[0]-1]))
+    y = ax.get_ylim()[1]
+    for (i, ind) in zip(np.arange(0, (start_end.shape[0] // 2) + 1, 2), start_end[::2]):
         ax.plot([x[ind], x[start_end[i+1]]], [y + (y*0.05), y + (y*0.05)], color='k', lw=1.5,
                 clip_on=False)
-
 
 
 def get_artifact_neurons():
@@ -284,26 +234,28 @@ def remove_artifact_neurons(df):
     return df
 
 
-def query_ephys_sessions(aligned=True, behavior_crit=False, n_trials=0, anesthesia='no&both',
-                         acronym=None, one=None):
-    assert anesthesia in ['no', 'both', 'yes', 'all', 'no&both', 'yes&both']
+def query_ephys_sessions(acronym=None, one=None):
+    """
+    Query ephys recordings from the database.
+
+    Parameters
+    ----------
+    acronym : string, optional
+        Only return recordings that include the brain region with this Allen acronym
+    one : Initialized connection to the ONE database
+
+    Returns
+    -------
+    rec : DataFrame
+        A dataframe with the identifiers of all ephys recordings.
+
+    """
     if one is None:
-        one = ONE()
+        one = init_one()
 
     # Construct django query string
     DJANGO_STR = ('session__projects__name__icontains,serotonin_inference,'
-                  'session__qc__lt,50')
-    if aligned:
-        # Query all ephys-histology aligned sessions
-        DJANGO_STR += ',json__extended_qc__alignment_count__gt,0'
-
-    if behavior_crit:
-        # Query sessions with an alignment and that meet behavior criterion
-        DJANGO_STR += ',session__extended_qc__behavior,1'
-
-    # Query sessions with at least this many trials
-    if n_trials > 0:
-        DJANGO_STR += f',session__n_trials__gte,{n_trials}'
+                  'session__qc__lt,50,json__extended_qc__alignment_count__gt,0')
 
     # Query sessions
     if acronym is None:
@@ -316,7 +268,7 @@ def query_ephys_sessions(aligned=True, behavior_crit=False, n_trials=0, anesthes
             ins = ins + one.alyx.rest('insertions', 'list', django=DJANGO_STR, atlas_acronym=ac)
 
     # Only include subjects from subjects.csv
-    incl_subjects = load_subjects(anesthesia=anesthesia)
+    incl_subjects = load_subjects()
     ins = [i for i in ins if i['session_info']['subject'] in incl_subjects['subject'].values]
 
     # Get list of eids and probes
@@ -442,7 +394,7 @@ def get_full_region_name(acronyms):
         return full_region_names
 
 
-def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, freq=25):
+def load_passive_opto_times(eid, one=None, freq=25):
     """
     Load in the time stamps of the optogenetic stimulation at the end of the recording, after the
     taks and the spontaneous activity. Or when it's a long stimulation session with different
@@ -456,168 +408,19 @@ def load_passive_opto_times(eid, one=None, force_rerun=False, anesthesia=False, 
     """
 
     if one is None:
-        one = ONE()
-
-    # See if this is an anesthesia session
-    anesthesia_sub = load_subjects(anesthesia='both')
+        one = init_one()
     ses_details = one.get_details(eid)
     subject = ses_details['subject']
     date = ses_details['date']
-    if subject in anesthesia_sub['subject'].values:
-        anesthesia_ses = True
-    else:
-        anesthesia_ses = False
 
     # Load in pulses from disk if already extracted
     _, save_path = paths()
     save_path = join(save_path, 'OptoTimes')
-    if isfile(join(save_path, f'{subject}_{date}_pulse_trains.npy')) & ~force_rerun & ~anesthesia:
+    if isfile(join(save_path, f'{subject}_{date}_pulse_trains.npy')):
         opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'))
         opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'))
         return opto_train_times, opto_on_times
-    elif isfile(join(save_path, f'{subject}_{date}_pulse_trains_anesthesia.npy')) & ~force_rerun & anesthesia:
-        opto_train_times = np.load(
-            join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'))
-        opto_on_times = np.load(
-            join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'))
-        return opto_train_times, opto_on_times
-    else:
-        # Load in laser pulses
-        try:
-            one.load_datasets(eid, datasets=[
-                '_spikeglx_ephysData_g0_t0.nidq.cbin', '_spikeglx_ephysData_g0_t0.nidq.meta',
-                '_spikeglx_ephysData_g0_t0.nidq.ch'], download_only=True)
-        except:
-            one.load_datasets(eid, datasets=[
-                '_spikeglx_ephysData_g1_t0.nidq.cbin', '_spikeglx_ephysData_g1_t0.nidq.meta',
-                '_spikeglx_ephysData_g1_t0.nidq.ch'], download_only=True)
-        session_path = one.eid2path(eid)
-        nidq_file = glob(str(session_path.joinpath(
-            'raw_ephys_data/_spikeglx_ephysData_g*_t0.nidq.cbin')))[-1]
-        sr = spikeglx.Reader(nidq_file)
-        if anesthesia_ses & ~anesthesia:
-            offset = int(300 * sr.fs)
-            end = int(1020 * sr.fs)
-            opto_trace = sr.read_sync_analog(slice(offset, end))[:, 1]
-            opto_times = np.arange(offset, end) / sr.fs
-        else:
-            offset = int((sr.shape[0] / sr.fs - 720) * sr.fs)
-            opto_trace = sr.read_sync_analog(slice(offset, sr.shape[0]))[:, 1]
-            opto_times = np.arange(offset, sr.shape[0]) / sr.fs
-
-        if np.sum(np.diff(opto_trace) > 1) == 0:
-            print(f'No pulses found for {eid}')
-            return [], []
-
-        # Get start times of pulse trains
-        opto_on_times = opto_times[np.concatenate((np.diff(opto_trace), [0])) > 1]
-
-        # Get the times of the onset of each pulse train
-        opto_train_times = opto_on_times[np.concatenate(([True], np.diff(opto_on_times) > 1))]
-
-        # Get the stimulation frequencies
-        opto_freqs = np.empty(opto_train_times.shape)
-        for i, t_time in enumerate(opto_train_times):
-            # opto_freqs[i] = 1/np.mean(np.diff(opto_on_times[(opto_on_times >= t_time)
-            #                                                & (opto_on_times <= t_time + 1)]))
-            opto_freqs[i] = opto_on_times[(opto_on_times >= t_time)
-                                          & (opto_on_times <= t_time + 1)].shape[0]
-        opto_freqs = opto_freqs - opto_freqs % 5  # round to 5
-        opto_freqs[opto_freqs == 0] = 1
-
-        # If there are different stimulation frequencies than 25 Hz it's a long stim session
-        if np.any(np.isin([1, 5, 10], opto_freqs)) & (np.sum(opto_freqs == 40) < 5):
-            print('Long opto stim session detected')
-
-            # Load in the trace in chunks and only extract the 25Hz trains
-            opto_train_times = []
-            opto_on_times = []
-            chunk_edges = np.arange(0, sr.shape[0], 500 * sr.fs).astype(int)
-            for j in range(len(chunk_edges[:-1])):
-
-                # Load in chunk of trace
-                trace_chunk = sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1]))[:, 1]
-                times_chunk = np.arange(chunk_edges[j], chunk_edges[j+1]) / sr.fs
-
-                # Get start times of pulse trains
-                these_on_times = times_chunk[np.concatenate((np.diff(trace_chunk), [0])) > 1]
-
-                # Get the times of the onset of each pulse train
-                these_train_times = these_on_times[np.concatenate(
-                    ([True], np.diff(these_on_times) > 1))]
-
-                # Get the stimulation frequencies
-                these_freqs = np.empty(these_train_times.shape)
-                for ii, t_time in enumerate(these_train_times):
-                    these_freqs[ii] = these_on_times[(these_on_times >= t_time) & (
-                        these_on_times <= t_time + 1)].shape[0]
-                these_freqs = these_freqs - these_freqs % 5  # round to 5
-                these_freqs[these_freqs == 0] = 1
-
-                # Get stimulation amplitudes
-                if sr.read_sync_analog(slice(chunk_edges[j], chunk_edges[j+1])).shape[1] > 3:
-                    analog_chunk = sr.read_sync_analog(
-                        slice(chunk_edges[j], chunk_edges[j+1]))[:, 3]
-                    these_amps = np.empty(these_train_times.shape)
-                    for ii, t_time in enumerate(these_train_times):
-                        this_amp = np.max(
-                            analog_chunk[(times_chunk >= t_time) & (times_chunk <= t_time + 1)])
-                        if this_amp > 0.6:
-                            these_amps[ii] = 1
-                        else:
-                            these_amps[ii] = 0.5
-                else:
-                    these_amps = np.ones(these_train_times.shape)
-
-                # Add the pulse trains of 25 Hz full power to the array
-                opto_train_times.append(
-                    these_train_times[(these_freqs == freq) & (these_amps == 1)])
-                for kk, this_train_time in enumerate(these_train_times[(these_freqs == freq) & (these_amps == 1)]):
-                    opto_on_times.append(these_on_times[(these_on_times >= this_train_time)
-                                                        & (these_on_times <= this_train_time + 1)])
-
-            # Convert to arrays
-            opto_train_times = np.concatenate(opto_train_times)
-            opto_on_times = np.concatenate(opto_on_times)
-
-            # Save extracted pulses to disk
-            if anesthesia:
-                np.save(
-                    join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
-                np.save(
-                    join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
-            else:
-                np.save(
-                    join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
-                np.save(
-                    join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'), opto_on_times)
-
-            return opto_train_times, opto_on_times
-
-        # Find the opto pulses after the spontaneous activity (after a long break, here 100s)
-        if np.sum(np.diff(opto_train_times) > 100) > 0:
-            first_pulse = np.where(np.diff(opto_train_times) > 100)[0][0]+1
-        elif opto_train_times[0] - opto_times[0] > 50:
-            first_pulse = 0
-        else:
-            print('Could not find passive laser pulses')
-            return [], []
-        opto_train_times = opto_train_times[first_pulse:]
-        opto_on_times = opto_on_times[first_pulse:]
-
-        # Save extracted pulses to disk
-        if anesthesia:
-            np.save(
-                join(save_path, f'{subject}_{date}_pulse_trains_anesthesia_{freq}hz.npy'), opto_train_times)
-            np.save(
-                join(save_path, f'{subject}_{date}_ind_pulses_anesthesia_{freq}hz.npy'), opto_on_times)
-        else:
-            np.save(
-                join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'), opto_train_times)
-            np.save(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'), opto_on_times)
-
-        return opto_train_times, opto_on_times
-
+   
 
 def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimside=False, one=None):
     one = one or ONE()

@@ -76,7 +76,7 @@ sns.barplot(data=long_df, x='pair', y='value', hue='5HT', hue_order=['1', '0'],
 
 #ax1.text(2.5, 2.5, f'n = {np.sum(results_df["sert-cre"] == 1)} mice')
 #ax1.plot(ax1.get_xlim(), [0, 0], color='grey', zorder=0)
-ax1.set(ylabel='GLM weight', xticks=np.arange(6), xlabel='', yticks=[0, 1, 2, 3], xlim=[-0.75, 5.75])
+ax1.set(ylabel='Weight', xticks=np.arange(6), xlabel='', yticks=[0, 1, 2, 3], xlim=[-0.75, 5.75])
 ax1.set_xticklabels(['100%', '25%', '12.5%', '6.25%', 'Prev. choice', 'Prior'],
                     rotation=40, ha='right')
 handles, previous_labels = ax1.get_legend_handles_labels()

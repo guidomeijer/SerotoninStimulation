@@ -67,10 +67,12 @@ task_neurons['task_mod_idx'] = [i[np.argmax(np.abs(i))] for i in task_neurons['m
 passive_neurons['passive_mod_idx'] = [i[np.argmax(np.abs(i))] for i in passive_neurons['mod_idx']]
 
 # Get modulation index per region
-grouped_df = passive_neurons.groupby(['full_region']).median(numeric_only=True)['passive_mod_idx'].to_frame()
+grouped_df = passive_neurons.groupby(['full_region']).median(numeric_only=True)['mod_index'].to_frame()
+#grouped_df = passive_neurons.groupby(['full_region']).median(numeric_only=True)['passive_mod_idx'].to_frame()
 grouped_df['n_neurons'] = passive_neurons.groupby(['full_region']).size()
-grouped_df['task'] = task_neurons.groupby(['full_region']).median(numeric_only=True)['task_mod_idx']
-grouped_df = grouped_df.rename(columns={'passive_mod_idx': 'passive'}).reset_index()
+#grouped_df['task'] = task_neurons.groupby(['full_region']).median(numeric_only=True)['task_mod_idx']
+grouped_df['task'] = task_neurons.groupby(['full_region']).median(numeric_only=True)['opto_mod_roc']
+grouped_df = grouped_df.rename(columns={'mod_index': 'passive'}).reset_index()
 grouped_df = grouped_df.loc[grouped_df['n_neurons'] >= MIN_NEURONS]
 
 # Get percentage modulated neurons per region

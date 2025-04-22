@@ -40,16 +40,13 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 print('Loading in data..')
 regions = np.array([])
 ses_paths = glob(join(load_path, 'manifold', f'{DATASET}', '*.npy'))
-for i, ses_path in enumerate(ses_paths):
+i = 0
+for ses_path in ses_paths:
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
-    if this_dict['sert-cre'] == 0:
+    if this_dict['sert-cre'] == 1:
         continue
-    if DATASET == 'timewarped':
-        n_timepoints = this_dict['n_bins']
-        time_ax = np.arange(n_timepoints)
-    else:
-        n_timepoints = this_dict['time'].shape[0]
-        time_ax = this_dict['time']
+    n_timepoints = this_dict['time'].shape[0]
+    time_ax = this_dict['time']
     if i == 0:
         L = np.empty((0, n_timepoints))
         R = np.empty((0, n_timepoints))
@@ -86,6 +83,8 @@ for i, ses_path in enumerate(ses_paths):
     R_opto_shuf = np.vstack((R_opto_shuf, this_dict['shuffle']['R_opto']))
     L_no_opto_shuf = np.vstack((L_no_opto_shuf, this_dict['shuffle']['L_no_opto']))
     R_no_opto_shuf = np.vstack((R_no_opto_shuf, this_dict['shuffle']['R_no_opto']))
+    
+    i += 1
 
 # %%
 # Get Eucledian distance between opto and no opto per time point
@@ -356,7 +355,7 @@ ax1.fill_between(time_ax,
 ax1.plot(time_ax, choice_dist, marker='o')
 add_significance(time_ax, (choice_dist < np.quantile(choice_dist_shuf, 0.975, axis=1)).astype(int), ax1)
 ax1.set(xlabel='Time to choice (s)',ylabel='Choice separation (spks/s)', 
-        yticks=[50, 250], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=[10, 60], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 
 ax2.fill_between(time_ax,
@@ -366,7 +365,7 @@ ax2.fill_between(time_ax,
 ax2.plot(time_ax, opto_dist, marker='o')
 add_significance(time_ax, (opto_dist < np.quantile(opto_dist_shuf, 0.975, axis=1)).astype(int), ax2)
 ax2.set(xlabel='Time to choice (s)', ylabel='5-HT separation (spks/s)',
-        yticks=[50, 110], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=[10, 40], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 ax3.fill_between(time_ax,
                  np.quantile(dot_pca_shuffle, 0.025, axis=1),
@@ -375,7 +374,7 @@ ax3.fill_between(time_ax,
 ax3.plot(time_ax, dot_pca, marker='o')
 add_significance(time_ax, (dot_pca < np.quantile(dot_pca_shuffle, 0.975, axis=1)).astype(int), ax3)
 ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - abs. norm. dot product)',
-        yticks=np.arange(0, 1.1, 0.2), xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=np.arange(0, 1.1, 0.2), xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 sns.despine(trim=True)
 plt.tight_layout()

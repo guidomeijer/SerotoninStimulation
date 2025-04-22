@@ -16,7 +16,7 @@ from one.api import ONE
 one = ONE()
 
 # Settings
-MIN_TRIALS = 400
+MIN_TRIALS = 500
 SINGLE_TRIALS = [2, 10]
 TRIAL_BINS = np.arange(-15, 41, 5)
 trial_bin_size = np.unique(np.diff(TRIAL_BINS))[0]
@@ -36,7 +36,7 @@ for i, subject in enumerate(subjects['subject']):
     # Query sessions
     sert_cre = subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0]
     eids = query_opto_sessions(subject, include_ephys=True, one=one)
-    eids = behavioral_criterion(eids, min_perf=0.7, verbose=False, one=one)
+    eids = behavioral_criterion(eids, verbose=False, max_rt=1, one=one)
 
     # Loop over sessions
     trials = pd.DataFrame()

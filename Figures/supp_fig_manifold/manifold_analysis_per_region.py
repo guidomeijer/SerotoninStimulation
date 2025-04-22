@@ -19,10 +19,10 @@ from stim_functions import (figure_style, paths, load_subjects, high_level_regio
 from sklearn.decomposition import PCA
 
 N_DIM = 3
-CENTER_ON = 'firstMovement_times'
-CHOICE_WIN = [-0.01, 0]
-OPTO_WIN = [-0.01, 0]
-ORTH_WIN = [-0.05, 0]
+CENTER_ON = 'stimOn_times'
+CHOICE_WIN = [0.26, 0.27]
+OPTO_WIN = [0.26, 0.27]
+ORTH_WIN = [0.26, 0.27]
 DROP_REGIONS = ['root', 'AI', 'BC', 'ZI', 'RSP']
 CMAPS = dict({
     'L': 'Reds_r', 'R': 'Purples_r', 'no_opto': 'Oranges_r', 'opto': 'Blues_r',

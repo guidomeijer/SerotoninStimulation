@@ -12,11 +12,10 @@ from brainbox.task.closed_loop import roc_single_event
 from zetapy import zetatest
 from brainbox.io.one import SpikeSortingLoader
 from stim_functions import (paths, remap, query_ephys_sessions, load_passive_opto_times,
-                            remove_artifact_neurons, get_neuron_qc)
-from one.api import ONE
+                            remove_artifact_neurons, get_neuron_qc, init_one)
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
-one = ONE()
+one = init_one()
 
 # Settings
 OVERWRITE = False
