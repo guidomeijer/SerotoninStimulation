@@ -37,6 +37,14 @@ from one.api import ONE
 
 
 def init_one(local=False, open_one=False):
+    """
+    Initialize an instance of the ONE class with specified configuration.
+    Parameters:
+    local (bool): If True, initializes ONE in 'local' mode. Defaults to False, which sets the mode to 'auto'.
+    open_one (bool): If True, initializes ONE with a specific base URL and credentials for the Open Alyx instance. Defaults to False.
+    Returns:
+    ONE: An instance of the ONE class configured based on the provided parameters.
+    """
     if local:
         mode='local'
     else:
@@ -201,6 +209,24 @@ def figure_style():
 
 
 def add_significance(x, p_values, ax, alpha=0.05):
+    """
+    Adds significance markers to a plot based on p-values.
+    This function identifies regions of significance in the provided p-values
+    and adds horizontal lines above the plot to indicate these regions.
+    Parameters:
+        x (array-like): The x-coordinates corresponding to the p-values.
+        p_values (array-like): The p-values to evaluate for significance.
+        ax (matplotlib.axes.Axes): The matplotlib Axes object to which the significance
+            markers will be added.
+        alpha (float, optional): The significance threshold. Default is 0.05.
+    Notes:
+        - The function assumes that `p_values` is a 1D array-like object.
+        - Horizontal lines are drawn above the plot to indicate regions where
+          p-values are below the significance threshold (`alpha`).
+        - The y-coordinate for the lines is determined based on the current
+          y-axis limits of the provided Axes object.
+    """
+
     p_sig = p_values < alpha
     start_end = np.where(np.concatenate(([0], np.diff(p_sig).astype(int))))[0]
     if p_sig[0] == True:
@@ -284,6 +310,26 @@ def query_ephys_sessions(acronym=None, one=None):
 
 def remap(acronyms, source='Allen', dest='Beryl', combine=False, split_thalamus=False,
           abbreviate=True, brainregions=None):
+    """
+    Remap a list of brain region acronyms from one mapping source to another.
+    Parameters:
+        acronyms (list or array-like): A list of brain region acronyms to be remapped.
+        source (str, optional): The source mapping to use for remapping. Default is 'Allen'.
+        dest (str, optional): The destination mapping to remap to. Default is 'Beryl'.
+        combine (bool, optional): If True, combines remapped regions into broader categories.
+                                    Default is False.
+        split_thalamus (bool, optional): If True and `combine` is True, splits thalamus regions
+                                            into subcategories. Default is False.
+        abbreviate (bool, optional): If True and `combine` is True, abbreviates combined region names.
+                                        Default is True.
+        brainregions (BrainRegions, optional): An instance of the BrainRegions class to use for
+                                                remapping. If None, a new instance is created.
+                                                Default is None.
+    Returns:
+        list or array-like: The remapped acronyms. If `combine` is True, returns combined regions
+                            based on the specified options.
+    """
+
     br = brainregions or BrainRegions()
     _, inds = ismember(br.acronym2id(acronyms), br.id[br.mappings[source]])
     remapped_acronyms = br.get(br.id[br.mappings[dest][inds]])['acronym']
@@ -355,7 +401,34 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=True):
 
 def high_level_regions(acronyms, merge_cortex=False, only_vis=False, input_atlas='Allen'):
     """
+    Maps brain region acronyms to high-level brain regions based on the specified atlas and options.
+    
+    Parameters:
+    -----------
+    acronyms : list or array-like
+        List of brain region acronyms to be mapped.
+    merge_cortex : bool, optional
+        If True, merges specific cortical regions into a single 'Cortex' category. 
+        Default is False.
+    only_vis : bool, optional
+        If True, maps only visual cortex regions when `merge_cortex` is False. 
+        Default is False.
+    input_atlas : str, optional
+        Specifies the input atlas to use for remapping. Default is 'Allen'.
+
+    Returns:
+    --------
+    regions : numpy.ndarray
+        Array of high-level brain region labels corresponding to the input acronyms.
+
+    Notes:
+    ------
+    - The function uses predefined mappings to group acronyms into broader brain region categories.
+    - If `merge_cortex` is True, regions like 'mPFC', 'OFC', 'M2', 'Pir', 'BC', and 'VIS' are grouped as 'Cortex'.
+    - If `merge_cortex` is False and `only_vis` is True, only 'VIS' is mapped to 'Visual cortex'.
+    - Specific mappings are applied for regions like 'Midbrain', 'Hippocampus', 'Thalamus', 'Amygdala', and 'Striatum'.
     """
+
     if input_atlas == 'Allen':
         acronyms = remap(acronyms)
     first_level_regions = combine_regions(acronyms, abbreviate=True)
@@ -380,6 +453,22 @@ def high_level_regions(acronyms, merge_cortex=False, only_vis=False, input_atlas
 
 
 def get_full_region_name(acronyms):
+    """
+    Retrieve the full region names corresponding to a list of brain region acronyms.
+    This function takes a list of acronyms and attempts to map each acronym to its
+    full region name using the BrainRegions class. If an acronym cannot be found,
+    it is returned as-is. If the input contains only one acronym, the function
+    returns a single string; otherwise, it returns a list of full region names.
+    Args:
+        acronyms (list of str): A list of brain region acronyms to be converted 
+                                into full region names.
+    Returns:
+        str or list of str: The full region name corresponding to the acronym if 
+                            the input is a single acronym, or a list of full region 
+                            names if multiple acronyms are provided. If an acronym 
+                            is not found, it is returned unchanged.
+    """
+
     brainregions = BrainRegions()
     full_region_names = []
     for i, acronym in enumerate(acronyms):
@@ -423,6 +512,51 @@ def load_passive_opto_times(eid, one=None, freq=25):
    
 
 def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimside=False, one=None):
+    """
+    Load and process trial data for a given experiment session.
+    Parameters:
+    -----------
+    eid : str
+        Experiment ID for the session to load.
+    laser_stimulation : bool, optional
+        If True, includes laser stimulation data in the trials. Default is False.
+    invert_choice : bool, optional
+        If True, inverts the choice values in the trials. Default is False.
+    invert_stimside : bool, optional
+        If True, inverts the stimulus side and signed contrast values. Default is False.
+    one : ONE, optional
+        An instance of the ONE API to use for data loading. If None, a new instance is created.
+    Returns:
+    --------
+    pd.DataFrame or None
+        A pandas DataFrame containing processed trial data with the following columns:
+        - stimOn_times: Times when the stimulus was presented.
+        - feedback_times: Times when feedback was given.
+        - goCue_times: Times when the go cue was presented.
+        - probabilityLeft: Probability of the stimulus appearing on the left.
+        - contrastLeft: Contrast of the stimulus on the left.
+        - contrastRight: Contrast of the stimulus on the right.
+        - feedbackType: Feedback type (-1 for incorrect, 1 for correct).
+        - choice: Choice made by the subject (-1 for left, 1 for right).
+        - firstMovement_times: Times of the first movement.
+        - signed_contrast: Signed contrast of the stimulus (positive for right, negative for left).
+        - laser_stimulation: Laser stimulation data (if `laser_stimulation` is True).
+        - laser_probability: Probability of laser stimulation (if `laser_stimulation` is True).
+        - probe_trial: Indicator for probe trials (if `laser_stimulation` is True).
+        - correct: Binary indicator for correct trials (1 for correct, 0 for incorrect).
+        - right_choice: Binary indicator for rightward choices (1 for right, 0 for left).
+        - stim_side: Stimulus side (-1 for left, 1 for right).
+        - time_to_choice: Time from stimulus onset to choice.
+        - reaction_times: Reaction times (time from stimulus onset to first movement, if available).
+        Returns None if no trials are available for the given session.
+    Notes:
+    ------
+    - If `laser_stimulation` is True and the laser probability dataset is unavailable, 
+      the function estimates the laser probability based on signed contrast and stimulation data.
+    - The `invert_choice` and `invert_stimside` parameters allow for flipping the choice and stimulus 
+      side values, respectively, for specific experimental conditions.
+    """
+
     one = one or ONE()
 
     data = one.load_object(eid, 'trials')
@@ -472,6 +606,29 @@ def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimsi
 
 
 def get_neuron_qc(pid, one=None, ba=None, force_rerun=False):
+    """
+    Compute or load neuron quality control (QC) metrics for a given probe insertion.
+    Parameters:
+    -----------
+    pid : str
+        The probe insertion ID.
+    one : ONE, optional
+        An instance of the ONE API for data access. If not provided, a new instance will be created.
+    ba : BrainAtlas, optional
+        An instance of the BrainAtlas class for anatomical alignment. If not provided, no alignment is performed.
+    force_rerun : bool, optional
+        If True, forces recalculation of QC metrics even if they are already saved on disk. Default is False.
+    Returns:
+    --------
+    pd.DataFrame
+        A DataFrame containing the neuron QC metrics.
+    Notes:
+    ------
+    - If QC metrics are already computed and saved on disk, they will be loaded unless `force_rerun` is set to True.
+    - QC metrics are saved to a CSV file in the session's ALF directory after computation.
+    - The function uses spike sorting data to calculate QC metrics, which include spike times, cluster IDs, amplitudes, and depths.
+    """
+
     one = one or ONE()
 
     # Check if QC is already computed
@@ -500,6 +657,34 @@ def get_neuron_qc(pid, one=None, ba=None, force_rerun=False):
 
 
 def load_lfp(eid, probe, time_start, time_end, relative_to='begin', destriped=False, one=None):
+    """
+    Load a slice of local field potential (LFP) data for a specified time range.
+    Parameters:
+        eid (str): Experiment ID for the session to load data from.
+        probe (str): Name of the probe to load LFP data for.
+        time_start (float): Start time of the LFP slice in seconds.
+        time_end (float): End time of the LFP slice in seconds.
+        relative_to (str, optional): Reference point for the time range. 
+            Options are 'begin' (default) or 'end'.
+        destriped (bool, optional): If True, load destriped LFP data. 
+            Defaults to False.
+        one (ONE, optional): Instance of the ONE API for data access. 
+            If None, a new instance is created.
+    Returns:
+        tuple:
+            - signal (numpy.ndarray): The LFP signal for the specified time range, 
+              with shape (channels, time).
+            - time (numpy.ndarray): Array of time points corresponding to the LFP signal.
+    Raises:
+        ValueError: If the `relative_to` parameter is not 'begin' or 'end'.
+    Notes:
+        - If `destriped` is True, the function attempts to load pre-destriped LFP data 
+          from a predefined path.
+        - If `destriped` is False, the function downloads the raw LFP data using the ONE API.
+        - The function uses the `spikeglx.Reader` to read the LFP data and extract the 
+          specified time slice.
+    """
+
     one = one or ONE()
     destriped_lfp_path = join(paths()[1], 'LFP')
 
@@ -649,6 +834,19 @@ def plot_scalar_on_slice(
 
 
 def make_bins(signal, timestamps, start_times, stop_times, binsize):
+    """
+    Bin a signal into specified time intervals and compute the mean value for each bin.
+    Parameters:
+        signal (array-like): The signal values to be binned.
+        timestamps (array-like): The timestamps corresponding to the signal values.
+        start_times (array-like): The start times of the intervals to bin the signal.
+        stop_times (array-like): The stop times of the intervals to bin the signal.
+        binsize (float): The size of each bin in seconds.
+    Returns:
+        list: A list of arrays, where each array contains the mean values of the signal
+              for the bins within the corresponding interval defined by start_times and stop_times.
+    """
+
 
     # Loop over start times
     binned_signal = []
@@ -767,13 +965,44 @@ def calculate_peths(
     return peths, binned_spikes
 
 
-def binned_rate_timewarped(
-        spike_times, spike_clusters, trials_df,
-        start='stimOn_times',
-        end='firstMovement_times',
-        n_bins=10):
-
-
+def binned_rate_timewarped(spike_times, spike_clusters, trials_df, start='stimOn_times',
+        end='firstMovement_times', n_bins=10):
+    """
+    Compute time-warped binned firing rates for neurons across trials.
+    This function calculates the firing rates of neurons by binning spike times
+    within specified trial intervals. The intervals are defined by start and end
+    times for each trial, and the spike times are warped to fit within these intervals.
+    Parameters:
+    -----------
+    spike_times : array-like
+        1D array of spike times (in seconds).
+    spike_clusters : array-like
+        1D array of cluster IDs corresponding to each spike time.
+    trials_df : pandas.DataFrame
+        DataFrame containing trial information. Must include columns specified
+        by the `start` and `end` parameters.
+    start : str, optional
+        Column name in `trials_df` indicating the start times of trials. Default is 'stimOn_times'.
+    end : str, optional
+        Column name in `trials_df` indicating the end times of trials. Default is 'firstMovement_times'.
+    n_bins : int, optional
+        Number of bins to divide each trial interval into. Default is 10.
+    Returns:
+    --------
+    binned_rate : numpy.ndarray
+        3D array of shape (n_trials, n_neurons, n_bins) containing the firing rates
+        of neurons in each bin for each trial. Firing rates are computed as spike
+        counts divided by bin width.
+    neuron_ids : numpy.ndarray
+        1D array of unique neuron IDs corresponding to the `spike_clusters` input.
+    Notes:
+    ------
+    - The function uses `np.digitize` to assign spikes to bins and `binned_statistic_2d`
+        to count spikes per neuron per bin.
+    - Spike times outside the trial interval are excluded from the computation.
+    - The bin width is computed as the average width of the bins within each trial.
+    """
+    
     # Precompute unique neuron IDs and number of neurons
     neuron_ids = np.unique(spike_clusters)
     n_neurons = neuron_ids.shape[0]
@@ -787,17 +1016,17 @@ def binned_rate_timewarped(
 
         # Define bin edges
         bin_edges = np.linspace(start_time, end_time, n_bins+1)
-        bin_width = np.mean(np.diff(bin_edges))  # Compute bin width
+        bin_width = (end_time - start_time) / n_bins  # Compute bin width
 
         # Use digitize to assign each spike to a bin
-        bin_indices = np.digitize(spike_times, bin_edges) - 1  # Subtract 1 to get 0-based index
+        bin_indices = np.digitize(spike_times, bin_edges, right=True) - 1  # Subtract 1 to get 0-based index
 
         # Mask to keep only spikes within the trial interval
-        valid_spikes = (spike_times >= start_time) & (spike_times <= end_time)
+        valid_spike_mask = (spike_times >= start_time) & (spike_times <= end_time)
 
         # Filter spike data
-        valid_clusters = spike_clusters[valid_spikes]
-        valid_bins = bin_indices[valid_spikes]
+        valid_clusters = spike_clusters[valid_spike_mask]
+        valid_bins = bin_indices[valid_spike_mask]
 
         # Use binned_statistic_2d to count spikes per neuron per bin
         spike_counts, _, _, _ = binned_statistic_2d(
