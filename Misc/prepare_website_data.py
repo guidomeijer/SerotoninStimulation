@@ -8,8 +8,10 @@ import numpy as np
 import pandas as pd
 from os.path import join
 from stim_functions import paths
+from iblatlas.regions import BrainRegions
 from iblbrainviewer.api import FeatureUploader
 up = FeatureUploader()
+br = BrainRegions()
 
 # Get paths
 _, save_path = paths()
@@ -33,29 +35,53 @@ grouped_df = grouped_df[~grouped_df['allen_acronym'].str.islower()]
 
 # Put into numpy arrays
 acronyms = grouped_df['allen_acronym'].values.astype(str)
-fname1 = 'Number of recorded neurons'
-values1 = grouped_df['n_neurons'].values
-fname2 = 'Percentage of 5-HT modulated neurons'
+atlas_ids = BrainRegions.acronym2id(br, acronym=acronyms)
+fname1 = 'number_of_recorded_neurons'
+values1 = grouped_df['n_neurons'].values.astype(int)
+fname2 = 'percentage_of_5HT_modulated_neurons'
 values2 = grouped_df['perc_mod'].values
-fname3 = 'Modulation index'
+fname3 = 'modulation_index'
 values3 = grouped_df['mod_index'].values
 
 # Upload to local bucket
-up.local_features(fname1, acronyms, values1, hemisphere='left', output_dir=save_path)
-up.local_features(fname2, acronyms, values2, hemisphere='left', output_dir=save_path)
-up.local_features(fname3, acronyms, values3, hemisphere='left', output_dir=save_path)
+up.local_features(fname1, np.negative(atlas_ids), values1, output_dir=save_path)
+up.local_features(fname2, np.negative(atlas_ids), values2, output_dir=save_path)
+up.local_features(fname3, np.negative(atlas_ids), values3, output_dir=save_path)
 
-# Create bucket
+# Load bucket
 up = FeatureUploader('meijer_serotonin')
 
-# Upload the features.
-up.patch_features(fname1, acronyms, values1, hemisphere='left')
-up.patch_features(fname2, acronyms, values2, hemisphere='left')
-up.patch_features(fname3, acronyms, values3, hemisphere='left')
+# Descriptions
+short_desc = 'Serotonin modulation across the brain'
+long_desc = 'A longer more comprehensive description about the bucket, e.g abstract of associated publication'
+up.patch_bucket(short_desc=short_desc, long_desc=long_desc)
+
+# Upload the features
+if up.features_exist(fname1):
+    up.patch_features(fname1, np.negative(atlas_ids), values1)
+else:
+    up.create_features(fname1, np.negative(atlas_ids), values1)
+if up.features_exist(fname2):
+    up.patch_features(fname2, np.negative(atlas_ids), values2)
+else:
+    up.create_features(fname2, np.negative(atlas_ids), values2)
+if up.features_exist(fname3):
+    up.patch_features(fname3, np.negative(atlas_ids), values3)
+else:
+    up.create_features(fname3, np.negative(atlas_ids), values3)
+
+# Create and upload tree
+tree = {'Number of recorded neurons': fname1,
+        'Percentage of 5-HT modulated neurons': fname2,
+        'Modulation index': fname3}
+up.patch_bucket(tree=tree)
 
 # Generate url
 url = up.get_buckets_url(['meijer_serotonin'])
 print(url)
+
+# Get token
+print(up.token)
 
 
 
