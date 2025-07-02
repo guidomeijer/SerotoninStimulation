@@ -48,7 +48,7 @@ def init_one(local=False, open_one=False):
     if local:
         mode='local'
     else:
-        mode='auto'
+        mode='remote'
     if open_one:
         one = ONE(mode=mode, base_url='https://openalyx.internationalbrainlab.org',
                   password='international', silent=True)
