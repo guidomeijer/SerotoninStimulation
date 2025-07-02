@@ -355,8 +355,8 @@ ax1.fill_between(time_ax,
                  color='lightgrey')
 ax1.plot(time_ax, choice_dist, marker='o')
 add_significance(time_ax, (choice_dist < np.quantile(choice_dist_shuf, 0.975, axis=1)).astype(int), ax1)
-ax1.set(xlabel='Time to choice (s)',ylabel='Choice separation (spks/s)', 
-        yticks=[50, 210], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
+ax1.set(xlabel='Time from stimulus onset (s)',ylabel='Choice separation (spks/s)', 
+        yticks=[50, 250], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
 
 
 ax2.fill_between(time_ax,
@@ -365,8 +365,8 @@ ax2.fill_between(time_ax,
                  color='lightgrey')
 ax2.plot(time_ax, opto_dist, marker='o')
 add_significance(time_ax, (opto_dist < np.quantile(opto_dist_shuf, 0.975, axis=1)).astype(int), ax2)
-ax2.set(xlabel='Time to choice (s)', ylabel='5-HT separation (spks/s)',
-        yticks=[50, 90], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
+ax2.set(xlabel='Time from stimulus onset (s)', ylabel='5-HT separation (spks/s)',
+        yticks=[60, 110], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
 
 ax3.fill_between(time_ax,
                  np.quantile(dot_pca_shuffle, 0.025, axis=1),
@@ -374,8 +374,8 @@ ax3.fill_between(time_ax,
                  color='lightgrey')
 ax3.plot(time_ax, dot_pca, marker='o')
 add_significance(time_ax, (dot_pca < np.quantile(dot_pca_shuffle, 0.975, axis=1)).astype(int), ax3)
-ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - abs. norm. dot product)',
-        yticks=np.arange(0, 1.1, 0.2), xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
+ax3.set(xlabel='Time from stimulus onset (s)',ylabel='Orthogonality\n(1 - abs. norm. dot product)',
+        yticks=np.arange(0, 1.1, 0.2), xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
 
 sns.despine(trim=True)
 plt.tight_layout()
