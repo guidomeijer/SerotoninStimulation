@@ -1,4 +1,6 @@
 statsmodels
+ONE-api
 ibllib
 scikit-posthocs
 zetapy
+git+https://github.com/cortex-lab/psychofit.git@master#egg=psychofit
