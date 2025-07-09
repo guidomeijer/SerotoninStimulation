@@ -35,7 +35,6 @@ grouped_df = grouped_df[~grouped_df['allen_acronym'].str.islower()]
 
 # Put into numpy arrays
 acronyms = grouped_df['allen_acronym'].values.astype(str)
-atlas_ids = BrainRegions.acronym2id(br, acronym=acronyms)
 fname1 = 'number_of_recorded_neurons'
 values1 = grouped_df['n_neurons'].values.astype(int)
 fname2 = 'percentage_of_5HT_modulated_neurons'
@@ -44,9 +43,9 @@ fname3 = 'modulation_index'
 values3 = grouped_df['mod_index'].values
 
 # Upload to local bucket
-up.local_features(fname1, np.negative(atlas_ids), values1, output_dir=save_path)
-up.local_features(fname2, np.negative(atlas_ids), values2, output_dir=save_path)
-up.local_features(fname3, np.negative(atlas_ids), values3, output_dir=save_path)
+up.local_features(fname1, acronyms, values1, hemisphere='left', output_dir=save_path)
+up.local_features(fname2, acronyms, values2, hemisphere='left', output_dir=save_path)
+up.local_features(fname3, acronyms, values3, hemisphere='left', output_dir=save_path)
 
 # Load bucket
 up = FeatureUploader('meijer_serotonin')
@@ -58,17 +57,17 @@ up.patch_bucket(short_desc=short_desc, long_desc=long_desc)
 
 # Upload the features
 if up.features_exist(fname1):
-    up.patch_features(fname1, np.negative(atlas_ids), values1)
+    up.patch_features(fname1, acronyms, values1, hemisphere='left')
 else:
-    up.create_features(fname1, np.negative(atlas_ids), values1)
+    up.create_features(fname1, acronyms, values1, hemisphere='left')
 if up.features_exist(fname2):
-    up.patch_features(fname2, np.negative(atlas_ids), values2)
+    up.patch_features(fname2, acronyms, values2, hemisphere='left')
 else:
-    up.create_features(fname2, np.negative(atlas_ids), values2)
+    up.create_features(fname2, acronyms, values2, hemisphere='left')
 if up.features_exist(fname3):
-    up.patch_features(fname3, np.negative(atlas_ids), values3)
+    up.patch_features(fname3, acronyms, values3, hemisphere='left')
 else:
-    up.create_features(fname3, np.negative(atlas_ids), values3)
+    up.create_features(fname3, acronyms, values3, hemisphere='left')
 
 # Create and upload tree
 tree = {'Number of recorded neurons': fname1,

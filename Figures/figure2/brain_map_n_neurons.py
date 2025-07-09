@@ -58,7 +58,7 @@ reg_neurons = reg_neurons[reg_neurons['region'] != 'root']
 sim_neurons = all_neurons.groupby(['eid', 'region']).size().reset_index()
 sim_neurons = sim_neurons.groupby('region').median(numeric_only=True).reset_index()
 sim_neurons = sim_neurons.rename({0: 'n_neurons'}, axis=1)
-
+asd
 
 # %%
 

@@ -11,7 +11,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import tkinter as tk
-import patsy
 import statsmodels.api as sm
 from sklearn.model_selection import KFold
 from scipy.stats import binned_statistic
@@ -21,7 +20,6 @@ from scipy.signal.windows import gaussian
 import pathlib
 from brainbox import singlecell
 from os.path import join, realpath, dirname, isfile
-from glob import glob
 from matplotlib import colors as matplotlib_colors
 from scipy.interpolate import interp1d
 import json
@@ -36,7 +34,7 @@ from iblatlas.atlas import AllenAtlas
 from one.api import ONE
 
 
-def init_one(local=False, open_one=False):
+def init_one(local=False, open_one=True):
     """
     Initialize an instance of the ONE class with specified configuration.
     Parameters:
