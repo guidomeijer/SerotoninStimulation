@@ -1,13 +1,19 @@
-# SerotoninStimulation
+# Serotonin modulates neural dynamics in a subspace orthogonal to the choice space
+<img src="https://github.com/user-attachments/assets/af61346d-2d8a-4df5-b764-7f6932d9ad01" width="30%" align="right" vspace="20"/>
 
-To access the data you need to create an environment and setup the ONE API by following these instructions: https://int-brain-lab.github.io/iblenv/notebooks_external/data_download.html. 
+This repository contains all the code to reproduce the figures in the publication. The data is hosted by the International Brain Laboratory and accessable through the [Open Neurophysiology Environment (ONE)](https://int-brain-lab.github.io/ONE/one_reference.html) interface. 
 
-You will also need to install psychofit (https://github.com/cortex-lab/psychofit)
-For further requirements see requirements.txt.
+### Installation
+1. Create an Anaconda or Miniforge (recommended) environment `conda create -n serotonin python=3.10 git` (or `mamba` instead of `conda` if you use Miniforge)
+2. Clone this repository `git clone https://github.com/guidomeijer/SerotoninStimulation`
+3. Install the required packages `pip install -r requirements.txt`
 
-The data will be loaded in using ONE. However, the onset times of optogenetic stimulation are not extracted on the database, instead they can be found in ./Data/OptoTimes. The function `load_passive_opto_times` in `stim_functions` can load in the already extracted NPY files. 
+### Instructions
 
-For an example script on how to load the data see `example_data_loading.py`
+The first time you run the code it will ask you to input some paths to folders on your computer, for example where to save the figures. The code to generate the figures in the publication can be found in `Figures`. The processed data necessary for plotting (e.g. which neurons are significantly 5-HT modulated) is provided in `Data`. The processed manifold data was too large to include in the repository and will have to be generated using the `Preprocess\prepare_manifold_psth_data.py` script. You can also rerun any processing done to obtain the processed data by running the corresponding script in `Preprocessing`. 
+
+An example code on how to load the data can be found in `example_data_loading.py`. Documentation is available on how to [query](https://int-brain-lab.github.io/ONE/notebooks/one_search/one_search.html), [explore](https://int-brain-lab.github.io/ONE/notebooks/one_list/one_list.html), and [load](https://int-brain-lab.github.io/ONE/notebooks/one_load/one_load.html) the data. Furthermore, extensive documentation as to what all the dataset types (e.g. `spikes.times`) entail can be found [here](https://docs.google.com/document/d/1OqIqqakPakHXRAwceYLwFY9gOrm8_P62XIfCTnHwstg).
+
 
 
 
