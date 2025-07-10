@@ -1,5 +1,5 @@
 # Serotonin modulates neural dynamics in a subspace orthogonal to the choice space
-<img src="https://github.com/user-attachments/assets/af61346d-2d8a-4df5-b764-7f6932d9ad01" width="30%" align="right" vspace="20"/>
+<img src="https://github.com/user-attachments/assets/af61346d-2d8a-4df5-b764-7f6932d9ad01" width="40%" align="right"/>
 
 This repository contains all the code to reproduce the figures in the publication. The data is hosted by the International Brain Laboratory and accessable through the [Open Neurophysiology Environment (ONE)](https://int-brain-lab.github.io/ONE/one_reference.html) interface. 
 
