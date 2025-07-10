@@ -1,7 +1,7 @@
 # Serotonin modulates neural dynamics in a subspace orthogonal to the choice space
 <img src="https://github.com/user-attachments/assets/af61346d-2d8a-4df5-b764-7f6932d9ad01" width="40%" align="right"/>
 
-This repository contains all the code to reproduce the figures in the publication. The data is hosted by the International Brain Laboratory and accessable through the [Open Neurophysiology Environment (ONE)](https://int-brain-lab.github.io/ONE/one_reference.html) interface. 
+This repository contains all the code to reproduce the figures in the publication. The data is hosted by the International Brain Laboratory and accessable through the [Open Neurophysiology Environment (ONE)](https://int-brain-lab.github.io/ONE/one_reference.html) interface. The dataset contains 86 Neuropixel recordings from 17 mice with ~7500 good single neurons in total. The recordings include optogenetic stimulation of serotonergic neurons in the dorsal raphe nucleus during performance of the IBL steering wheel task and during quiet wakefulness. 
 
 ### Installation
 1. Create an Anaconda or Miniforge (recommended) environment `conda create -n serotonin python=3.10 git` (or `mamba` instead of `conda` if you use Miniforge)
