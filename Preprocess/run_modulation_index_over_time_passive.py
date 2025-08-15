@@ -9,13 +9,12 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
-from stim_functions import paths, load_passive_opto_times
+from stim_functions import paths, load_passive_opto_times, init_one
 from brainbox.population.decode import get_spike_counts_in_bins
 from sklearn.metrics import roc_auc_score
-from one.api import ONE
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
-one = ONE()
+one = init_one()
 
 # Settings
 OVERWRITE = True
@@ -84,13 +83,13 @@ for i, pid in enumerate(np.unique(light_neurons['pid'])):
     # Get median spike count over all baseline windows
     baseline_mean = np.mean(baseline_counts, axis=2)
     """
-    
+
     # Get spike count for last window before stim onset (baseline)
     win_c = win_centers[np.where(win_centers < 0)[0][-1]]
     times = np.column_stack(((opto_train_times + (win_c - (BIN_SIZE/2)),
                               (opto_train_times + (win_c + (BIN_SIZE/2))))))
     baseline_counts, _ = get_spike_counts_in_bins(spike_times, spike_clusters, times)
- 
+
     # Loop over time bins
     roc_auc = np.empty((baseline_counts.shape[0], win_centers.shape[0]))
     for itb, win_c in enumerate(win_centers):
@@ -107,7 +106,7 @@ for i, pid in enumerate(np.unique(light_neurons['pid'])):
             roc_auc[iin, itb] = roc_auc_score(np.concatenate((np.zeros(baseline_counts.shape[1]),
                                                               np.ones(spike_counts.shape[1]))),
                                               np.concatenate((baseline_counts[iin, :], spike_counts[iin, :])))
-                
+
     # Rescale area under to curve to [-1, 1] range
     mod_idx = 2 * (roc_auc - 0.5)
 

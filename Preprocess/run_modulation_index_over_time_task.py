@@ -9,14 +9,14 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
-from stim_functions import paths, load_passive_opto_times, load_trials
+from stim_functions import paths, load_passive_opto_times, load_trials, init_one
 from brainbox.population.decode import get_spike_counts_in_bins
 from sklearn.metrics import roc_auc_score
 from brainbox.task.closed_loop import roc_between_two_events
 from one.api import ONE
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
-one = ONE()
+one = init_one()
 
 # Settings
 OVERWRITE = True
@@ -62,17 +62,17 @@ for i, pid in enumerate(np.unique(light_neurons['pid'])):
     spike_clusters = spikes.clusters[np.isin(spikes.clusters, these_neurons['neuron_id'])]
     if spike_times.shape[0] == 0:
         continue
-   
+
     # Loop over time bins
     mod_idx_auc = np.empty((len(np.unique(spike_clusters)), win_centers.shape[0]))
     for itb, win_c in enumerate(win_centers):
-        
+
         mod_idx_auc[:, itb], _ = roc_between_two_events(
             spike_times, spike_clusters, trials['goCue_times'],
-            trials['laser_stimulation'], 
+            trials['laser_stimulation'],
             pre_time=(win_c - (BIN_SIZE/2)) * -1,
             post_time=win_c + (BIN_SIZE/2))
-            
+
     # Rescale area under to curve to [-1, 1] range
     mod_idx = 2 * (mod_idx_auc - 0.5)
 

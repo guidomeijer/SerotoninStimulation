@@ -9,11 +9,10 @@ import numpy as np
 from os.path import join
 import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
-from stim_functions import paths, query_ephys_sessions, get_neuron_qc, get_artifact_neurons
-from one.api import ONE
+from stim_functions import paths, query_ephys_sessions, get_neuron_qc, get_artifact_neurons, init_one
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
-one = ONE()
+one = init_one()
 
 # Settings
 OVERWRITE = True
