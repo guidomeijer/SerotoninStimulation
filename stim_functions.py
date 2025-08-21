@@ -503,10 +503,13 @@ def load_passive_opto_times(eid, one=None, freq=25):
     # Load in pulses from disk if already extracted
     _, save_path = paths()
     save_path = join(save_path, 'OptoTimes')
-    if isfile(join(save_path, f'{subject}_{date}_pulse_trains.npy')):
+    if isfile(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy.npy')):
         opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'))
         opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'))
         return opto_train_times, opto_on_times
+    else:
+        print(f'Extracted opto pulse times not found for {subject} {date}!')
+        return [], []
    
 
 def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimside=False, one=None):
