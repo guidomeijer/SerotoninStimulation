@@ -1,0 +1,2 @@
+/Data/manifold/** filter=lfs diff=lfs merge=lfs -text
+Data/manifold/** filter=lfs diff=lfs merge=lfs -text
