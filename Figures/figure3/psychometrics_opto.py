@@ -14,13 +14,12 @@ import seaborn as sns
 from scipy import stats
 from stim_functions import (load_trials, plot_psychometric, paths, behavioral_criterion,
                             fit_psychfunc, figure_style, query_opto_sessions, get_bias,
-                            load_subjects)
-from one.api import ONE
-one = ONE()
+                            load_subjects, init_one)
+one = init_one()
 
 # Settings
+PLOT_SUBJECT = 'ZFM-02600'
 MIN_SES = 2
-PLOT_SINGLE_ANIMALS = True
 subjects = load_subjects()
 colors, dpi = figure_style()
 
@@ -129,7 +128,7 @@ for i, nickname in enumerate(subjects['subject']):
         'bias': pars[0], 'slope': pars[1], 'lapse_l': pars[2], 'lapse_r': pars[3]})))
 
     # Plot
-    if PLOT_SINGLE_ANIMALS:
+    if nickname == PLOT_SUBJECT:
        
         f, ax1 = plt.subplots(figsize=(2, 2), dpi=dpi)
 

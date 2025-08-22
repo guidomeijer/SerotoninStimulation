@@ -11,10 +11,9 @@ from os import path
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from stim_functions import (load_trials, paths, behavioral_criterion,
+from stim_functions import (load_trials, paths, behavioral_criterion, init_one,
                             figure_style, query_opto_sessions, load_subjects)
-from one.api import ONE
-one = ONE()
+one = init_one()
 
 # Settings
 MIN_SES = 2

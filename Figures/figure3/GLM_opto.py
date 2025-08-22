@@ -11,13 +11,12 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from stim_functions import (paths, behavioral_criterion, load_trials, figure_style,
-                            query_opto_sessions, load_subjects, fit_glm)
-from one.api import ONE
-one = ONE()
+                            query_opto_sessions, load_subjects, fit_glm, init_one)
+one = init_one()
 
 # Settings
 MIN_SES = 2
-subjects = load_subjects(behavior=True)
+subjects = load_subjects()
 f_path, save_path = paths()
 fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-1])
 colors, dpi = figure_style()
@@ -31,7 +30,7 @@ for i, nickname in enumerate(subjects['subject']):
     print(f'{nickname}')
 
     # Query sessions
-    eids = query_opto_sessions(nickname, one=one)
+    eids = query_opto_sessions(nickname, include_ephys=True, one=one)
     eids = behavioral_criterion(eids, verbose=False, one=one)
     if len(eids) < MIN_SES:
         continue

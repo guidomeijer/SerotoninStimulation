@@ -6,16 +6,16 @@ By: Guido Meijer
 """
 
 import numpy as np
-from one.api import ONE
 import matplotlib.pyplot as plt
 import seaborn as sns
 from os.path import join, realpath, dirname, split
-from stim_functions import load_passive_opto_times, paths, get_artifact_neurons, figure_style
+from stim_functions import (load_passive_opto_times, paths, get_artifact_neurons, figure_style,
+                            init_one)
 from brainbox.metrics.single_units import spike_sorting_metrics
 from brainbox.processing import bincount2D
 from brainbox.io.one import SpikeSortingLoader
-from ibllib.atlas import AllenAtlas
-one = ONE()
+from iblatlas.atlas import AllenAtlas
+one = init_one()
 ba = AllenAtlas()
 
 # Paths
