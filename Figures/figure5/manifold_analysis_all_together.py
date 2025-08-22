@@ -33,7 +33,7 @@ pca = PCA(n_components=N_DIM)
 colors, dpi = figure_style()
 
 # Get paths
-f_path, load_path = paths(save_dir='cache')  # because these data are too large they are not on the repo
+f_path, load_path = paths()  
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in data
