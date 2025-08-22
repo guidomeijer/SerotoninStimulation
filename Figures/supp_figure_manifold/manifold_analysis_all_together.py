@@ -6,15 +6,15 @@ By Guido Meijer
 """
 
 import numpy as np
-from os.path import join, realpath, dirname, split
+import os
+from os.path import join, realpath, dirname, split, exists
 import matplotlib.pyplot as plt
 import seaborn as sns
 from glob import glob
 from scipy import stats
-from matplotlib.patches import Rectangle
-import matplotlib.animation as animation
-from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
+import requests
+import time
+import zipfile
 import matplotlib as mpl
 from stim_functions import (figure_style, paths, load_subjects, high_level_regions,
                             remap, combine_regions, add_significance)
@@ -22,7 +22,6 @@ from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
 N_DIM = 3
-DATASET = 'stimOn_times'
 CMAPS = dict({
     'R': 'Reds_r', 'L': 'Purples_r', 'no_opto': 'Oranges_r', 'opto': 'Blues_r',
     'L_opto': 'Blues_r', 'R_opto': 'Oranges_r', 'L_no_opto': 'Purples_r', 'R_no_opto': 'Reds_r'})
@@ -36,17 +35,43 @@ colors, dpi = figure_style()
 f_path, load_path = paths(save_dir='cache')  # because these data are too large they are not on the repo
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
+# Download data from figshare
+if not exists(join(load_path, 'stimOn_times')):
+    url = 'https://figshare.com/ndownloader/files/57359311'
+    zip_filepath = join(load_path, 'stimOn_times.zip')
+    print('Downloading manifold data (~1.5 GB)')
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    total_size = int(response.headers.get('content-length', 0))
+    bytes_downloaded = 0
+    start_time = time.time()
+    with open(zip_filepath, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            bytes_downloaded += len(chunk)
+            f.write(chunk)
+            progress = (bytes_downloaded / total_size) * 100
+            if time.time() - start_time > 0:
+                speed = bytes_downloaded / (time.time() - start_time)
+                print(f"Progress: {progress:.2f}% | Speed: {speed / (1024*1024):.2f} MB/s", end='\r')
+    print('Download complete')
+    
+    # Extract zip file
+    print('Extracting files...')
+    with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
+        zip_ref.extractall(join(load_path))
+    print('Extraction complete')
+
+    # Remove zip file
+    os.remove(zip_filepath)
+
 # Load in data
 print('Loading in data..')
 regions = np.array([])
-ses_paths = glob(join(load_path, 'manifold', f'{DATASET}', '*.npy'))
+ses_paths = glob(join(load_path, 'stimOn_times', '*.npy'))
 for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
     if this_dict['sert-cre'] == 0:
         continue
-    if DATASET == 'timewarped':
-        n_timepoints = this_dict['n_bins']
-        time_ax = np.arange(n_timepoints)
     else:
         n_timepoints = this_dict['time'].shape[0]
         time_ax = this_dict['time']
@@ -276,7 +301,7 @@ ax.plot([x_pos, x_pos], [y_pos, y_pos], [z_pos, z_pos - 40], color='k')
 ax.axis('off')
 
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_LR_all_together_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'pca_LR_all_together_stimOn_times.pdf'))
 
 # %% Plot PCA opto
 
@@ -306,7 +331,7 @@ ax.plot([x_pos, x_pos], [y_pos, y_pos], [z_pos, z_pos - 40], color='k')
 ax.axis('off')
 
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_opto_all_together_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'pca_opto_all_together_stimOn_times.pdf'))
 
 
 # %% Plot PCA trajectories
@@ -332,7 +357,7 @@ ax.plot([x_pos, x_pos], [y_pos, y_pos + 40], [z_pos, z_pos], color='k')
 ax.plot([x_pos, x_pos], [y_pos, y_pos], [z_pos, z_pos - 30], color='k')
 
 ax.axis('off')
-plt.savefig(join(fig_path, f'pca_trajectories_all_together_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'pca_trajectories_all_together_stimOn_times.pdf'))
 
 """
 def rotate(angle):
@@ -380,7 +405,7 @@ ax3.set(xlabel='Time from stimulus onset (s)',ylabel='Orthogonality\n(1 - abs. n
 sns.despine(trim=True)
 plt.tight_layout()
 
-plt.savefig(join(fig_path, f'distance_orthogonality_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'distance_orthogonality_stimOn_times.pdf'))
 
 
 

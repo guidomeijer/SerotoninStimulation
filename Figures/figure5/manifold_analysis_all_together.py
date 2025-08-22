@@ -6,18 +6,16 @@ By Guido Meijer
 """
 
 import numpy as np
-from os.path import join, realpath, dirname, split
+import os
+from os.path import join, realpath, dirname, split, exists
 import matplotlib.pyplot as plt
 import seaborn as sns
 from glob import glob
-from scipy import stats
-from matplotlib.patches import Rectangle
-import matplotlib.animation as animation
-from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
 import matplotlib as mpl
-from stim_functions import (figure_style, paths, load_subjects, high_level_regions,
-                            remap, combine_regions, add_significance)
+import requests
+import time
+import zipfile
+from stim_functions import figure_style, paths, add_significance
 from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
@@ -28,7 +26,6 @@ CMAPS = dict({
     'L_opto': 'Blues_r', 'R_opto': 'Oranges_r', 'L_no_opto': 'Purples_r', 'R_no_opto': 'Reds_r'})
 
 # Initialize
-#pca = PCA(n_components=N_DIM, svd_solver='randomized', random_state=42)
 pca = PCA(n_components=N_DIM)
 colors, dpi = figure_style()
 
@@ -36,10 +33,39 @@ colors, dpi = figure_style()
 f_path, load_path = paths()  
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
+# Download data from figshare
+if not exists(join(load_path, 'firstMovement_times')):
+    url = 'https://figshare.com/ndownloader/files/57359308'
+    zip_filepath = join(load_path, 'firstMovement_times.zip')
+    print('Downloading manifold data (~1.5 GB)')
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    total_size = int(response.headers.get('content-length', 0))
+    bytes_downloaded = 0
+    start_time = time.time()
+    with open(zip_filepath, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            bytes_downloaded += len(chunk)
+            f.write(chunk)
+            progress = (bytes_downloaded / total_size) * 100
+            if time.time() - start_time > 0:
+                speed = bytes_downloaded / (time.time() - start_time)
+                print(f"Progress: {progress:.2f}% | Speed: {speed / (1024*1024):.2f} MB/s", end='\r')
+    print('Download complete')
+    
+    # Extract zip file
+    print('Extracting files...')
+    with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
+        zip_ref.extractall(join(load_path))
+    print('Extraction complete')
+
+    # Remove zip file
+    os.remove(zip_filepath)
+
 # Load in data
 print('Loading in data..')
 regions = np.array([])
-ses_paths = glob(join(load_path, 'manifold', f'{DATASET}', '*.npy'))
+ses_paths = glob(join(load_path, 'firstMovement_times', '*.npy'))
 for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
     if this_dict['sert-cre'] == 0:
@@ -173,15 +199,6 @@ split_ids = np.concatenate((['L_opto'] * n_timepoints, ['R_opto'] * n_timepoints
 # Collapse pca onto choice and opto dimensions
 dot_pca, dot_pca_shuffle = dict(), dict()
 angle_pca, angle_pca_shuffle = dict(), dict()
-p_value = dict()
-
-"""
-# Collapse
-pca_l_col = (pca_fit[split_ids == 'L_opto'] + pca_fit[split_ids == 'L_no_opto']) / 2
-pca_r_col = (pca_fit[split_ids == 'R_opto'] + pca_fit[split_ids == 'R_no_opto']) / 2
-pca_opto_col = (pca_fit[split_ids == 'L_opto'] + pca_fit[split_ids == 'R_opto']) / 2
-pca_no_opto_col = (pca_fit[split_ids == 'L_no_opto'] + pca_fit[split_ids == 'R_no_opto']) / 2
-"""
 
 # Get vectors
 choice_vec = ((pca_fit[split_ids == 'R_no_opto'] - pca_fit[split_ids == 'L_no_opto'])
@@ -192,7 +209,6 @@ opto_vec = mid_stim - mid_nonstim
 
 # Get the dot product and angle between the two vectors
 dot_pca, angle_pca = np.empty(n_timepoints), np.empty(n_timepoints)
-p_value, dot_95, dot_5 = np.empty(n_timepoints), np.empty(n_timepoints), np.empty(n_timepoints)
 for t in range(n_timepoints):
 
     dot_prod = np.dot(choice_vec[t, :] / np.linalg.norm(choice_vec[t, :]),
@@ -201,28 +217,10 @@ for t in range(n_timepoints):
     angle_pca[t] = np.degrees(np.arccos(
         dot_prod / (np.linalg.norm(choice_vec[t, :]) * np.linalg.norm(opto_vec[t, :]))))
     
-    # Determine whether the dot product is more orthogonal than expected by chance
-    z_score = dot_prod / (1 / np.sqrt(N_DIM))
-    #z_score = (angle_pca[region][t] - 90) / (1 / np.sqrt(choice_vec.shape[0]))
-    p_value[t] = 1 - (stats.norm.sf(abs(z_score)) * 2)
-    
-    # Calculate the critical dot product values
-    dot_95[t] = stats.norm.ppf(1 - 0.05 / 2) * (1 / np.sqrt(N_DIM))
-
 # Do the same for all the shuffles
 dot_pca_shuffle = np.empty((n_timepoints, pca_shuffle.shape[2]))
 angle_pca_shuffle = np.empty((n_timepoints, pca_shuffle.shape[2]))
 for ii in range(pca_shuffle.shape[2]):
-    """
-    pca_l_col = (pca_shuffle[split_ids == 'L_opto', :, ii]
-                 + pca_shuffle[split_ids == 'L_no_opto', :, ii]) / 2
-    pca_r_col = (pca_shuffle[split_ids == 'R_opto', :, ii]
-                 + pca_shuffle[split_ids == 'R_no_opto', :, ii]) / 2
-    pca_opto_col = (pca_shuffle[split_ids == 'L_opto', :, ii]
-                    + pca_shuffle[split_ids == 'R_opto', :, ii]) / 2
-    pca_no_opto_col = (pca_shuffle[split_ids == 'L_no_opto', :, ii]
-                       + pca_shuffle[split_ids == 'R_no_opto', :, ii]) / 2
-    """
     
     choice_vec = ((pca_shuffle[split_ids == 'R_no_opto', :, ii] - pca_shuffle[split_ids == 'L_no_opto', :, ii])
                   + (pca_shuffle[split_ids == 'R_opto', :, ii] - pca_shuffle[split_ids == 'L_opto', :, ii])) / 2
@@ -231,20 +229,11 @@ for ii in range(pca_shuffle.shape[2]):
     opto_vec = mid_stim - mid_nonstim
 
     for t in range(n_timepoints):
-
-        #choice_vec = pca_shuffle[split_ids == 'L_no_opto', :, ii][t] - pca_shuffle[split_ids == 'R_no_opto', :, ii][t]
-        #opto_vec = pca_shuffle[split_ids == 'R_opto', :, ii][t] - pca_shuffle[split_ids == 'R_no_opto', :, ii][t]
-        
-        #choice_vec = pca_l_col[t, :] - pca_r_col[t, :]
-        #opto_vec = pca_opto_col[t, :] - pca_no_opto_col[t, :]
-
         dot_prod = np.dot(choice_vec[t, :] / np.linalg.norm(choice_vec[t, :]),
                           opto_vec[t, :] / np.linalg.norm(opto_vec[t, :]))
-        #dot_prod = np.dot(choice_vec, opto_vec)
         angle_pca_shuffle[t, ii] = np.degrees(np.arccos(
             dot_prod / (np.linalg.norm(choice_vec[t, :]) * np.linalg.norm(opto_vec[t, :]))))
         dot_pca_shuffle[t, ii] = 1 - np.abs(dot_prod)
-        #dot_pca_shuffle[t, ii] = dot_prod
         
 
 
@@ -334,16 +323,6 @@ ax.plot([x_pos, x_pos], [y_pos, y_pos], [z_pos, z_pos - 30], color='k')
 ax.axis('off')
 plt.savefig(join(fig_path, f'pca_trajectories_all_together_{DATASET}.pdf'))
 
-"""
-def rotate(angle):
-    ax.view_init(elev=20, azim=angle)
-
-# Create animation
-ani = animation.FuncAnimation(fig, rotate, frames=np.arange(0, 360, 2), interval=50)
-ani.save(join(fig_path, f'pca_trajectories_all_together_{DATASET}.gif'), writer='pillow', fps=20)
-"""
-
-
 
 # %%
 
@@ -356,7 +335,7 @@ ax1.fill_between(time_ax,
 ax1.plot(time_ax, choice_dist, marker='o')
 add_significance(time_ax, (choice_dist < np.quantile(choice_dist_shuf, 0.975, axis=1)).astype(int), ax1)
 ax1.set(xlabel='Time to choice (s)',ylabel='Choice separation (spks/s)', 
-        yticks=[50, 250], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=[50, 250], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 
 ax2.fill_between(time_ax,
@@ -366,7 +345,7 @@ ax2.fill_between(time_ax,
 ax2.plot(time_ax, opto_dist, marker='o')
 add_significance(time_ax, (opto_dist < np.quantile(opto_dist_shuf, 0.975, axis=1)).astype(int), ax2)
 ax2.set(xlabel='Time to choice (s)', ylabel='5-HT separation (spks/s)',
-        yticks=[50, 110], xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=[50, 110], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 ax3.fill_between(time_ax,
                  np.quantile(dot_pca_shuffle, 0.025, axis=1),
@@ -375,7 +354,7 @@ ax3.fill_between(time_ax,
 ax3.plot(time_ax, dot_pca, marker='o')
 add_significance(time_ax, (dot_pca < np.quantile(dot_pca_shuffle, 0.975, axis=1)).astype(int), ax3)
 ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - abs. norm. dot product)',
-        yticks=np.arange(0, 1.1, 0.2), xticks=[0, 0.1, 0.2, 0.3, 0.4], xticklabels=[0, 0.1, 0.2, 0.3, 0.4])
+        yticks=np.arange(0, 1.1, 0.2), xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 sns.despine(trim=True)
 plt.tight_layout()
