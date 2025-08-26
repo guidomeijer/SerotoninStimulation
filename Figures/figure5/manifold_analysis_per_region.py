@@ -6,20 +6,19 @@ By Guido Meijer
 """
 
 import numpy as np
-from os.path import join, realpath, dirname, split
+import os
+from os.path import join, realpath, dirname, split, exists
 import matplotlib.pyplot as plt
 import seaborn as sns
 from glob import glob
-from scipy import stats
-from matplotlib.patches import Rectangle
 import pandas as pd
-import matplotlib as mpl
-from stim_functions import (figure_style, paths, load_subjects, high_level_regions,
-                            remap, combine_regions)
+import requests
+import time
+import zipfile
+from stim_functions import figure_style, paths, remap, combine_regions
 from sklearn.decomposition import PCA
 
 N_DIM = 3
-CENTER_ON = 'firstMovement_times'
 CHOICE_WIN = [-0.01, 0]
 OPTO_WIN = [-0.01, 0]
 ORTH_WIN = [-0.05, 0]
@@ -33,13 +32,42 @@ pca = PCA(n_components=N_DIM)
 colors, dpi = figure_style()
 
 # Get paths
-f_path, load_path = paths(save_dir='cache')  # because these data are too large they are not on the repo
+f_path, load_path = paths()  # because these data are too large they are not on the repo
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
+
+# Download data from figshare
+if not exists(join(load_path, 'firstMovement_times')):
+    url = 'https://figshare.com/ndownloader/files/57359308'
+    zip_filepath = join(load_path, 'firstMovement_times.zip')
+    print('Downloading manifold data (~1.5 GB)')
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    total_size = int(response.headers.get('content-length', 0))
+    bytes_downloaded = 0
+    start_time = time.time()
+    with open(zip_filepath, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            bytes_downloaded += len(chunk)
+            f.write(chunk)
+            progress = (bytes_downloaded / total_size) * 100
+            if time.time() - start_time > 0:
+                speed = bytes_downloaded / (time.time() - start_time)
+                print(f"Progress: {progress:.2f}% | Speed: {speed / (1024*1024):.2f} MB/s", end='\r')
+    print('Download complete')
+    
+    # Extract zip file
+    print('Extracting files...')
+    with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
+        zip_ref.extractall(join(load_path))
+    print('Extraction complete')
+
+    # Remove zip file
+    os.remove(zip_filepath)
 
 # Load in data
 print('Loading in data..')
 regions = np.array([])
-ses_paths = glob(join(load_path, 'manifold', f'{CENTER_ON}', '*.npy'))
+ses_paths = glob(join(load_path, 'firstMovement_times', '*.npy'))
 for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
     if this_dict['sert-cre'] == 0:
@@ -139,29 +167,7 @@ for r, region in enumerate(np.unique(regions)):
     split_ids = np.concatenate((['L_opto'] * n_timepoints, ['R_opto'] * n_timepoints,
                                 ['L_no_opto'] * n_timepoints, ['R_no_opto'] * n_timepoints))
     
-    """
-    mean_R = np.mean(pca_fit[split_ids == 'R_no_opto'], axis=0)
-    mean_L = np.mean(pca_fit[split_ids == 'L_no_opto'], axis=0)
-    mean_R_opto = np.mean(pca_fit[split_ids == 'R_opto'], axis=0)
-    mean_L_opto = np.mean(pca_fit[split_ids == 'L_opto'], axis=0)
-    choice_vector = mean_R - mean_L
-    opto_vector = 0.5 * ((mean_R_opto - mean_R) + (mean_L_opto - mean_L))
-    dot_pca[region] = 1 - np.abs(np.dot(choice_vector / np.linalg.norm(choice_vector),
-                                        opto_vector / np.linalg.norm(opto_vector)))
-    
-    dot_pca_shuffle[region] = np.empty(pca_shuffle.shape[2])
-    for ii in range(pca_shuffle.shape[2]):
-        mean_R = np.mean(pca_shuffle[split_ids == 'R_no_opto', :, ii], axis=0)
-        mean_L = np.mean(pca_shuffle[split_ids == 'L_no_opto', :, ii], axis=0)
-        mean_R_opto = np.mean(pca_shuffle[split_ids == 'R_opto', :, ii], axis=0)
-        mean_L_opto = np.mean(pca_shuffle[split_ids == 'L_opto', :, ii], axis=0)
-        
-        choice_vector = mean_R - mean_L
-        opto_vector = 0.5 * ((mean_R_opto - mean_R) + (mean_L_opto - mean_L))
-        dot_pca_shuffle[region][ii] = 1 - np.abs(np.dot(choice_vector / np.linalg.norm(choice_vector),
-                                                        opto_vector / np.linalg.norm(opto_vector)))
-        
-    """
+
     # Calculate dot product between opto and stim vectors in PCA space
     # Collapse pca onto choice and opto dimensions 
     pca_l_col = (pca_fit[split_ids == 'L_opto'] + pca_fit[split_ids == 'L_no_opto']) / 2
@@ -219,16 +225,6 @@ opto_dist_pca_regions = [np.mean(dist_opto[i][
 opto_dist_pca_shuf_regions = [np.mean(dist_opto_shuffle[i][
     (time_ax >= OPTO_WIN[0]) & (time_ax <= OPTO_WIN[1]), :], 0)
     for i in dist_opto_shuffle.keys()]
-
-"""
-# Get max orthogonality point per region
-dot_pca_regions, dot_pca_shuf_regions = [], []
-for i, region in enumerate(dot_pca.keys()):
-    max_orth_ind = np.argmax(dot_pca[region])
-    dot_pca_regions.append(dot_pca[region][max_orth_ind])
-    dot_pca_shuf_regions.append(dot_pca_shuffle[region][max_orth_ind, :])
-"""  
-
 dot_pca_regions = [np.mean(dot_pca[i][
     (time_ax >= ORTH_WIN[0]) & (time_ax <= ORTH_WIN[1])])
     for i in dot_pca.keys()]

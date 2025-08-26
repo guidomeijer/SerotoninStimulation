@@ -6,20 +6,20 @@ By Guido Meijer
 """
 
 import numpy as np
-from os.path import join, realpath, dirname, split
+import os
+from os.path import join, realpath, dirname, split, exists
 import matplotlib.pyplot as plt
 import seaborn as sns
 from glob import glob
-from scipy import stats
-from matplotlib.patches import Rectangle
+import requests
+import time
+import zipfile
 import pandas as pd
-import matplotlib as mpl
 from stim_functions import (figure_style, paths, load_subjects, high_level_regions,
                             remap, combine_regions)
 from sklearn.decomposition import PCA
 
 N_DIM = 3
-CENTER_ON = 'stimOn_times'
 CHOICE_WIN = [0.26, 0.27]
 OPTO_WIN = [0.26, 0.27]
 ORTH_WIN = [0.26, 0.27]
@@ -33,13 +33,42 @@ pca = PCA(n_components=N_DIM)
 colors, dpi = figure_style()
 
 # Get paths
-f_path, load_path = paths(save_dir='cache')  # because these data are too large they are not on the repo
+f_path, load_path = paths()  
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
+
+# Download data from figshare
+if not exists(join(load_path, 'stimOn_times')):
+    url = 'https://figshare.com/ndownloader/files/57359311'
+    zip_filepath = join(load_path, 'stimOn_times.zip')
+    print('Downloading manifold data (~1.5 GB)')
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    total_size = int(response.headers.get('content-length', 0))
+    bytes_downloaded = 0
+    start_time = time.time()
+    with open(zip_filepath, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            bytes_downloaded += len(chunk)
+            f.write(chunk)
+            progress = (bytes_downloaded / total_size) * 100
+            if time.time() - start_time > 0:
+                speed = bytes_downloaded / (time.time() - start_time)
+                print(f"Progress: {progress:.2f}% | Speed: {speed / (1024*1024):.2f} MB/s", end='\r')
+    print('Download complete')
+    
+    # Extract zip file
+    print('Extracting files...')
+    with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
+        zip_ref.extractall(join(load_path))
+    print('Extraction complete')
+
+    # Remove zip file
+    os.remove(zip_filepath)
 
 # Load in data
 print('Loading in data..')
 regions = np.array([])
-ses_paths = glob(join(load_path, 'manifold', f'{CENTER_ON}', '*.npy'))
+ses_paths = glob(join(load_path, 'stimOn_times', '*.npy'))
 for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
     if this_dict['sert-cre'] == 0:

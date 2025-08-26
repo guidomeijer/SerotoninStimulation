@@ -20,7 +20,6 @@ from sklearn.decomposition import PCA
 colors, dpi = figure_style()
 
 N_DIM = 3
-DATASET = 'firstMovement_times'
 CMAPS = dict({
     'R': 'Reds_r', 'L': 'Purples_r', 'no_opto': 'Oranges_r', 'opto': 'Blues_r',
     'L_opto': 'Blues_r', 'R_opto': 'Oranges_r', 'L_no_opto': 'Purples_r', 'R_no_opto': 'Reds_r'})
@@ -265,7 +264,7 @@ ax.plot([x_pos, x_pos], [y_pos, y_pos], [z_pos, z_pos - 40], color='k')
 ax.axis('off')
 
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_LR_all_together_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'pca_LR_all_together.pdf'))
 
 # %% Plot PCA opto
 
@@ -295,7 +294,7 @@ ax.plot([x_pos, x_pos], [y_pos, y_pos], [z_pos, z_pos - 40], color='k')
 ax.axis('off')
 
 ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
-plt.savefig(join(fig_path, f'pca_opto_all_together_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'pca_opto_all_together.pdf'))
 
 
 # %% Plot PCA trajectories
@@ -321,7 +320,7 @@ ax.plot([x_pos, x_pos], [y_pos, y_pos + 40], [z_pos, z_pos], color='k')
 ax.plot([x_pos, x_pos], [y_pos, y_pos], [z_pos, z_pos - 30], color='k')
 
 ax.axis('off')
-plt.savefig(join(fig_path, f'pca_trajectories_all_together_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'pca_trajectories_all_together.pdf'))
 
 
 # %%
@@ -359,7 +358,7 @@ ax3.set(xlabel='Time to choice (s)',ylabel='Orthogonality\n(1 - abs. norm. dot p
 sns.despine(trim=True)
 plt.tight_layout()
 
-plt.savefig(join(fig_path, f'distance_orthogonality_{DATASET}.pdf'))
+plt.savefig(join(fig_path, 'distance_orthogonality.pdf'))
 
 
 
