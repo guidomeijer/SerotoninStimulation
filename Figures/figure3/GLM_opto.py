@@ -21,50 +21,31 @@ f_path, save_path = paths()
 fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-1])
 colors, dpi = figure_style()
 
+# Load in all trials and format dataframe
+trials = pd.read_csv(path.join(save_path, 'all_trials.csv'))
+trials['choice'] = -trials['choice']
+trials = trials.rename(columns={'feedbackType': 'trial_feedback_type'})
+trials['block_id'] = (trials['probabilityLeft'] == 0.2).astype(int)
+trials['stimulus_side'] = trials['stim_side'].copy()
+trials.loc[trials['signed_contrast'] == 0, 'stimulus_side'] = 0
+trials['contrast'] = trials['signed_contrast'].abs() * 100
+trials['previous_choice'] = trials['choice'].shift(periods=1)
+trials = trials[trials['choice'] != 0]
+
+# Loop over subjects
 results_df = pd.DataFrame()
-for i, nickname in enumerate(subjects['subject']):
-    
-    # Only use sert-cre animals
-    if subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0] == 0:
-        continue    
-    print(f'{nickname}')
-
-    # Query sessions
-    eids = query_opto_sessions(nickname, include_ephys=True, one=one)
-    eids = behavioral_criterion(eids, verbose=False, one=one)
-    if len(eids) < MIN_SES:
-        continue
-
-    # Get trials DataFrame
-    trials = pd.DataFrame()
-    for j, eid in enumerate(eids):
-        try:
-            these_trials = load_trials(eid, laser_stimulation=True, invert_choice=True, one=one)
-        except:
-            continue
-        these_trials = these_trials.rename(columns={'feedbackType': 'trial_feedback_type'})
-        these_trials['block_id'] = (these_trials['probabilityLeft'] == 0.2).astype(int)
-        these_trials['stimulus_side'] = these_trials['stim_side'].copy()
-        these_trials.loc[these_trials['signed_contrast'] == 0, 'stimulus_side'] = 0
-        these_trials['contrast'] = these_trials['signed_contrast'].abs() * 100
-        these_trials['previous_choice'] = these_trials['choice'].shift(periods=1)
-        trials = pd.concat((trials, these_trials), ignore_index=True)
-
-    # Remove no-go trials
-    trials = trials[trials['choice'] != 0]
-    
+for i, nickname in enumerate(np.unique(trials['subject'])):
+        
     # Fit GLM
-    params_all = fit_glm(trials)
+    params_all = fit_glm(trials[trials['subject'] == nickname])
     
     # Add to dataframe
     results_df = pd.concat((results_df, params_all), ignore_index=True)
     results_df.loc[results_df.shape[0]-1, 'subject'] = nickname
-    results_df.loc[results_df.shape[0]-1, 'sert-cre'] = subjects.loc[i, 'sert-cre']
    
 # %% Plot
-long_df = pd.melt(results_df.loc[results_df['sert-cre'] == 1,
-                                 ['100_1', '100_0', '25_1', '25_0', '12_1', '12_0', '6_1', '6_0',
-                                  'previous_choice_0', 'previous_choice_1', 'prior_0', 'prior_1']])
+long_df = pd.melt(results_df[['100_1', '100_0', '25_1', '25_0', '12_1', '12_0', '6_1', '6_0',
+                              'previous_choice_0', 'previous_choice_1', 'prior_0', 'prior_1']])
 long_df['pair'] = [i[:-2] for i in long_df['variable']]
 long_df['5HT'] = [i[-1] for i in long_df['variable']]
 

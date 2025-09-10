@@ -7,7 +7,10 @@ By Guido Meijer
 
 
 from one.api import ONE
-one = ONE()
+#one = ONE()
+
+one = ONE(mode='remote', base_url='https://openalyx.internationalbrainlab.org',
+          password='international', silent=True)
 subjects = ['ZFM-02181',
             'ZFM-02600',
             'ZFM-02601',
