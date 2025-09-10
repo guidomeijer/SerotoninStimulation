@@ -10,65 +10,38 @@ from os import path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from stim_functions import (paths, query_opto_sessions, load_trials, init_one,
-                            figure_style, load_subjects, behavioral_criterion)
-
-# Settings
-MIN_SES = 2
+from stim_functions import paths, figure_style, load_subjects
 
 # Paths
 f_path, save_path = paths()
 fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-1])
 
 # Initialize
-one = init_one()
 _, data_path = paths()
 subjects = load_subjects()
 colors, dpi = figure_style()
 
+# Load in all trials 
+all_trials = pd.read_csv(path.join(save_path, 'all_trials.csv'))
+
 # Loop over subjects
 rt_df = pd.DataFrame()
-for i, subject in enumerate(subjects['subject']):
-    print(f'{subject} ({i} of {subjects.shape[0]})')
+for i, nickname in enumerate(np.unique(all_trials['subject'])):
+    print(f'Subject {nickname} ({i} of {np.unique(all_trials["subject"]).shape[0]})')
 
-    # Query sessions
-    sert_cre = subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0]
-    if sert_cre == 0:
-        continue
-    eids = query_opto_sessions(subject, include_ephys=True, one=one)
-    eids = behavioral_criterion(eids, verbose=False, one=one)
-    if len(eids) < MIN_SES:
-        continue
-        
-    # Loop over sessions
-    rt_opto_median, rt_no_opto_median = [], []
-    for j, eid in enumerate(eids):
-        try:
-            trials_df = load_trials(eid, laser_stimulation=True)
-        except Exception:
-            continue
-        if np.sum(trials_df['laser_probability'] == 0.5) > 0:
-            continue
-           
-        # Get reaction times 
-        #trials_df['rt'] = trials_df['firstMovement_times'] - trials_df['goCue_times']
-        trials_df['rt'] = trials_df['feedback_times'] - trials_df['goCue_times']
-        trials_df = trials_df[~np.isnan(trials_df['rt'])]
-       
-        # Remove probe trials
-        trials_df.loc[(trials_df['laser_probability'] == 0.25)
-                      & (trials_df['laser_stimulation'] == 1), 'laser_stimulation'] = 0
-        trials_df.loc[(trials_df['laser_probability'] == 0.75)
-                      & (trials_df['laser_stimulation'] == 0), 'laser_stimulation'] = 1
-                                
-        # Get reaction time medians
-        rt_opto_median.append(trials_df.loc[trials_df['laser_stimulation'] == 1, 'rt'].median())
-        rt_no_opto_median.append(trials_df.loc[trials_df['laser_stimulation'] == 0, 'rt'].median())
+    # Get trials DataFrame
+    trials = all_trials[all_trials['subject'] == nickname].copy()
+    trials = trials.drop(columns=['subject'])
+    trials = trials.reset_index(drop=True)
+   
+    # Get reaction time medians
+    rt_opto_median = trials.loc[trials['laser_stimulation'] == 1, 'time_to_choice'].median()
+    rt_no_opto_median = trials.loc[trials['laser_stimulation'] == 0, 'time_to_choice'].median()
              
     # Add to dataframe
     rt_df = pd.concat((rt_df, pd.DataFrame(index=[rt_df.shape[0]], data={
-        'subject': subject, 'sert-cre': sert_cre,
-        'rt_opto': np.mean(rt_opto_median), 'rt_no_opto': np.mean(rt_no_opto_median)})))
+        'subject': nickname, 
+        'rt_opto': rt_opto_median, 'rt_no_opto': rt_no_opto_median})))
 
 # %%
 

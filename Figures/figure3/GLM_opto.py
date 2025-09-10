@@ -10,12 +10,9 @@ from os import path
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from stim_functions import (paths, behavioral_criterion, load_trials, figure_style,
-                            query_opto_sessions, load_subjects, fit_glm, init_one)
-one = init_one()
+from stim_functions import paths, figure_style, load_subjects, fit_glm
 
 # Settings
-MIN_SES = 2
 subjects = load_subjects()
 f_path, save_path = paths()
 fig_path = path.join(f_path, path.split(path.dirname(path.realpath(__file__)))[-1])

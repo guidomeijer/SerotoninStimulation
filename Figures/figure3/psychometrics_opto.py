@@ -12,14 +12,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
-from stim_functions import (load_trials, plot_psychometric, paths, behavioral_criterion,
-                            fit_psychfunc, figure_style, query_opto_sessions, get_bias,
-                            load_subjects, init_one)
-one = init_one()
+from stim_functions import (plot_psychometric, paths, fit_psychfunc, figure_style, get_bias,
+                            load_subjects)
 
 # Settings
 PLOT_SUBJECT = 'ZFM-02600'
-MIN_SES = 2
 subjects = load_subjects()
 colors, dpi = figure_style()
 
@@ -27,30 +24,16 @@ colors, dpi = figure_style()
 f_path, save_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
+# Load in all trials 
+all_trials = pd.read_csv(join(save_path, 'all_trials.csv'))
+
 bias_df, lapse_df, psy_df = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-for i, nickname in enumerate(subjects['subject']):
-    print(f'Subject {nickname} ({i} of {subjects.shape[0]})')
+for i, nickname in enumerate(np.unique(all_trials['subject'])):
+    print(f'Subject {nickname} ({i} of {np.unique(all_trials["subject"]).shape[0]})')
     
-    # Only use sert-cre animals
-    if subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0] == 0:
-        continue
-
-    # Query sessions
-    eids = query_opto_sessions(nickname, include_ephys=True, one=one)
-
-    # Apply behavioral criterion
-    eids = behavioral_criterion(eids, verbose=False, one=one)
-    if len(eids) < MIN_SES:
-        continue
-
     # Get trials DataFrame
-    trials = pd.DataFrame()
-    ses_count = 0
-    for j, eid in enumerate(eids):
-        these_trials = load_trials(eid, laser_stimulation=True, one=one)
-        these_trials['session'] = ses_count
-        trials = pd.concat((trials, these_trials), ignore_index=True)
-        ses_count = ses_count + 1
+    trials = all_trials[all_trials['subject'] == nickname].copy()
+    trials = trials.drop(columns=['subject'])
 
     # Get bias from fitted curves
     bias_fit_stim = get_bias(trials.loc[(trials['laser_stimulation'] == 1) & (trials['probe_trial'] == 0)])
@@ -195,44 +178,3 @@ sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'summary_psycurve.pdf'))
 
-# %%
-"""
-# %% Plot
-
-f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(2.2, 2), sharex=True, dpi=dpi)
-for i, subject in enumerate(bias_df['subject']):   
-    ax1.plot([1, 2], [bias_df.loc[bias_df['subject'] == subject, 'bias_fit_no_stim'],
-                      bias_df.loc[bias_df['subject'] == subject, 'bias_fit_stim']],
-             color='k', marker='o', ms=3.5, markeredgewidth=0.5, markeredgecolor='w')
-#ax1.tick_params(axis='both', which='both', length=0)
-ax1.set(xlabel='', xticks=[], ylim=[0, 0.4], xlim=[0.8, 2.2], yticks=[0, 0.4],
-        yticklabels=[0, 0.4])
-ax1.set_ylabel('Bias', labelpad=-5)
-
-for i, subject in enumerate(psy_avg_block_df['subject']):
-    ax2.plot([1, 2], 
-             [psy_avg_block_df.loc[(psy_avg_block_df['subject'] == subject) & (psy_avg_block_df['opto_stim'] == 0), 'slope'],
-              psy_avg_block_df.loc[(psy_avg_block_df['subject'] == subject) & (psy_avg_block_df['opto_stim'] == 1), 'slope']],
-             color='k', marker='o', ms=3.5, markeredgewidth=0.5, markeredgecolor='w')
-ax2.text(1.5, 35, '*', ha='center', fontsize=10)
-ax2.set(xlabel='', xticks=[1, 2], xticklabels=['No stim.', 'Stim.'], ylabel='slope (σ)',
-        ylim=[10, 40], yticks=[10, 20, 30, 40], xlim=[0.8, 2.2])
-
-
-for i, subject in enumerate(psy_avg_block_df['subject']):
-    ax3.plot([1, 2], psy_avg_block_df.loc[(psy_avg_block_df['subject'] == subject), 'lapse_both'],
-             color='k', marker='o', ms=3.5, markeredgewidth=0.5, markeredgecolor='w')
-ax3.set(xlabel='', xticks=[], yticks=[0, 0.3], yticklabels=[0, 0.3])
-ax3.set_ylabel('Lapse rate', labelpad=-5)
-
-for i, subject in enumerate(bias_df['subject']):
-    ax4.plot([1, 2], [bias_df.loc[bias_df['subject'] == subject, 'rt_no_stim'],
-                      bias_df.loc[bias_df['subject'] == subject, 'rt_stim']],
-             color='k', marker='o', ms=3.5, markeredgewidth=0.5, markeredgecolor='w')
-ax4.set(xlabel='', xticks=[1, 2], xticklabels=['No stim.', 'Stim.'], ylabel='Reaction time (s)',
-        yscale='log', yticks=[0.1, 1], yticklabels=[0.1, 1])
-
-plt.tight_layout()
-sns.despine(trim=True)
-plt.savefig(join(fig_path, 'summary_psycurve.pdf'))
-"""
