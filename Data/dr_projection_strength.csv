@@ -1,0 +1,841 @@
+structure_id,allen_acronym,region_name,projection_density
+115,IV,Trochlear nucleus,0.38057257213678575
+872,DR,Dorsal nucleus raphe,0.3759748077153279
+165,RAmb,Midbrain raphe nuclei,0.32323917802725827
+591,CLI,Central linear nucleus raphe,0.3163721016968734
+348,MBsta,"Midbrain, behavioral state related",0.3124964211634025
+313,MB,Midbrain,0.2878324962692556
+8,grey,Basic cell groups and regions,0.2864204152625158
+343,BS,Brain stem,0.2854466627895088
+997,root,root,0.2814724010014599
+795,PAG,Periaqueductal gray,0.24072630258795366
+323,MBmot,"Midbrain, motor related",0.23467403481874
+62,mlf,medial longitudinal fascicle,0.23219635238485367
+832,IIIn,oculomotor nerve,0.23020224173124187
+967,cm,cranial nerves,0.22451029245302775
+1009,fiber tracts,fiber tracts,0.22226196627383535
+606826663,Pa4,Paratrochlear nucleus,0.17828617720887166
+128,MRN,Midbrain reticular nucleus,0.17411836963030644
+812,dscp,superior cerebellar peduncle decussation,0.1194428724899068
+614454277,Su3,Supraoculomotor periaqueductal gray,0.10127698305451041
+364,PSTN,Parasubthalamic nucleus,0.09608982942866831
+326,scp,superior cerebelar peduncles,0.0947255749982651
+752,cbp,cerebellar peduncles,0.09214787593478574
+960,cbf,cerebellum related fiber tracts,0.09110732380164295
+12,IF,Interfascicular nucleus raphe,0.08918727564317641
+356,PST,Preparasubthalamic nucleus,0.087760286085327
+681,mtg,mammillotegmental tract,0.08346863853078013
+771,P,Pons,0.08008374291828621
+1065,HB,Hindbrain,0.07886546647130539
+197,RL,Rostral linear nucleus raphe,0.07637483522424778
+1117,P-sat,"Pons, behavioral state related",0.07616261960028041
+46,mfbsma,mammillary related,0.06914717493286121
+749,VTA,Ventral tegmental area,0.06878451022937551
+662,GU6b,"Gustatory areas, layer 6b",0.06707364242553043
+824,mfsbshy,hypothalamus related,0.0670367614923974
+162,LDT,Laterodorsal tegmental nucleus,0.06495453176564107
+880,DTN,Dorsal tegmental nucleus,0.06491930287981515
+23,AAA,Anterior amygdalar area,0.06044175879919939
+35,III,Oculomotor nucleus,0.05915923557487509
+314,AIp6a,"Agranular insular area, posterior part, layer 6a",0.05833545142225766
+991,mfbs,medial forebrain bundle system,0.05770330791113154
+1060,dtd,doral tegmental decussation,0.05707743093798693
+344,AIp5,"Agranular insular area, posterior part, layer 5",0.05498537459577384
+298,MA,Magnocellular nucleus,0.05326614506384834
+998,FS,Fundus of striatum,0.050696114660173895
+964,ee,"corpus callosum, extreme capsule",0.050640601781229796
+54,mfb,medial forebrain bundle,0.04994540120883757
+111,AIp,"Agranular insular area, posterior part",0.049097302198699296
+831,AId6b,"Agranular insular area, dorsal part, layer 6b",0.049064151168164205
+952,EPd,"Endopiriform nucleus, dorsal part",0.04903648934771662
+942,EP,Endopiriform nucleus,0.048562423794679004
+607344842,IPA,"Interpeduncular nucleus, apical",0.04840152397136144
+120,AIp1,"Agranular insular area, posterior part, layer 1",0.04796781663998314
+966,EPv,"Endopiriform nucleus, ventral part",0.04767553553616488
+366,SMT,Submedial nucleus of the thalamus,0.047317593378157614
+566,TR,Postpiriform transition area,0.04666814643757104
+675,AIv6a,"Agranular insular area, ventral part, layer 6a",0.046524490291657256
+100,IPN,Interpeduncular nucleus,0.046351236010691625
+2,SSp-m6b,"Primary somatosensory area, mouth, layer 6b",0.046120093992978894
+987,P-mot,"Pons, motor related",0.04589431851857169
+551,CEAl,"Central amygdalar nucleus, lateral part",0.04487564971343293
+898,PCG,Pontine central gray,0.0439822518463388
+638,GU6a,"Gustatory areas, layer 6a",0.04383318124978844
+148,GU4,"Gustatory areas, layer 4",0.04277530375785452
+544,CEAc,"Central amygdalar nucleus, capsular part",0.04220466695716983
+159,AON,Anterior olfactory nucleus,0.04140018686570212
+451,BLAv,"Basolateral amygdalar nucleus, ventral part",0.041230737289229484
+311,BLAp,"Basolateral amygdalar nucleus, posterior part",0.040459061443175307
+1105,IA,Intercalated amygdalar nucleus,0.040220993412466384
+36,GU1,"Gustatory areas, layer 1",0.04020740909854335
+897,VISC1,"Visceral area, layer 1",0.03988018497707153
+163,AIp2/3,"Agranular insular area, posterior part, layer 2/3",0.03955586553081334
+1000,eps,extrapyramidal fiber systems,0.0392694349767786
+1057,GU,Gustatory areas,0.03903056811632826
+295,BLA,Basolateral amygdalar nucleus,0.03796737558677001
+760,epsc,cerebral nuclei related,0.03769610581900028
+102,nst,nigrostriatal tract,0.03769610565124985
+877,tsp,tectospinal pathway,0.0375145848096746
+536,CEA,Central amygdalar nucleus,0.037487157308405065
+180,GU2/3,"Gustatory areas, layer 2/3",0.03665799959430652
+1139,NLOT3,"Nucleus of the lateral olfactory tract, layer 3",0.03652591967218603
+95,AI,Agranular insular area,0.035832033132896644
+996,AId1,"Agranular insular area, dorsal part, layer 1",0.03578471088412914
+140,AQ,cerebral aqueduct,0.035607971885750524
+1010,VISC4,"Visceral area, layer 4",0.035548669306015315
+73,VS,ventricular systems,0.03536756331684471
+679,CS,Superior central nucleus raphe,0.03527091533017185
+1058,VISC5,"Visceral area, layer 5",0.0348225728232997
+260,NLOT1,"Nucleus of the lateral olfactory tract, molecular layer",0.03457237256468549
+835,PALv,"Pallidum, ventral region",0.0344537209156153
+677,VISC,Visceral area,0.03421542769416361
+355,AIp6b,"Agranular insular area, posterior part, layer 6b",0.033972245059685595
+303,BLAa,"Basolateral amygdalar nucleus, anterior part",0.033886155198181285
+882,MOp6b,"Primary motor area, Layer 6b",0.03375458636590104
+878,SSp-m1,"Primary somatosensory area, mouth, layer 1",0.03363515874169245
+187,GU5,"Gustatory areas, layer 5",0.033460901106898665
+961,PIR,Piriform area,0.03326451104145871
+639,COAa,"Cortical amygdalar area, anterior part",0.03312906973295806
+194,LHA,Lateral hypothalamic area,0.03308983027821356
+703,CTXsp,Cortical subplate,0.03304897313302608
+559,CEAm,"Central amygdalar nucleus, medial part",0.032971392296556226
+1106,VISC2/3,"Visceral area, layer 2/3",0.0326119029060947
+699,AIv6b,"Agranular insular area, ventral part, layer 6b",0.03247856847833453
+619,NLOT,Nucleus of the lateral olfactory tract,0.03240577669395381
+342,SI,Substantia innominata,0.032189875566566974
+1043,tspc,crossed tectospinal pathway,0.0319595427163069
+704,AIv1,"Agranular insular area, ventral part, layer 1",0.0318657177493631
+327,BMAa,"Basomedial amygdalar nucleus, anterior part",0.031762339566407484
+849,VISC6b,"Visceral area, layer 6b",0.03171899551235941
+884,amc,amygdalar capsule,0.03154988916053498
+857,VISC6a,"Visceral area, layer 6a",0.031274003924089855
+583,CLA,Claustrum,0.031220087851829153
+374,SNc,"Substantia nigra, compact part",0.03110160360451226
+540,PERI1,"Perirhinal area, layer 1",0.030994930493020288
+189,RH,Rhomboid nucleus,0.030994796754537098
+104,AId,"Agranular insular area, dorsal part",0.030937654841635392
+328,AId2/3,"Agranular insular area, dorsal part, layer 2/3",0.03059781353527487
+783,AId6a,"Agranular insular area, dorsal part, layer 6a",0.03033973130295521
+496345672,LGd-ip,"Dorsal part of the lateral geniculate complex, ipsilateral zone",0.029403966587456275
+1101,AId5,"Agranular insular area, dorsal part, layer 5",0.029400352820943318
+788,PAA,Piriform-amygdalar area,0.02919681312425079
+268,NLOT2,"Nucleus of the lateral olfactory tract, pyramidal layer",0.02918226235918891
+605,TTv,"Taenia tecta, ventral part",0.029172272989906003
+754,OT,Olfactory tubercle,0.029139679884625895
+609,SPA,Subparafascicular area,0.029050412741924835
+974,SSp-m5,"Primary somatosensory area, mouth, layer 5",0.028912354944074164
+975,EW,Edinger-Westphal nucleus,0.028848169961908168
+320,MOp1,"Primary motor area, Layer 1",0.02882358054977257
+278,sAMY,Striatum-like amygdalar nuclei,0.028627401929800893
+560581559,Xi,Xiphoid thalamic nucleus,0.028626110683029234
+119,AIv,"Agranular insular area, ventral part",0.02772396318026192
+139,ENTl5,"Entorhinal area, lateral part, layer 5",0.027556766276258384
+656,MOs1,"Secondary motor area, layer 1",0.027495031242155122
+496345668,LGd-co,"Dorsal part of the lateral geniculate complex, core",0.02705974872480094
+800,AIv5,"Agranular insular area, ventral part, layer 5",0.02698575119301889
+692,PERI5,"Perirhinal area, layer 5",0.026930574915746675
+170,LGd,Dorsal part of the lateral geniculate complex,0.026815121895764
+484682528,stc,commissural branch of stria terminalis,0.026442651750488717
+59,IMD,Intermediodorsal nucleus of the thalamus,0.026205589350541684
+1102,SSp-m6a,"Primary somatosensory area, mouth, layer 6a",0.02588135226562864
+58,MT,Medial terminal nucleus of the accessory optic tract,0.025339776031882272
+496345664,LGd-sh,"Dorsal part of the lateral geniculate complex, shell",0.02512349237152894
+698,OLF,Olfactory areas,0.02471714354660569
+246,RR,"Midbrain reticular nucleus, retrorubral area",0.024610137340432423
+589,TT,Taenia tecta,0.024486063371114853
+319,BMA,Basomedial amygdalar nucleus,0.024404772926207515
+922,PERI,Perirhinal area,0.02406236784949476
+345,SSp-m,"Primary somatosensory area, mouth",0.0238393833670296
+893,SSs6b,"Supplemental somatosensory area, layer 6b",0.023752802968490607
+181,RE,Nucleus of reuniens,0.023591276945298053
+1085,MOs6b,"Secondary motor area, layer 6b",0.02350844965049225
+579,ec,external capsule,0.023110846332503116
+397,vtd,ventral tegmental decussation,0.023073505525128272
+814,DP,Dorsal peduncular area,0.02300972397817536
+493,STRv,Striatum ventral region,0.02265418599095231
+470,STN,Subthalamic nucleus,0.022325364558557097
+1121,ENTl1,"Entorhinal area, lateral part, layer 1",0.022116463899181527
+448,ORBl1,"Orbital area, lateral part, layer 1",0.02195955748465138
+803,PAL,Pallidum,0.021901515657331377
+68,FRP1,"Frontal pole, layer 1",0.02186441643908027
+694,AIv2/3,"Agranular insular area, ventral part, layer 2/3",0.021556824082265523
+571,MTN,Midline group of the dorsal thalamus,0.021170667957043022
+444,MED,Medial group of the dorsal thalamus,0.021022409229927035
+290,LZ,Hypothalamic lateral zone,0.020883544316555265
+52,ENTl3,"Entorhinal area, lateral part, layer 3",0.020740557298557557
+460,MEV,Midbrain trigeminal nucleus,0.020720272945003584
+873,SSs1,"Supplemental somatosensory area, layer 1",0.02069269383792533
+15,PT,Parataenial nucleus,0.020609765227578156
+950,SSp-m4,"Primary somatosensory area, mouth, layer 4",0.020588785848730008
+648,MOp5,"Primary motor area, Layer 5",0.020462158390613758
+918,ENTl,"Entorhinal area, lateral part",0.020254712341231114
+558,SSp-n1,"Primary somatosensory area, nose, layer 1",0.020185342502251277
+888,PERI2/3,"Perirhinal area, layer 2/3",0.020015032079625763
+231,AT,Anterior tegmental nucleus,0.020011028045199577
+836,ECT1,Ectorhinal area/Layer 1,0.01991911165500105
+596,NDB,Diagonal band nucleus,0.019896415295563605
+985,MOp,Primary motor area,0.0198489315559763
+597,TTd,"Taenia tecta, dorsal part",0.019837052018519256
+929,SSp-n6b,"Primary somatosensory area, nose, layer 6b",0.019661011276540442
+1077,PR,Perireunensis nucleus,0.019651677542862334
+549009211,MA3,Medial accesory oculomotor nucleus,0.019581127730914083
+977,ECT6a,Ectorhinal area/Layer 6a,0.019511787765511313
+706,OP,Olivary pretectal nucleus,0.019101638350101733
+500,MO,Somatomotor areas,0.019043363299644137
+707,ILA1,"Infralimbic area, layer 1",0.018845827897827287
+526322264,FRP6b,"Frontal pole, layer 6b",0.018713929450041786
+1120,IAM,Interanteromedial nucleus of the thalamus,0.018695743304691873
+844,MOp6a,"Primary motor area, Layer 6a",0.018572013096289343
+993,MOs,Secondary motor area,0.018345275300248993
+956,fa,"corpus callosum, anterior forceps",0.01820699461218148
+631,COA,Cortical amygdalar area,0.018180859407847097
+171,PL1,"Prelimbic area, layer 1",0.0179961362627585
+1008,GENd,"Geniculate group, dorsal thalamus",0.017844582931485903
+607344830,PN,Paranigral nucleus,0.017792690043922043
+178,LGv,Ventral part of the lateral geniculate complex,0.017792519036738518
+149,PVT,Paraventricular nucleus of the thalamus,0.017681599672947863
+527696977,ORBm6b,"Orbital area, medial part, layer 6b",0.01762059084939418
+484682512,scwm,supra-callosal cerebral white matter,0.01730990156801475
+599,CM,Central medial nucleus of the thalamus,0.017265479811215952
+895,ECT,Ectorhinal area,0.01701851949701432
+414,SPFm,"Subparafascicular nucleus, magnocellular part",0.01697394505285899
+1081,ILA6b,"Infralimbic area, layer 6b",0.016963879726213583
+488,ORBl6b,"Orbital area, lateral part, layer 6b",0.016912219818581972
+655,COApl,"Cortical amygdalar area, posterior part, lateral zone",0.01686498063967433
+988,ECT5,Ectorhinal area/Layer 5,0.016847579110934652
+962,MOs2/3,"Secondary motor area, layer 2/3",0.016668335153453624
+1021,MOs6a,"Secondary motor area, layer 6a",0.01664631610341297
+358,SLD,Sublaterodorsal nucleus,0.01657149771708354
+292,BA,Bed nucleus of the accessory olfactory tract,0.016546668082712015
+334,BMAp,"Basomedial amygdalar nucleus, posterior part",0.01653819977023423
+27,IGL,Intergeniculate leaflet of the lateral geniculate complex,0.016513414861794796
+1014,GENv,"Geniculate group, ventral thalamus",0.01648557924130884
+908,act,"anterior commissure, temporal limb",0.016427279242441743
+66,LT,Lateral terminal nucleus of the accessory optic tract,0.016423254991595235
+943,MOp2/3,"Primary motor area, Layer 2/3",0.016374857728771307
+606826659,MMd,"Medial mammillary nucleus, dorsal part",0.01630213542154828
+450,SSp-ul1,"Primary somatosensory area, upper limb, layer 1",0.016160007403314965
+210,LM,Lateral mammillary nucleus,0.016083089208303224
+28,ENTl6a,"Entorhinal area, lateral part, layer 6a",0.01604713074366193
+767,MOs5,"Secondary motor area, layer 5",0.015870811649905045
+732,MMme,"Medial mammillary nucleus, median part",0.015601231685587821
+184,FRP,"Frontal pole, cerebral cortex",0.015501940336384492
+147,LC,Locus ceruleus,0.015432859462368649
+1054,ILA6a,"Infralimbic area, layer 6a",0.015410780537184436
+63,PVHd,"Paraventricular hypothalamic nucleus, descending division",0.015279822301010472
+595,fr,fasciculus retroflexus,0.015274289045344667
+690,mtt,mammillothalamic tract,0.015245238563448118
+1113,IAD,Interanterodorsal nucleus of the thalamus,0.015209178699871009
+20,ENTl2,"Entorhinal area, lateral part, layer 2",0.014967173633117335
+335,PERI6a,"Perirhinal area, layer 6a",0.014908674046753482
+362,MD,Mediodorsal nucleus of thalamus,0.01468861922421016
+628,NOT,Nucleus of the optic tract,0.01457486755900814
+667,FRP2/3,"Frontal pole, layer 2/3",0.014525644352868178
+1045,ECT6b,Ectorhinal area/Layer 6b,0.014478456722019702
+1090,SSs5,"Supplemental somatosensory area, layer 5",0.014357708554767892
+56,ACB,Nucleus accumbens,0.01429006415053221
+403,MEA,Medial amygdalar nucleus,0.014226622574502152
+623,CNU,Cerebral nuclei,0.014156586390206258
+255,AV,Anteroventral nucleus of thalamus,0.014137475173476305
+215,APN,Anterior pretectal nucleus,0.014137079746812935
+280,B,Barrington's nucleus,0.014123270891507009
+567,CH,Cerebrum,0.014063901585151273
+688,CTX,Cerebral cortex,0.014039912879046525
+349,sup,supraoptic commissures,0.0139690638421158
+427,ECT2/3,Ectorhinal area/Layer 2/3,0.013916641583984328
+287,BAC,Bed nucleus of the anterior commissure,0.013759402006954408
+904,MSC,Medial septal complex,0.013664783347784799
+723,ORBl,"Orbital area, lateral part",0.013659644368265788
+647,COAp,"Cortical amygdalar area, posterior part",0.013587632496090683
+911,IVn,trochlear nerve,0.013584638301755022
+809,PALc,"Pallidum, caudal region",0.013536088170107315
+351,BST,Bed nuclei of the stria terminalis,0.013534796344513449
+50,PRC,Precommissural nucleus,0.013522685624479492
+526157196,FRP6a,"Frontal pole, layer 6a",0.01342865539856958
+630,ORBl5,"Orbital area, lateral part, layer 5",0.013403478149854436
+1026,SSp-ul6b,"Primary somatosensory area, upper limb, layer 6b",0.013363597278102188
+440,ORBl6a,"Orbital area, lateral part, layer 6a",0.013294458810549995
+196,AOBgr,"Accessory olfactory bulb, granular layer",0.013258404390493675
+695,CTXpl,Cortical plate,0.013236416599415018
+491,MM,Medial mammillary nucleus,0.013183691958382262
+538,lotd,dorsal limb,0.01315776093127213
+226,LPO,Lateral preoptic area,0.01308538115275449
+856,DORpm,"Thalamus, polymodal association cortex related",0.013047861668288899
+1100,PRT,Pretectal region,0.012986936963691936
+239,ATN,Anterior group of the dorsal thalamus,0.012969105014469927
+182305693,SSp-un1,"Primary somatosensory area, unassigned, layer 1",0.01294832459129139
+1104,AMv,"Anteromedial nucleus, ventral part",0.012938992422276387
+525,SUM,Supramammillary nucleus,0.012931029916524072
+862,SSs6a,"Supplemental somatosensory area, layer 6a",0.012921479056931582
+127,AM,Anteromedial nucleus,0.012881543878188033
+381,SNr,"Substantia nigra, reticular part",0.01287715013987052
+909,ENT,Entorhinal area,0.012859487900279992
+1096,AMd,"Anteromedial nucleus, dorsal part",0.012842420450565491
+155,LD,Lateral dorsal nucleus of thalamus,0.012778571609174613
+657,SSp-m2/3,"Primary somatosensory area, mouth, layer 2/3",0.012715447549136621
+378,SSs,Supplemental somatosensory area,0.012689364227222945
+406,SPF,Subparafascicular nucleus,0.012667637439830591
+44,ILA,Infralimbic area,0.012569184948309203
+910,ORBm6a,"Orbital area, medial part, layer 6a",0.012560699744174873
+507,MOB,Main olfactory bulb,0.012551352211381896
+477,STR,Striatum,0.012543445271738674
+606826647,MMl,"Medial mammillary nucleus, lateral part",0.012380552967180292
+526157192,FRP5,"Frontal pole, layer 5",0.012338817970748506
+19,IG,Induseum griseum,0.012291644192226042
+1061,PPT,Posterior pretectal nucleus,0.012206031019832185
+606826651,MMm,"Medial mammillary nucleus, medial part",0.012174718924882807
+350,SLC,Subceruleus nucleus,0.012130822440016857
+304,PL2/3,"Prelimbic area, layer 2/3",0.012124218645104344
+218,LP,Lateral posterior nucleus of the thalamus,0.012101748521032178
+972,PL,Prelimbic area,0.012096293098629286
+1097,HY,Hypothalamus,0.012089987437315259
+315,Isocortex,Isocortex,0.012069987671165712
+331,MBO,Mammillary body,0.01204995009801733
+51,ILM,Intralaminar nuclei of the dorsal thalamus,0.011953244991287424
+1031,GPi,"Globus pallidus, internal segment",0.011949160283125511
+1129,IB,Interbrain,0.01188604546326216
+390,SO,Supraoptic nucleus,0.011746811981220977
+549,TH,Thalamus,0.01173312797941683
+131,LA,Lateral amygdalar nucleus,0.011664269230193572
+549009203,RPF,Retroparafascicular nucleus,0.01158447004789365
+889,SSp-n6a,"Primary somatosensory area, nose, layer 6a",0.011537546781171746
+863,rust,rubrospinal tract,0.01144761177167275
+1083,mfbse,epithalamus related,0.011221690482691494
+946,PH,Posterior hypothalamic nucleus,0.011217669357118038
+531,MPT,Medial pretectal area,0.01106048050043028
+563807439,IntG,Intermediate geniculate nucleus,0.01091695702046743
+753,pm,principal mammillary tract,0.010869909503250345
+900,aco,"anterior commissure, olfactory limb",0.010782929149384442
+1029,POL,Posterior limiting nucleus of the thalamus,0.010782223640975384
+368,PERI6b,"Perirhinal area, layer 6b",0.010726898950875221
+826,PALm,"Pallidum, medial region",0.010721678865663485
+10,SCig,"Superior colliculus, motor related, intermediate gray layer",0.01071163761207668
+75,DT,Dorsal terminal nucleus of the accessory optic tract,0.010698339975142522
+663,COApm,"Cortical amygdalar area, posterior part, medial zone",0.010545594302015992
+453,SS,Somatosensory areas,0.010544337558644312
+935,ACAd1,"Anterior cingulate area, dorsal part, layer 1",0.01052690496358232
+970,PGRNd,"Paragigantocellular reticular nucleus, dorsal part",0.010499093356726373
+729,TEa6a,"Temporal association areas, layer 6a",0.01048346591124383
+741,VPMpc,"Ventral posteromedial nucleus of the thalamus, parvicellular part",0.01043766909212578
+422,SPFp,"Subparafascicular nucleus, parvicellular part",0.010431018314614312
+575,CL,Central lateral nucleus of the thalamus,0.010414569821306254
+802,sm,stria medullaris,0.010308514258759264
+680,ORBvl6b,"Orbital area, ventrolateral part, layer 6b",0.010294098556440213
+867,PB,Parabrachial nucleus,0.010291643311704877
+132,PL6b,"Prelimbic area, layer 6b",0.010125952535361136
+661,VII,Facial motor nucleus,0.010110398711687988
+122,POR,"Superior olivary complex, periolivary region",0.010097044978757764
+96,DCO,Dorsal cochlear nucleus,0.010094675306274678
+757,VTN,Ventral tegmental nucleus,0.010090937313013382
+606826655,MMp,"Medial mammillary nucleus, posterior part",0.010070275407762957
+84,PL6a,"Prelimbic area, layer 6a",0.010068147301627686
+786,TEa6b,"Temporal association areas, layer 6b",0.009965883637833049
+363,PL5,"Prelimbic area, layer 5",0.009935034642789916
+576073704,PeF,Perifornical nucleus,0.009913324830961988
+353,SSp-n,"Primary somatosensory area, nose",0.00987023203334421
+930,PF,Parafascicular nucleus,0.009772652452375512
+1072,MGd,"Medial geniculate complex, dorsal part",0.009769403155515412
+714,ORB,Orbital area,0.009749850138583588
+322,SSp,Primary somatosensory area,0.00974834874208849
+214,RN,Red nucleus,0.009706321008578904
+818,PALd,"Pallidum, dorsal region",0.009689598887117849
+1035,SSs4,"Supplemental somatosensory area, layer 4",0.00966881537540794
+325,SGN,Suprageniculate nucleus,0.00965802898050494
+702,SSp-n5,"Primary somatosensory area, nose, layer 5",0.00954869752309758
+1079,MGv,"Medial geniculate complex, ventral part",0.009379224352871656
+827,ILA5,"Infralimbic area, layer 5",0.009312798608432106
+182305713,SSp-un6b,"Primary somatosensory area, unassigned, layer 6b",0.009264148000090056
+804,FF,Fields of Forel,0.009252933889154805
+333,SH,Septohippocampal nucleus,0.009233476574873504
+412,ORBl2/3,"Orbital area, lateral part, layer 2/3",0.00919496326507493
+560581563,PIL,Posterior intralaminar thalamic nucleus,0.009129646695380668
+556,ILA2/3,"Infralimbic area, layer 2/3",0.009129431008774185
+851,SCop,"Superior colliculus, optic layer",0.009111992763387197
+1022,GPe,"Globus pallidus, external segment",0.009077961080378715
+484,ORBm1,"Orbital area, medial part, layer 1",0.009067448294615327
+864,DORsm,"Thalamus, sensory-motor cortex related",0.009053917589339095
+186,LH,Lateral habenula,0.009033342993112056
+114,SOCl,"Superior olivary complex, lateral part",0.0090253094107389
+301,st,stria terminalis,0.008765372402274756
+797,ZI,Zona incerta,0.008741348605360915
+398,SOC,Superior olivary complex,0.00871597312437551
+685,VM,Ventral medial nucleus of the thalamus,0.008706155728296257
+138,LAT,Lateral group of the dorsal thalamus,0.008663518692852822
+475,MG,Medial geniculate complex,0.008585871892404512
+173,RCH,Retrochiasmatic area,0.008577082644659843
+822,RHP,Retrohippocampal region,0.008515430448567228
+981,SSp-bfd1,"Primary somatosensory area, barrel field, layer 1",0.008447975049454605
+969,ORBvl1,"Orbital area, ventrolateral part, layer 1",0.008419167073692828
+169,PRP,Nucleus prepositus,0.008315099443104683
+64,AD,Anterodorsal nucleus,0.008287795170304684
+612,NLL,Nucleus of the lateral lemniscus,0.008098701635593555
+907,PCN,Paracentral nucleus,0.007998540004103856
+598,AUDv6b,"Ventral auditory area, layer 6b",0.007929076600544661
+21,lotg,"lateral olfactory tract, general",0.00792103402168355
+776,cc,corpus callosum,0.0078058113477162995
+154,PHY,Perihypoglossal nuclei,0.007799154791517201
+731,ORBm,"Orbital area, medial part",0.007798105006595123
+302,SCs,"Superior colliculus, sensory related",0.007775554036586751
+526,ENTm1,"Entorhinal area, medial part, dorsal zone, layer 1",0.007717871355789769
+151,AOB,Accessory olfactory bulb,0.007704220526734441
+1132,P-sen,"Pons, sensory related",0.007628070235865376
+931,PG,Pontine gray,0.007615641594603041
+916,bsc,brachium of the superior colliculus,0.00758085266663083
+467,MEZ,Hypothalamic medial zone,0.007512117580803043
+780,PA,Posterior amygdalar nucleus,0.007506956545284592
+1044,PP,Peripeduncular nucleus,0.007499102094529104
+262,RT,Reticular nucleus of the thalamus,0.0074807155293829366
+294,SCm,"Superior colliculus, motor related",0.007443276466181681
+642,NTB,Nucleus of the trapezoid body,0.00741437675830825
+607,CN,Cochlear nuclei,0.007371502787268059
+842,SCsg,"Superior colliculus, superficial gray layer",0.007339132292008164
+672,CP,Caudoputamen,0.007212056532547015
+485,STRd,Striatum dorsal region,0.007212056520071391
+1030,SSp-ll1,"Primary somatosensory area, lower limb, layer 1",0.007118066066005303
+1052,PPN,Pedunculopontine nucleus,0.007051052366790409
+665,lot,"lateral olfactory tract, body",0.007007569320032613
+625,SSp-ul5,"Primary somatosensory area, upper limb, layer 5",0.007003095960587708
+588,ACAv1,"Anterior cingulate area, ventral part, layer 1",0.006948088046578879
+958,EPI,Epithalamus,0.006942600897725368
+1088,MGm,"Medial geniculate complex, medial part",0.0068912736962399865
+697,ml,medial lemniscus,0.006880233090530726
+834,SCzo,"Superior colliculus, zonal layer",0.0067917403909840525
+629,VAL,Ventral anterior-lateral complex of the thalamus,0.00674696696910358
+607344862,IPRL,"Interpeduncular nucleus, rostrolateral",0.0067376398480883904
+806,SSs2/3,"Supplemental somatosensory area, layer 2/3",0.006719766589812466
+369,SSp-ul,"Primary somatosensory area, upper limb",0.0066922874334758575
+792,drt,dorsal roots,0.006689060066204605
+932,cett,cervicothalamic tract,0.006689060066204605
+1108,ccg,genu of corpus callosum,0.006681851678239265
+608,ORBvl6a,"Orbital area, ventrolateral part, layer 6a",0.006659052080643963
+560581551,Eth,Ethmoid nucleus of the thalamus,0.0066330945547766525
+634,NPC,Nucleus of the posterior commissure,0.006550532420448676
+17,SCiw,"Superior colliculus, motor related, intermediate white layer",0.006501081892801023
+620,ORBm5,"Orbital area, medial part, layer 5",0.006396950188152824
+123,KF,Koelliker-Fuse subnucleus,0.006335813644771432
+874,PBG,Parabigeminal nucleus,0.006268931528447191
+980,PMd,Dorsal premammillary nucleus,0.006204986478249199
+312782632,VISpor1,"Postrhinal area, layer 1",0.006173998806474754
+204,AOBmi,"Accessory olfactory bulb, mitral layer",0.006172119775393606
+520,AUDv6a,"Ventral auditory area, layer 6a",0.006127277643106167
+945,SSp-ul6a,"Primary somatosensory area, upper limb, layer 6a",0.0061084282955093105
+637,VENT,Ventral group of the dorsal thalamus,0.005802825509864092
+654,SSp-n4,"Primary somatosensory area, nose, layer 4",0.005796073493220477
+576,ACVII,Accessory facial motor nucleus,0.005757764307063396
+101,VCO,Ventral cochlear nucleus,0.005732393372233875
+484682516,ccb,"corpus callosum, body",0.005726662279423571
+289,TEa5,"Temporal association areas, layer 5",0.005722374995698966
+206,RM,Nucleus raphe magnus,0.005678360026067917
+541,TEa,Temporal association areas,0.005606689357783729
+105,SOCm,"Superior olivary complex, medial part",0.00559232305112542
+563807435,PoT,Posterior triangular thalamic nucleus,0.00553289038035932
+97,TEa1,"Temporal association areas, layer 1",0.005431263126677484
+983,lfbs,lateral forebrain bundle system,0.005396973840219801
+88,AHN,Anterior hypothalamic nucleus,0.0053574283484880535
+587,ND,Nucleus of Darkschewitsch,0.00534187657286954
+332,ASO,Accessory supraoptic group,0.0053003914706830175
+746,ORBvl,"Orbital area, ventrolateral part",0.005283814154117452
+582,ORBm2/3,"Orbital area, medial part, layer 2/3",0.005275111383156935
+1020,PO,Posterior complex of the thalamus,0.005258721238697964
+718,VPL,Ventral posterolateral nucleus of the thalamus,0.00521516088869783
+182305689,SSp-un,"Primary somatosensory area, unassigned",0.00511739994565563
+202,MV,Medial vestibular nucleus,0.0050723355588918
+927,ACAd6b,"Anterior cingulate area, dorsal part, layer 6b",0.005024663493820278
+182305709,SSp-un6a,"Primary somatosensory area, unassigned, layer 6a",0.005022829649886814
+725,VPLpc,"Ventral posterolateral nucleus of the thalamus, parvicellular part",0.004946943060663843
+39,ACAd,"Anterior cingulate area, dorsal part",0.004914612281594827
+658,ll,lateral lemniscus,0.004902980911982035
+38,PVH,Paraventricular hypothalamic nucleus,0.004858217801155124
+1,TMv,"Tuberomammillary nucleus, ventral part",0.004817581898835044
+339,MBsen,"Midbrain, sensory related",0.004801580675383637
+614,TU,Tuberal nucleus,0.004798752164928811
+1069,PPY,Parapyramidal nucleus,0.0047940849695904016
+1062,SSp-bfd6b,"Primary somatosensory area, barrel field, layer 6b",0.004767529672375579
+483,MH,Medial habenula,0.004690559165440024
+580,NB,Nucleus of the brachium of the inferior colliculus,0.004660441884213992
+484682524,ar,auditory radiation,0.004646061601572377
+709,VP,Ventral posterior complex of the thalamus,0.00460598614158657
+243,AUDd6b,"Dorsal auditory area, layer 6b",0.0045916015787290715
+26,SCdg,"Superior colliculus, motor related, deep gray layer",0.004582705083388179
+589508455,VeCB,Vestibulocerebellar nucleus,0.004581428552277451
+182305705,SSp-un5,"Primary somatosensory area, unassigned, layer 5",0.0045418460714096946
+1006,SSp-tr1,"Primary somatosensory area, trunk, layer 1",0.0045182207564622556
+67,INC,Interstitial nucleus of Cajal,0.004511501932087287
+318,SG,Supragenual nucleus,0.004502516304605184
+1089,HPF,Hippocampal formation,0.004481347071727812
+948,cVIIIn,cochlear nerve,0.00447616846925232
+673,mp,mammillary peduncle,0.004434529723575438
+534,SUT,Supratrigeminal nucleus,0.004427222147937471
+616,CUN,Cuneiform nucleus,0.0044176073872150565
+919,ACAd6a,"Anterior cingulate area, dorsal part, layer 6a",0.004384018041373208
+938,PGRN,Paragigantocellular reticular nucleus,0.004359365595125415
+841,tb,trapezoid body,0.004356902305405215
+604,NI,Nucleus incertus,0.00435160369270308
+701,VNC,Vestibular nuclei,0.004348291531523002
+607344854,IPDM,"Interpeduncular nucleus, dorsomedial",0.004297102756870536
+838,SSp-n2/3,"Primary somatosensory area, nose, layer 2/3",0.0042208209945322475
+828,ICe,"Inferior colliculus, external nucleus",0.004214054937314156
+1093,PRNc,"Pontine reticular nucleus, caudal part",0.00420413906602334
+1005,AUDp6b,"Primary auditory area, layer 6b",0.004081359508753596
+557,TM,Tuberomammillary nucleus,0.004042399077105559
+1125,ORBvl5,"Orbital area, ventrolateral part, layer 5",0.004036259234753533
+31,ACA,Anterior cingulate area,0.00402184659314018
+846,DN,Dentate nucleus,0.003976143869779961
+940,cing,cingulum bundle,0.003964406077141158
+577,SSp-ul4,"Primary somatosensory area, upper limb, layer 4",0.00394497748212202
+336,csc,superior colliculus commissure,0.0038731146417247475
+933,VIIIn,vestibulocochlear nerve,0.0038721995897477283
+225,SPIV,Spinal vestibular nucleus,0.003857461063471744
+1092,em,external medullary lamina of the thalamus,0.003851891353503897
+781,y,Nucleus y,0.003850421860400376
+506,das,dorsal acoustic stria,0.0038047838107448328
+379,MY-sat,"Medulla, behavioral state related",0.00379226392071958
+271,SAG,Nucleus sagulum,0.0037920236683040343
+1023,AUDv5,"Ventral auditory area, layer 5",0.0037810622673383177
+7,PSV,Principal sensory nucleus of the trigeminal,0.0037351152061115083
+288,ORBvl2/3,"Orbital area, ventrolateral part, layer 2/3",0.0037346827294830035
+312782652,VISpor6b,"Postrhinal area, layer 6b",0.003731570759712943
+386,MY-sen,"Medulla, sensory related",0.0037159143639018542
+649,VISal6b,"Anterolateral visual area, layer 6b",0.003702326152544323
+158,pc,posterior commissure,0.003673080129669761
+146,PRNr,Pontine reticular nucleus,0.003660314788134833
+312782648,VISpor6a,"Postrhinal area, layer 6a",0.0036057635029463947
+177,NR,Nucleus of Roller,0.0036010317031246433
+42,SCdw,"Superior colliculus, motor related, deep white layer",0.0035909256036666835
+1109,PS,Parastrial nucleus,0.00356265859988048
+312782628,VISpor,Postrhinal area,0.0035580991188511996
+854,SSp-ul2/3,"Primary somatosensory area, upper limb, layer 2/3",0.0035244945867303553
+312782598,VISli6b,"Laterointermediate area, layer 6b",0.0035234156547035585
+428,mct,medial corticohypothalamic tract,0.003517392021489944
+484682470,ProS,Prosubiculum,0.003504058804884896
+733,VPM,Ventral posteromedial nucleus of the thalamus,0.0034978851120169288
+830,DMH,Dorsomedial nucleus of the hypothalamus,0.0034964563852671526
+926,ENTm,"Entorhinal area, medial part, dorsal zone",0.0034613465116620076
+445,SPVO,"Spinal nucleus of the trigeminal, oral part",0.00343357226123027
+217,SUV,Superior vestibular nucleus,0.0034126032991468004
+482,bic,brachium of the inferior colliculus,0.0034056815515478736
+820,ICd,"Inferior colliculus, dorsal nucleus",0.003402844347622194
+765,x,Nucleus x,0.0033888010804177357
+98,SEZ,subependymal zone,0.003367190837785725
+4,IC,Inferior colliculus,0.00334536241433029
+456,AUDpo6b,"Posterior auditory area, layer 6b",0.0033355070194733814
+234,TEa4,"Temporal association areas, layer 4",0.0033346565195952215
+1039,GR,Gracile nucleus,0.0032814549378222353
+1015,ACAd5,"Anterior cingulate area, dorsal part, layer 5",0.0032678906405572065
+768,mfbc,cerebrum related,0.0032527683412713598
+1018,AUDv,Ventral auditory area,0.003252248054501906
+312782604,VISrl1,"Rostrolateral area, layer 1",0.0032366839718371634
+689,VLPO,Ventrolateral preoptic nucleus,0.0032111599338567245
+510,SSp-ll6b,"Primary somatosensory area, lower limb, layer 6b",0.0032000194060331595
+1051,tspd,direct tectospinal pathway,0.0031711617543155033
+211,ACAd2/3,"Anterior cingulate area, dorsal part, layer 2/3",0.0031603630914204734
+896,lfbst,thalamus related,0.003127786739924905
+329,SSp-bfd,"Primary somatosensory area, barrel field",0.0031242443766559525
+312782550,VISa1,"Anterior area, layer 1",0.003104526012009612
+354,MY,Medulla,0.0031016146766483124
+121,VISl6b,"Lateral visual area, layer 6b",0.0030889180196660582
+370,MY-mot,"Medulla, motor related",0.0030732088397937363
+840,In,olfactory nerve,0.0030301867679633845
+312782644,VISpor5,"Postrhinal area, layer 5",0.003012581997086675
+1038,SSp-bfd6a,"Primary somatosensory area, barrel field, layer 6a",0.0030123491726819843
+574,TRN,Tegmental reticular nucleus,0.0029929224590993513
+549009215,P5,Peritrigeminal zone,0.00295975670365579
+437,SPVI,"Spinal nucleus of the trigeminal, interpolar part",0.002946455207325304
+750,VISpl1,"Posterolateral visual area, layer 1",0.002935838955273981
+48,ACAv,"Anterior cingulate area, ventral part",0.0028611593800783753
+307,MARN,Magnocellular reticular nucleus,0.0028319790848107857
+1048,GRN,Gigantocellular reticular nucleus,0.002831591960891653
+157,PVZ,Periventricular zone,0.0028139566832681455
+959,AUDv1,"Ventral auditory area, layer 1",0.0028015100551538586
+549009223,PC5,Parvicellular motor 5 nucleus,0.0027839827722140865
+238,RPO,Nucleus raphe pontis,0.002774570335995296
+182305697,SSp-un2/3,"Primary somatosensory area, unassigned, layer 2/3",0.0027655684286962304
+484682520,or,optic radiation,0.0027502711644092864
+182305701,SSp-un4,"Primary somatosensory area, unassigned, layer 4",0.0027345503956297526
+519,CBN,Cerebellar nuclei,0.0027271864116357866
+819,ACAv6b,"Anterior cingulate area, ventral part, 6b",0.002715538480495138
+1070,SSp-bfd5,"Primary somatosensory area, barrel field, layer 5",0.0027051310671439835
+743,ENTm6,"Entorhinal area, medial part, dorsal zone, layer 6",0.0026535387501468335
+720,DCN,Dorsal column nuclei,0.002642224192668657
+653,VI,Abducens nucleus,0.0026212261061090954
+312782636,VISpor2/3,"Postrhinal area, layer 2/3",0.002588489119845968
+859,PAS,Parasolitary nucleus,0.0025597782907049362
+564,MS,Medial septal nucleus,0.0025584744591962538
+954,AUDp6a,"Primary auditory area, layer 6a",0.002543632788670712
+188,AOBgl,"Accessory olfactory bulb, glomerular layer",0.00253320655714316
+850,uf,uncinate fascicle,0.0025298043924581485
+312782624,VISrl6b,"Rostrolateral area, layer 6b",0.0025287056191036334
+527,AUDd1,"Dorsal auditory area, layer 1",0.002522771719620048
+711,CU,Cuneate nucleus,0.002485596092375473
+523,MPO,Medial preoptic area,0.0024735082055422674
+737,fxpo,postcommissural fornix,0.0024719758278407954
+914,PD,Posterodorsal preoptic nucleus,0.002449739460357459
+436,fx,columns of the fornix,0.002439677100261049
+1004,PMv,Ventral premammillary nucleus,0.0024287091938213256
+429,SPVC,"Spinal nucleus of the trigeminal, caudal part",0.002422673617069265
+989,FN,Fastigial nucleus,0.002415149790990596
+1127,TEa2/3,"Temporal association areas, layer 2/3",0.0023982358558080684
+312782594,VISli6a,"Laterointermediate area, layer 6a",0.002392156709781122
+337,SSp-ll,"Primary somatosensory area, lower limb",0.0023908298657981386
+6,int,internal capsule,0.0023525201702749936
+543,ENTm2,"Entorhinal area, medial part, dorsal zone, layer 2",0.0023433822592503024
+599626927,PDTg,Posterodorsal tegmental nucleus,0.0023143109484668584
+852,PARN,Parvicellular reticular nucleus,0.002285688110361188
+978,PGRNl,"Paragigantocellular reticular nucleus, lateral part",0.002283205578951106
+156,AUDd6a,"Dorsal auditory area, layer 6a",0.002271480773979781
+91,IP,Interposed nucleus,0.002239198136552742
+382,CA1,Field CA1,0.0022386648030849245
+810,ACAv6a,"Anterior cingulate area, ventral part, 6a",0.002234630634970382
+296,ACAv2/3,"Anterior cingulate area, ventral part, layer 2/3",0.0022249870356968915
+651,NTS,Nucleus of the solitary tract,0.0022128496450055687
+209,LAV,Lateral vestibular nucleus,0.0022024272984281106
+611,hbc,habenular commissure,0.0021798845818110034
+452,MEPO,Median preoptic nucleus,0.0021606709369316047
+848,IIn,optic nerve,0.002134580261762743
+461,SSp-tr6b,"Primary somatosensory area, trunk, layer 6b",0.002131519544068364
+141,PVR,Periventricular region,0.0021222577422115143
+372,ICB,Infracerebellar nucleus,0.0021096540920110033
+549009227,I5,Intertrigeminal nucleus,0.002042886973081766
+74,VISl6a,"Lateral visual area, layer 6a",0.0020162096893326575
+312782640,VISpor4,"Postrhinal area, layer 4",0.00199803088123702
+247,AUD,Auditory areas,0.0019869191418491364
+1128,SSp-ll5,"Primary somatosensory area, lower limb, layer 5",0.001983553284656109
+249,AUDpo6a,"Posterior auditory area, layer 6a",0.001961124038310888
+1047,SSp-bfd4,"Primary somatosensory area, barrel field, layer 4",0.0019193992888000202
+727,ENTm5,"Entorhinal area, medial part, dorsal zone, layer 5",0.0019154755163000893
+281,VISam1,"Anteromedial visual area, layer 1",0.0019067113400622056
+903,ECU,External cuneate nucleus,0.001861230051120876
+693,VMH,Ventromedial hypothalamic nucleus,0.0018393636030216772
+843,PAR,Parasubiculum,0.0018367005751232458
+258,LSr,"Lateral septal nucleus, rostral (rostroventral) part",0.001819744766335601
+263,AVP,Anteroventral preoptic nucleus,0.0018088104729189975
+542,RSPv1,"Retrosplenial area, ventral part, layer 1",0.0018050556401780602
+136,IRN,Intermediate reticular nucleus,0.0017910978688905296
+607344834,IPR,"Interpeduncular nucleus, rostral",0.001786058933121209
+145,V4,fourth ventricle,0.0017852139805841006
+633,cic,inferior colliculus commissure,0.0017823612630736621
+347,SBPV,Subparaventricular zone,0.0017816854663738947
+784,cst,corticospinal tract,0.0017667970014534466
+990,AUDv4,"Ventral auditory area, layer 4",0.0017634753456444217
+601,VISal6a,"Anterolateral visual area, layer 6a",0.0017587991758957098
+222,RO,Nucleus raphe obscurus,0.0017490083498830728
+607344846,IPL,"Interpeduncular nucleus, lateral",0.0017482952985962293
+811,ICc,"Inferior colliculus, central nucleus",0.0017393415448361063
+250,LSc,"Lateral septal nucleus, caudal (caudodorsal) part",0.001734923766760216
+847,AUDp5,"Primary auditory area, layer 5",0.0017249753444015794
+599626923,SCO,Subcommissural organ,0.0017181808448502348
+230,RPA,Nucleus raphe pallidus,0.0017080895174649499
+1126,TMd,"Tuberomammillary nucleus, dorsal part",0.0017020010111813068
+478,SSp-ll6a,"Primary somatosensory area, lower limb, layer 6a",0.0016988814278342038
+866,sctv,ventral spinocerebellar tract,0.0016897312063171518
+78,mcp,middle cerebellar peduncle,0.0016711147353703308
+252,AUDd5,"Dorsal auditory area, layer 5",0.0016501532268023609
+1098,MDRNd,"Medullary reticular nucleus, dorsal part",0.0016283253008241617
+1074,VISal1,"Anterolateral visual area, layer 1",0.0016271785988414037
+305,VISp6b,"Primary visual area, layer 6b",0.0016201438996767343
+312782620,VISrl6a,"Rostrolateral area, layer 6a",0.0016130890086926268
+275,LSX,Lateral septal complex,0.001604401987783846
+242,LS,Lateral septal nucleus,0.0015769914860640733
+1011,AUDd,Dorsal auditory area,0.0015749640840764987
+106,ISN,Inferior salivatory nucleus,0.001573366914173283
+118,PVi,"Periventricular hypothalamic nucleus, intermediate part",0.0015382982158815366
+515,MPN,Medial preoptic nucleus,0.001527193446872988
+312782570,VISa6b,"Anterior area, layer 6b",0.001526056434284879
+375,CA,Ammon's horn,0.0015122720343950999
+361,SSp-tr,"Primary somatosensory area, trunk",0.001511394085685458
+113,SSp-ll2/3,"Primary somatosensory area, lower limb, layer 2/3",0.0014982925707374215
+425,VISpl,Posterolateral visual area,0.0014932674482305507
+153,V4r,lateral recess,0.0014773936056452178
+1002,AUDp,Primary auditory area,0.001475521814522051
+772,ACAv5,"Anterior cingulate area, ventral part, layer 5",0.0014664430159552185
+201,SSp-bfd2/3,"Primary somatosensory area, barrel field, layer 2/3",0.001465553341346386
+330,RSPd6b,"Retrosplenial area, dorsal part, layer 6b",0.0014546402332007817
+593,VISp1,"Primary visual area, layer 1",0.0014414736034734643
+395,MDRN,Medullary reticular nucleus,0.0014408893450935762
+664,ENTm3,"Entorhinal area, medial part, dorsal zone, layer 3",0.0014387743622876112
+671,RSPagl1,"Retrosplenial area, lateral agranular part, layer 1",0.0014246932649649548
+912,LING,Lingula (I),0.0014243205455475555
+417,VISrl,Rostrolateral visual area,0.0014183187624032124
+798,VIIn,facial nerve,0.0014013103395924477
+421,VISl1,"Lateral visual area, layer 1",0.0013989872158963967
+1080,HIP,Hippocampal region,0.0013763594167026912
+22,PTLp,Posterior parietal association areas,0.001341608316308892
+321,SubG,Subgeniculate nucleus,0.001336999195594439
+1094,SSp-ll4,"Primary somatosensory area, lower limb, layer 4",0.0013358252717049384
+735,AUDp1,"Primary auditory area, layer 1",0.001319069872051155
+377,VISpl6a,"Posterolateral visual area, layer 6a",0.0013131580646709889
+805,VISpm1,"posteromedial visual area, layer 1",0.0013085975401674228
+924,cpd,cerebal peduncle,0.0013028200492592205
+203,LIN,Linear nucleus of the medulla,0.001294950214099238
+607344850,IPI,"Interpeduncular nucleus, intermediate",0.0012908294863989555
+312782546,VISa,Anterior area,0.0012873647000055841
+441,VISam6b,"Anteromedial visual area, layer 6b",0.001268643201747554
+1116,gVIIn,genu of the facial nerve,0.0012639404422039393
+312782574,VISli,Laterointermediate area,0.0012505423117493448
+33,VISp6a,"Primary visual area, layer 6a",0.001247120881793644
+72,ADP,Anterodorsal preoptic nucleus,0.0012382454945040026
+125,opt,optic tract,0.0012273462793315829
+1107,MDRNv,"Medullary reticular nucleus, ventral part",0.0012184186229944078
+576073699,VMPO,Ventromedial preoptic nucleus,0.001218399677622665
+669,VIS,Visual areas,0.0012153074320180076
+442,RSPd1,"Retrosplenial area, dorsal part, layer 1",0.0012146420505027356
+10703,DG-mo,"Dentate gyrus, molecular layer",0.001214334846576419
+1037,POST,Postsubiculum,0.0012089599245265882
+312782590,VISli5,"Laterointermediate area, layer 5",0.0011976887516160677
+310,SF,Septofimbrial nucleus,0.0011857599388348386
+581,TRS,Triangular nucleus of septum,0.001168271177298833
+223,ARH,Arcuate hypothalamic nucleus,0.0011677005305879636
+955,LRNm,"Lateral reticular nucleus, magnocellular part",0.0011610246599376016
+272,AVPV,Anteroventral periventricular nucleus,0.0011474172370180059
+9,SSp-tr6a,"Primary somatosensory area, trunk, layer 6a",0.0011375970982516652
+443,dhc,dorsal hippocampal commissure,0.0011366222001405737
+393,VISpl6b,"Posterolateral visual area, layer 6b",0.0011361813774910857
+469,VISpm6b,"posteromedial visual area, layer 6b",0.0011334160069500817
+312782578,VISli1,"Laterointermediate area, layer 1",0.0011236985864287838
+409,VISl,Lateral visual area,0.001103743459989683
+235,LRN,Lateral reticular nucleus,0.0011008838114143227
+279,RSPagl6b,"Retrosplenial area, lateral agranular part, layer 6b",0.0010988935177045054
+618,hc,hippocampal commissures,0.001093027091578136
+869,VISpl4,"Posterolateral visual area, layer 4",0.0010715282423138766
+622,RSPv6b,"Retrosplenial area, ventral part, layer 6b",0.0010703289215817243
+312782566,VISa6a,"Anterior area, layer 6a",0.0010499460247533213
+30,PVa,"Periventricular hypothalamic nucleus, anterior part",0.0010410197255508802
+402,VISal,Anterolateral visual area,0.0010384381506306976
+1111,SSp-tr5,"Primary somatosensory area, trunk, layer 5",0.0010372424676289255
+312782616,VISrl5,"Rostrolateral area, layer 5",0.0010272514528971665
+466,alv,alveus,0.0010269553870792274
+986,ccs,"corpus callosum, splenium",0.0009918456321318235
+380,cuf,cuneate fascicle,0.0009854517495642365
+514,dc,dorsal column,0.0009854517406659334
+902,VISpl5,"Posterolateral visual area, layer 5",0.000980564804691123
+502,SUB,Subiculum,0.0009644074665329098
+312782554,VISa2/3,"Anterior area, layer 2/3",0.0009577217438981669
+126,PVp,"Periventricular hypothalamic nucleus, posterior part",0.0009454588909063891
+755,AUDv2/3,"Ventral auditory area, layer 2/3",0.0009381023337969585
+269,VISpl2/3,"Posterolateral visual area, layer 2/3",0.0009222229244686869
+670,SSp-tr2/3,"Primary somatosensory area, trunk, layer 2/3",0.0009142477072105469
+385,VISp,Primary visual area,0.0009132403608854076
+549009219,Acs5,Accessory trigeminal nucleus,0.0009074931105388142
+613,VISl5,"Lateral visual area, layer 5",0.0009025994394604973
+816,AUDp4,"Primary auditory area, layer 4",0.0008907288786881223
+394,VISam,Anteromedial visual area,0.0008838720058134019
+312782562,VISa5,"Anterior area, layer 5",0.0008750020316803806
+607344838,IPC,"Interpeduncular nucleus, caudal",0.0008748454339894154
+621,V,Motor nucleus of trigeminal,0.0008676220914253326
+117,och,optic chiasm,0.0008667357437078044
+839,DMX,Dorsal motor nucleus of the vagus nerve,0.0008636113893251637
+939,AMBd,"Nucleus ambiguus, dorsal division",0.0008602322571375837
+590,RSPv6a,"Retrosplenial area, ventral part, layer 6a",0.0008595198724248606
+1084,PRE,Presubiculum,0.0008550538192280531
+1099,fxs,fornix system,0.0008470746820252172
+1027,AUDpo,Posterior auditory area,0.0008415421893942413
+1066,VISam2/3,"Anteromedial visual area, layer 2/3",0.0008280590353407463
+607344858,IPDL,"Interpeduncular nucleus, dorsolateral",0.0008260071612319121
+726,DG,Dentate gyrus,0.0008248721831800675
+423,CA2,Field CA2,0.0008246963515563087
+773,XII,Hypoglossal nucleus,0.0008157932132396697
+982,FC,Fasciola cinerea,0.0008117653349377651
+696,AUDpo1,"Posterior auditory area, layer 1",0.0008103991310542103
+791,AUDpo5,"Posterior auditory area, layer 5",0.0008016491893460332
+678,AUDd4,"Dorsal auditory area, layer 4",0.0007851922692330234
+778,VISp5,"Primary visual area, layer 5",0.0007847851632571005
+129,V3,third ventricle,0.0007803320483867081
+1046,VISam6a,"Anteromedial visual area, layer 6a",0.0007704092771477498
+312782612,VISrl4,"Rostrolateral area, layer 4",0.0007691545875932351
+906,RSPagl6a,"Retrosplenial area, lateral agranular part, layer 6a",0.000763241614358231
+312782608,VISrl2/3,"Rostrolateral area, layer 2/3",0.0007630015571742948
+971,fp,"corpus callosum, posterior forceps",0.000758293214287316
+886,RSPv,"Retrosplenial area, ventral part",0.0007575270989578925
+257,VISpm6a,"posteromedial visual area, layer 6a",0.0007524940306875093
+338,SFO,Subfornical organ,0.000750059013745929
+233,VISal5,"Anterolateral visual area, layer 5",0.0007428837008199666
+894,RSPagl,"Retrosplenial area, lateral agranular part",0.0007408636479592056
+949,von,vomeronasal nerve,0.0007347990046525683
+589508447,HATA,Hippocampo-amygdalar transition area,0.0007257016279109859
+728,arb,arbor vitae,0.0007254142722344122
+1049,FL,Flocculus,0.0007214108802032096
+254,RSP,Retrosplenial area,0.0007011048493249004
+312782582,VISli2/3,"Laterointermediate area, layer 2/3",0.0006920323482576947
+484682508,APr,Area prostriata,0.0006913508357173949
+530,df,dorsal fornix,0.000684606336578068
+266,LSv,"Lateral septal nucleus, ventral part",0.0006780794783041437
+533,VISpm,posteromedial visual area,0.0006697251939430024
+721,VISp4,"Primary visual area, layer 4",0.0006673749769125219
+286,SCH,Suprachiasmatic nucleus,0.0006584871655880636
+274,RSPd6a,"Retrosplenial area, dorsal part, layer 6a",0.0006524521493829941
+1086,SSp-tr4,"Primary somatosensory area, trunk, layer 4",0.0006489700533855043
+976,CENT2,Lobule II,0.0006285681448288199
+1123,icp,inferior cerebellar peduncle,0.0006281263653874823
+135,AMB,Nucleus ambiguus,0.0006247664514919457
+965,RSPagl2/3,"Retrosplenial area, lateral agranular part, layer 2/3",0.000613033189890744
+879,RSPd,"Retrosplenial area, dorsal part",0.0006118820849802953
+312782558,VISa4,"Anterior area, layer 4",0.0006107719101491808
+545,RSPd4,"Retrosplenial area, dorsal part, layer 4",0.0006028189590821634
+905,VISal2/3,"Anterolateral visual area, layer 2/3",0.0005839773296212883
+600,AUDd2/3,"Dorsal auditory area, layer 2/3",0.0005724294805364145
+973,VISl2/3,"Lateral visual area, layer 2/3",0.0005716618926309388
+573,VISl4,"Lateral visual area, layer 4",0.0005690107796412186
+821,VISp2/3,"Primary visual area, layer 2/3",0.000568042831703329
+963,LRNp,"Lateral reticular nucleus, parvicellular part",0.0005585863378546342
+81,VL,lateral ventricle,0.0005359403648798841
+93,moV,motor root of the trigeminal nerve,0.000535376548718997
+251,AUDp2/3,"Primary auditory area, layer 2/3",0.0005352382720897542
+41,VISpm2/3,"posteromedial visual area, layer 2/3",0.0005283583969362296
+237,ts,solitary tract,0.0005239162947154663
+917,Xn,vagus nerve,0.0005239162903880597
+190,py,pyramid,0.000522535056573259
+1033,COPY,Copula pyramidis,0.0005031120994392914
+968,NOD,Nodulus (X),0.0004955378273814258
+198,pyd,pyramidal decussation,0.0004952353972039674
+1114,VISal4,"Anterolateral visual area, layer 4",0.0004761438445077033
+433,VISam5,"Anteromedial visual area, layer 5",0.00047319840875465163
+312782586,VISli4,"Laterointermediate area, layer 4",0.0004725672791043034
+413,vVIIIn,vestibular nerve,0.0004653559689086172
+10671,ME,Median eminence,0.00045609918507738567
+449,vhc,ventral hippocampal commissure,0.00045039668126740554
+744,cbc,cerebellar commissure,0.0004450925183054488
+430,RSPv2/3,"Retrosplenial area, ventral part, layer 2/3",0.0004396431238669568
+1041,PFL,Paraflocculus,0.00043358895335286887
+512,CB,Cerebellum,0.00042910550138252224
+401,VISam4,"Anteromedial visual area, layer 4",0.0004237270535785742
+501,VISpm4,"posteromedial visual area, layer 4",0.0004222829996306619
+434,RSPd2/3,"Retrosplenial area, dorsal part, layer 2/3",0.00039699384293701245
+143,AMBv,"Nucleus ambiguus, ventral division",0.00039653249231467265
+920,CENT,Central lobule,0.00039478304737420244
+759,AUDpo4,"Posterior auditory area, layer 4",0.00039310629686795004
+553,sctd,dorsal spinocerebellar tract,0.0003893592726320157
+565,VISpm5,"posteromedial visual area, layer 5",0.0003855191473953346
+463,CA3,Field CA3,0.0003825518866105392
+1056,ANcr1,Crus 1,0.00037212940575149784
+774,RSPagl5,"Retrosplenial area, lateral agranular part, layer 5",0.00035518992422230427
+133,PVpo,"Periventricular hypothalamic nucleus, preoptic part",0.00034578556187322697
+944,FOTU,Folium-tuber vermis (VII),0.00033565398207609264
+1073,HEM,Hemispheric regions,0.0003235139379567494
+610,RSPd5,"Retrosplenial area, dorsal part, layer 5",0.00032157394608289293
+83,IO,Inferior olivary complex,0.00030977190676583367
+687,RSPv5,"Retrosplenial area, ventral part, layer 5",0.0003090777005307646
+528,CBX,Cerebellar cortex,0.000303918410898849
+1017,AN,Ansiform lobule,0.00029711990325094955
+984,CENT3,Lobule III,0.00028097666604701095
+645,VERM,Vermal regions,0.00027399637849670076
+928,CUL,Culmen,0.0002541413067304526
+1091,"CUL4, 5",Lobules IV-V,0.0002541413060265961
+901,Vn,trigeminal nerve,0.00023708346137890445
+643,AUDpo2/3,"Posterior auditory area, layer 2/3",0.00023690956825127835
+794,sptV,spinal tract of the trigeminal nerve,0.00023607817189190622
+229,sV,sensory root of the trigeminal nerve,0.0002294203885458943
+589508451,Pa5,Paratrigeminal nucleus,0.00022927849004545324
+957,UVU,Uvula (IX),0.000228006893851834
+603,fi,fimbria,0.00022177312124536505
+1007,SIM,Simple lobule,0.0002214542078006942
+1064,ANcr2,Crus 2,0.00021357139127965212
+164,c,"central canal, spinal cord/medulla",0.00020496904914165079
+1016,onl,olfactory nerve layer of main olfactory bulb,0.0001970097867487494
+1025,PRM,Paramedian lobule,0.00017068663661637054
+951,PYR,Pyramus (VIII),0.00015030676888365751
+108,chpl,choroid plexus,0.00014712723792692628
+10704,DG-po,"Dentate gyrus, polymorph layer",9.764719326716335e-05
+207,AP,Area postrema,9.408078367309574e-05
+632,DG-sg,"Dentate gyrus, granule cell layer",9.045349701352453e-05
+936,DEC,Declive (VI),8.044375504164167e-05
+763,OV,Vascular organ of the lamina terminalis,4.4990979940327446e-05
