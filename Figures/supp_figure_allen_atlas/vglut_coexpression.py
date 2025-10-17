@@ -11,18 +11,19 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import pearsonr
-from stim_functions import paths, figure_style, load_subjects, combine_regions, remap
+from stim_functions import paths, figure_style, load_subjects, combine_regions
+from iblatlas.atlas import BrainRegions
+br = BrainRegions()
 colors, dpi = figure_style()
 
 # Paths
 f_path, data_path = paths()
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
-# load structure and expression data set 
-proj_df = pd.read_csv(join(data_path, 'dr_projection_strength.csv'))
-proj_df = proj_df[~np.isin(proj_df['allen_acronym'], ['MMd', 'MMme', 'MMl', 'MMm', 'MMp', 'CUL4, 5'])]
-proj_df['region'] = combine_regions(remap(proj_df['allen_acronym']))
-proj_summary = proj_df[['region', 'projection_density']].groupby(['region']).mean().reset_index()
+# Get glutamate co-expression data
+glut_df = pd.DataFrame(data={
+    'region': ['PVH', 'CeA', 'LHb', 'DLG', 'OB', 'OFC', 'PIR', 'ENT'],
+    'perc_glut': [18, 21, 10, 10, 82, 70, 50, 68]})
 
 # Load in neural data
 ephys_data = pd.read_csv(join(data_path, 'light_modulated_neurons.csv'))
@@ -30,6 +31,17 @@ ephys_data['region'] = combine_regions(ephys_data['region'])
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     ephys_data.loc[ephys_data['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
+
+# Create mapping of to fmri regions
+acronym_map = {
+    'LH': 'LHb', 'LGd': 'DLG', 'MOB': 'OB', 'ORB': 'OFC', 'CEA': 'CeA'
+}
+regions = np.array(['root'] * ephys_data.shape[0], dtype=object)
+for allen_acronym, custom_region in acronym_map.items():
+    descendant_acronyms = br.descendants(br.acronym2id(allen_acronym))['acronym']
+    mask = np.isin(ephys_data['allen_acronym'], descendant_acronyms)
+    regions[mask] = custom_region
+ephys_data['region'] = regions
 
 # Calculate percentage modulated neurons 
 per_mouse_df = ephys_data[ephys_data['sert-cre'] == 1].groupby(['region', 'subject']).sum(numeric_only=True)
@@ -44,39 +56,28 @@ ephys_summary['mod_index'] = ephys_data[(ephys_data['sert-cre'] == 1) & (ephys_d
 
 # Drop some regions
 ephys_summary = ephys_summary.reset_index()
-ephys_summary = ephys_summary[~np.isin(ephys_summary['region'], ['AI', 'ZI', 'root', 'BC'])]
+ephys_summary = ephys_summary[~np.isin(ephys_summary['region'], ['root'])]
 
-# Merge for plotting
-plot_data = pd.merge(ephys_summary, proj_summary, on=['region'])
-plot_data['color'] = [colors[i] for i in plot_data['region']]
+# Merge
+plot_data = pd.merge(ephys_summary, glut_df, on=['region'])
+plot_data['color'] = sns.color_palette('Set2')[:3]
 
-# %% Plot
+# %%
+
 fig, axs = plt.subplots(1, 2, figsize=(1.75 * 2, 1.75), dpi=dpi, sharey=True)
 
-r, p = pearsonr(plot_data['mod_index'], plot_data['projection_density'])
-if p < 0.05:
-    slope, intercept = np.polyfit(plot_data['mod_index'], plot_data['projection_density'], 1)
-    x_fit = np.linspace(-0.3, 0.3, 100)
-    y_fit = slope * x_fit + intercept
-    axs[1].plot(x_fit, y_fit, color='k', label='_nolegend_', zorder=0)
 for _, row in plot_data.iterrows():
-    axs[0].scatter(row['mod_index'], row['projection_density'], color=row['color'], s=20, zorder=1)
-axs[0].text(0, 0.079, f'p={np.round(p, 2)}', ha='center', va='center')
-axs[0].set(xlabel='5-HT modulation index', ylabel='Dorsal raphe projection strength',
+    axs[0].scatter(row['mod_index'], row['perc_glut'], color=row['color'], s=20, zorder=1)
+axs[0].set(xlabel='5-HT modulation index', ylabel='vGLUT3 co-expression (%)',
        xlim=[-0.2, 0.2], xticks=[-0.2, -0.1, 0, 0.1, 0.2], xticklabels=[-0.2, -0.1, 0, 0.1, 0.2],
-       ylim=[-0.005, 0.08], yticks=np.arange(0.09, step=0.02))
+       ylim=[0, 80], yticks=np.arange(90, step=20))
 
-r, p = pearsonr(plot_data['perc_mod'], plot_data['projection_density'])
-if p < 0.05:
-    slope, intercept = np.polyfit(plot_data['mod_index'], plot_data['projection_density'], 1)
-    x_fit = np.linspace(-0.3, 0.3, 100)
-    y_fit = slope * x_fit + intercept
-    axs[1].plot(x_fit, y_fit, color='k', label='_nolegend_', zorder=0)
 for _, row in plot_data.iterrows():
-    axs[1].scatter(row['perc_mod'], row['projection_density'], color=row['color'], s=20, zorder=1)
-axs[1].text(25, 0.079, f'p={np.round(p, 2)}', ha='center', va='center')
+    axs[1].scatter(row['perc_mod'], row['perc_glut'], color=row['color'], s=20, zorder=1)
 axs[1].set(xlabel='5-HT modulated neurons (%)',
-       xlim=[10, 40], xticks=[10, 20, 30, 40])
+       xlim=[10, 60], xticks=[10, 20, 30, 40, 50, 60])
+
+axs[1].legend(labels=plot_data['region'], bbox_to_anchor=(1.05, 1.1))
 
 plt.tight_layout()
 sns.despine(trim=True)
