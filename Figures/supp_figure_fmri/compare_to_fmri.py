@@ -11,6 +11,7 @@ import seaborn as sns
 from os.path import join
 import pandas as pd
 from scipy.stats import pearsonr
+from os.path import join, realpath, dirname, split
 from stim_functions import paths, load_subjects, figure_style
 from iblatlas.atlas import BrainRegions
 br = BrainRegions()
@@ -18,7 +19,8 @@ br = BrainRegions()
 MIN_NEURONS_PER_MOUSE = 3
 
 # Get paths
-_, data_path = path_dict = paths()
+f_path, data_path = path_dict = paths()
+fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Load in fmri data
 fmri_data = pd.read_csv(join(data_path, 'Hamada', 'tphskk_blueval.csv'), header=None)
@@ -73,6 +75,10 @@ y_fit = slope * x_fit + intercept
 
 fig, ax = plt.subplots(figsize=(3.1, 2.3), dpi=dpi)
 ax.plot(x_fit, y_fit, color='k', lw=1, label='_nolegend_')
+ax.plot([0, 0], [-0.5, 2], color='grey', lw=1, ls='--', label='_nolegend_',
+        zorder=0)
+ax.plot([-0.4, 0.4], [0, 0], color='grey', lw=1, ls='--', label='_nolegend_',
+        zorder=0)
 ax.errorbar(
     x=plot_data['mod_index_mean'],
     y=plot_data['beta_mean'],
@@ -87,12 +93,13 @@ ax.errorbar(
 )
 for _, row in plot_data.iterrows():
     ax.scatter(row['mod_index_mean'], row['beta_mean'], color=row['color'], s=20, marker='s', zorder=1)
-ax.text(0, 1.85, '**', fontsize=12, ha='center', va='center')
-    
-ax.set(xlabel='Neuron-level modulation',
-       ylabel='BOLD response',
+ax.text(0.2, 1.7, '**', fontsize=12, ha='center', va='center')
+ax.set(xlabel='5-HT modulation Ephys (modulation index)',
+       ylabel='5-HT modulation fMRI (beta value)',
        xlim=[-0.4, 0.3], xticks=[-0.4, -0.2, 0, 0.2, 0.4], xticklabels=[-0.4, -0.2, 0, 0.2, 0.4],
        ylim=[-0.5, 2])
 ax.legend(labels=plot_data.index, bbox_to_anchor=(1.05, 1.1))
 plt.tight_layout()
 sns.despine(trim=True)
+
+plt.savefig(join(fig_path, 'ephys_vs_fmri.pdf'))

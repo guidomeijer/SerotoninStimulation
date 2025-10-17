@@ -5,15 +5,12 @@ Created on Mon Jun 14 15:19:58 2021
 By: Guido Meijer
 """
 
-import json
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import seaborn.objects as so
 import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from scipy.stats import ttest_rel
-from matplotlib.colors import ListedColormap
 from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
