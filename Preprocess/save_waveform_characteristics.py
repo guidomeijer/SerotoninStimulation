@@ -15,7 +15,7 @@ ba = AllenAtlas()
 one = init_one()
 
 # Settings
-OVERWRITE = True
+OVERWRITE = False
 _, save_path = paths()
 
 # Query sessions
@@ -54,6 +54,8 @@ for i in rec.index.values:
     spikes, clusters, channels = sl.load_spike_sorting()
     clusters = sl.merge_clusters(spikes, clusters, channels)
 
+    if len(spikes) == 0:
+        continue
     if 'acronym' not in clusters.keys():
        print(f'No brain regions found for {eid}')
        continue
