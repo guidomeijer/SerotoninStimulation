@@ -6,12 +6,11 @@ By Guido Meijer
 """
 
 import numpy as np
-from os.path import join, isdir, exists
+from os.path import join
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.patches import Rectangle
 import pandas as pd
-from os import mkdir
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.plot import peri_event_time_histogram
 from brainbox.singlecell import calculate_peths
@@ -28,8 +27,7 @@ T_BEFORE = 1  # for plotting
 T_AFTER = 2
 BIN_SIZE = 0.05
 SMOOTHING = 0.025
-PLOT_LATENCY = False
-OVERWRITE = True
+PLOT_LATENCY = True
 _, save_path = paths()
 
 # Load in data
@@ -64,9 +62,6 @@ for i, pid in enumerate(np.unique(all_neurons['pid'])):
         subject = modulated.loc[ind, 'subject']
         date = modulated.loc[ind, 'date']
         neuron_id = modulated.loc[ind, 'neuron_id']
-        if ~OVERWRITE & exists(join(PATH, 'Recordings', f'{subject}_{date}',
-                                    f'{subject}_{date}_{probe}_neuron{neuron_id}_{region}.jpg')):
-            continue
 
         # Plot PSTH
         colors, dpi = figure_style()
@@ -90,17 +85,18 @@ for i, pid in enumerate(np.unique(all_neurons['pid'])):
         # ax.plot([0, 1], [0, 0], lw=2.5, color='royalblue')
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
 
-        if PLOT_LATENCY:
+        if PLOT_LATENCY & ~np.isnan(modulated.loc[ind, 'latenzy']):
+
             peths, _ = calculate_peths(spikes.times, spikes.clusters, [neuron_id],
                                        opto_train_times, T_BEFORE, T_AFTER, BIN_SIZE, SMOOTHING)
             peak_ind = np.argmin(
-                np.abs(peths['tscale'] - modulated.loc[ind, 'latency_peak_onset']))
+                np.abs(peths['tscale'] - modulated.loc[ind, 'latenzy']))
             peak_act = peths['means'][0][peak_ind]
-            ax.plot([modulated.loc[ind, 'latency_peak_onset'], modulated.loc[ind, 'latency_peak_onset']],
+            ax.plot([modulated.loc[ind, 'latenzy'], modulated.loc[ind, 'latenzy']],
                     [peak_act, peak_act], 'xr', lw=2)
 
         plt.tight_layout()
 
         plt.savefig(
-            join(PATH, f'{region}_{subject}_{date}_{probe}_neuron{neuron_id}.jpg'), dpi=600)
+            join(PATH, f'{region}_{subject}_{date}_{probe}_neuron{neuron_id}.jpg'), dpi=300)
         plt.close(p)

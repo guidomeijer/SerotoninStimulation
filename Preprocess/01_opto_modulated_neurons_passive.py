@@ -93,7 +93,7 @@ for i in rec.index.values:
         p_values[n], dZETA, dRate = zetatest(spikes.times[spikes.clusters == neuron_id],
                                              opto_train_times,
                                              tplRestrictRange=(0, 1), dblUseMaxDur=3,
-                                             boolReturnRate=True)
+                                             boolReturnRate=True, boolParallel=False)
 
         # Get modulation onset
         latency_peak[n] = dZETA['vecLatencies'][2]

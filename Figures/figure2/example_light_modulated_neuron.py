@@ -13,7 +13,8 @@ from sklearn.metrics import roc_curve
 from brainbox.population.decode import get_spike_counts_in_bins
 from matplotlib.patches import Rectangle
 from brainbox.io.one import SpikeSortingLoader
-from zetapy import getZeta
+from latenzy import latenzy
+from brainbox.singlecell import calculate_peths
 from brainbox.plot import peri_event_time_histogram
 from stim_functions import paths, remap, load_passive_opto_times, figure_style, init_one
 one = init_one()
@@ -27,8 +28,8 @@ DATE = '2022-02-15'
 PROBE = 'probe00'
 NEURON = 323
 SCALEBAR = 30
-"""
 
+"""
 # Good example CA1
 TITLE = 'Hippocampus (CA1) neuron'
 SUBJECT = 'ZFM-04820'
@@ -44,6 +45,7 @@ PRE_TIME = [1, 0]  # for modulation index
 POST_TIME = [0, 1]
 BIN_SIZE = 0.05
 SMOOTHING = 0.025
+
 
 # Get paths
 f_path, save_path = paths()
@@ -67,15 +69,12 @@ start_passive = opto_train_times[0] - 360
 spikes.clusters = spikes.clusters[spikes.times > start_passive]
 spikes.times = spikes.times[spikes.times > start_passive]
 
-# Calculate ZETA
-p_value, latencies, dZETA, dRate = getZeta(spikes.times[spikes.clusters == NEURON],
-                                           opto_train_times - ZETA_BEFORE,
-                                           intLatencyPeaks=4,
-                                           tplRestrictRange=(0 + ZETA_BEFORE, 1 + ZETA_BEFORE),
-                                           dblUseMaxDur=2 + ZETA_BEFORE,
-                                           boolReturnZETA=True, boolReturnRate=True)
-latency = latencies[3] - ZETA_BEFORE
-dZETA['vecSpikeT'] = dZETA['vecSpikeT'] - ZETA_BEFORE
+# Calculate latency
+latency, _ = latenzy(spikes.times[spikes.clusters == NEURON],
+                     opto_train_times,
+                     [0, 2],
+                     jitter_size=2,
+                     peak_alpha=0.2)
 
 # Get spike counts for baseline and event timewindow
 baseline_times = np.column_stack(((opto_train_times - PRE_TIME[0]), (opto_train_times - PRE_TIME[1])))
@@ -104,7 +103,6 @@ bl_rate = spike_rate[neuron_ids == NEURON, :][0]
 
 print(f'Area under ROC curve: {roc_auc[cluster_ids == NEURON][0]:.2f}')
 print(f'Modulation index: {mod_index[cluster_ids == NEURON][0]:.2f}')
-print(f'ZETA p-value: {p_value}')
 
 # %% Plot PSTH
 colors, dpi = figure_style()
@@ -118,6 +116,14 @@ peri_event_time_histogram(spikes.times, spikes.clusters, opto_train_times,
                           errbar_kwargs={'color': 'black', 'alpha': 0.3, 'lw': 0},
                           raster_kwargs={'color': 'black', 'lw': 0.3},
                           eventline_kwargs={'lw': 0})
+
+peths, _ = calculate_peths(spikes.times, spikes.clusters, [NEURON],
+                           opto_train_times, T_BEFORE, T_AFTER, BIN_SIZE, SMOOTHING)
+peak_ind = np.argmin(
+    np.abs(peths['tscale'] - latency))
+peak_act = peths['means'][0][peak_ind]
+ax.plot([latency, latency], [peak_act, peak_act], marker='x', color='r', lw=2)
+
 ax.plot([-1.05, -1.05], [0, SCALEBAR], color='k', lw=0.75, clip_on=False)
 ax.text(-1.05, SCALEBAR/2, f'{SCALEBAR} sp s$^{-1}$', ha='right', va='center', rotation=90)
 if NEURON == 1039:

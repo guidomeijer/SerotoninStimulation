@@ -41,7 +41,8 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 
 # Only modulated neurons in sert-cre mice
 sert_neurons = all_neurons[(all_neurons['sert-cre'] == 1) & (all_neurons['modulated'] == 1)]
-sert_neurons['latency'] = sert_neurons['latency_peak_onset']
+#sert_neurons['latency'] = sert_neurons['latency_peak_onset']
+sert_neurons['latency'] = sert_neurons['latenzy']
 
 # Get percentage modulated per region
 reg_neurons = sert_neurons.groupby('full_region').median(numeric_only=True)['latency'].to_frame()
@@ -73,14 +74,12 @@ grouped_df = sert_neurons.groupby('full_region').median(
     numeric_only=True).reset_index().reset_index()
 stderr_df = sert_neurons.groupby('full_region_name').sem(
     numeric_only=True).reset_index().reset_index()
-grouped_df['latency_sem'] = stderr_df['latency'] * 1000
+grouped_df['latency_sem'] = stderr_df['latency']
 grouped_df['mod_index_sem'] = stderr_df['mod_index']
 grouped_df['full_region_name'] = stderr_df['full_region_name']
 
-# Convert to ms
-grouped_df['latency'] = grouped_df['latency'] * 1000
-sert_neurons['latency'] = sert_neurons['latency'] * 1000
-
+# Get percentage
+np.sum(~np.isnan(sert_neurons['latency'])) / sert_neurons.shape[0]
 
 # %%
 
@@ -99,9 +98,9 @@ sns.boxplot(x='latency', y='full_region', ax=ax1, data=sert_neurons,
             order=ordered_regions['full_region'],
             fliersize=0, zorder=2, **PROPS)
 sns.stripplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
-              color='k', size=1, ax=ax1)
+              color='k', size=1.5, ax=ax1)
 ax1.set(xlabel='Modulation onset latency (ms)', ylabel='',
-        xticks=np.arange(0, 801, 200), xlim=[-10, 800])
+        xticks=np.arange(0, 1.2, 0.2), xlim=[-0.01, 1])
 # plt.xticks(rotation=90)
 # for i, region in enumerate(ordered_regions['full_region']):
 #    this_lat = ordered_regions.loc[ordered_regions['full_region'] == region, 'latency'].values[0] * 1000
@@ -132,10 +131,10 @@ for i in grouped_df.index:
              grouped_df.loc[i, 'full_region'],
              ha='center', va='center',
              color=grouped_df.loc[i, 'color'], fontsize=6, fontweight='bold')
-ax1.set(yticks=[0, 100, 200], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
-        ylabel='Modulation latency (ms)', xlabel='Modulation index')
+ax1.set(yticks=[0, 0.1, 0.2], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
+        ylabel='Modulation latency (s)', xlabel='Modulation index')
 # ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
-ax1.text(0, 200, '**', fontsize=10, ha='center')
+ax1.text(0, 0.2, '**', fontsize=10, ha='center')
 
 sns.despine(offset=2, trim=True)
 plt.tight_layout()
@@ -157,12 +156,49 @@ ax1.errorbar(grouped_df['mod_index'], grouped_df['latency'],
              fmt='none', ecolor=[0.7, 0.7, 0.7], capsize=2, capthick=1, zorder=0)
 for _, row in grouped_df.iterrows():
     ax1.scatter(row['mod_index'], row['latency'], color=row['color'], s=20, marker='s', zorder=0)
-ax1.text(0, 200, '*', fontsize=12, ha='center')
-    
-ax1.set(yticks=[0, 100, 200], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
-        ylabel='Modulation latency (ms)', xlabel='Modulation index')
+ax1.text(0, 0.2, '*', fontsize=12, ha='center')
+
+ax1.set(yticks=[0, 0.1, 0.2], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
+        ylabel='Modulation latency (s)', xlabel='Modulation index')
 ax1.legend(labels=grouped_df['full_region_name'], bbox_to_anchor=(1.05, 1.1))
 
 sns.despine(trim=True)
 plt.tight_layout()
 plt.savefig(join(fig_path, 'modulation_latency_vs_index_errorbars.pdf'))
+
+# %%
+
+use_neurons = sert_neurons[~np.isnan(sert_neurons['latency'])].copy()
+r, p = pearsonr(use_neurons['mod_index'], use_neurons['latency'])
+
+coeffs = np.polyfit(use_neurons['mod_index'], use_neurons['latency'], 2)
+x_fit = np.linspace(use_neurons['mod_index'].min(), use_neurons['mod_index'].max(), 100)
+y_fit = np.poly1d(coeffs)(x_fit)
+
+f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+ax1.scatter(use_neurons['mod_index'], use_neurons['latency'], color='grey', s=3)
+ax1.plot(x_fit, y_fit, color='tab:red')
+ax1.set(xlabel='Modulation index', ylabel='Modulation latency (s)', xticks=[-1, 0, 1])
+
+plt.tight_layout()
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'modulation_latency_vs_index_latenzy.pdf'))
+
+# %%
+
+use_neurons['mod_index_abs'] = np.abs(use_neurons['mod_index'])
+r, p = pearsonr(use_neurons['mod_index_abs'], use_neurons['latency'])
+
+slope, intercept = np.polyfit(use_neurons['mod_index_abs'], use_neurons['latency'], 1)
+x_fit = np.linspace(use_neurons['mod_index_abs'].min(), use_neurons['mod_index_abs'].max(), 100)
+y_fit = slope * x_fit + intercept
+
+f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
+ax1.scatter(use_neurons['mod_index_abs'], use_neurons['latency'], color='grey', s=3)
+ax1.plot(x_fit, y_fit, color='tab:red')
+ax1.set(xlabel='Modulation index', ylabel='Modulation latency (s)', xticks=[0, 0.5, 1])
+
+plt.tight_layout()
+sns.despine(trim=True)
+plt.savefig(join(fig_path, 'modulation_latency_vs_absindex_latenzy.pdf'))
+
