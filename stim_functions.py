@@ -400,16 +400,16 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=True):
 def high_level_regions(acronyms, merge_cortex=False, only_vis=False, input_atlas='Allen'):
     """
     Maps brain region acronyms to high-level brain regions based on the specified atlas and options.
-    
+
     Parameters:
     -----------
     acronyms : list or array-like
         List of brain region acronyms to be mapped.
     merge_cortex : bool, optional
-        If True, merges specific cortical regions into a single 'Cortex' category. 
+        If True, merges specific cortical regions into a single 'Cortex' category.
         Default is False.
     only_vis : bool, optional
-        If True, maps only visual cortex regions when `merge_cortex` is False. 
+        If True, maps only visual cortex regions when `merge_cortex` is False.
         Default is False.
     input_atlas : str, optional
         Specifies the input atlas to use for remapping. Default is 'Allen'.
@@ -458,12 +458,12 @@ def get_full_region_name(acronyms):
     it is returned as-is. If the input contains only one acronym, the function
     returns a single string; otherwise, it returns a list of full region names.
     Args:
-        acronyms (list of str): A list of brain region acronyms to be converted 
+        acronyms (list of str): A list of brain region acronyms to be converted
                                 into full region names.
     Returns:
-        str or list of str: The full region name corresponding to the acronym if 
-                            the input is a single acronym, or a list of full region 
-                            names if multiple acronyms are provided. If an acronym 
+        str or list of str: The full region name corresponding to the acronym if
+                            the input is a single acronym, or a list of full region
+                            names if multiple acronyms are provided. If an acronym
                             is not found, it is returned unchanged.
     """
 
@@ -503,14 +503,14 @@ def load_passive_opto_times(eid, one=None, freq=25):
     # Load in pulses from disk if already extracted
     _, save_path = paths()
     save_path = join(save_path, 'OptoTimes')
-    if isfile(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy.npy')):
+    if isfile(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy')):
         opto_train_times = np.load(join(save_path, f'{subject}_{date}_pulse_trains_{freq}hz.npy'))
         opto_on_times = np.load(join(save_path, f'{subject}_{date}_ind_pulses_{freq}hz.npy'))
         return opto_train_times, opto_on_times
     else:
         print(f'Extracted opto pulse times not found for {subject} {date}!')
         return [], []
-   
+
 
 def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimside=False, one=None):
     """
@@ -552,9 +552,9 @@ def load_trials(eid, laser_stimulation=False, invert_choice=False, invert_stimsi
         Returns None if no trials are available for the given session.
     Notes:
     ------
-    - If `laser_stimulation` is True and the laser probability dataset is unavailable, 
+    - If `laser_stimulation` is True and the laser probability dataset is unavailable,
       the function estimates the laser probability based on signed contrast and stimulation data.
-    - The `invert_choice` and `invert_stimside` parameters allow for flipping the choice and stimulus 
+    - The `invert_choice` and `invert_stimside` parameters allow for flipping the choice and stimulus
       side values, respectively, for specific experimental conditions.
     """
 
@@ -665,24 +665,24 @@ def load_lfp(eid, probe, time_start, time_end, relative_to='begin', destriped=Fa
         probe (str): Name of the probe to load LFP data for.
         time_start (float): Start time of the LFP slice in seconds.
         time_end (float): End time of the LFP slice in seconds.
-        relative_to (str, optional): Reference point for the time range. 
+        relative_to (str, optional): Reference point for the time range.
             Options are 'begin' (default) or 'end'.
-        destriped (bool, optional): If True, load destriped LFP data. 
+        destriped (bool, optional): If True, load destriped LFP data.
             Defaults to False.
-        one (ONE, optional): Instance of the ONE API for data access. 
+        one (ONE, optional): Instance of the ONE API for data access.
             If None, a new instance is created.
     Returns:
         tuple:
-            - signal (numpy.ndarray): The LFP signal for the specified time range, 
+            - signal (numpy.ndarray): The LFP signal for the specified time range,
               with shape (channels, time).
             - time (numpy.ndarray): Array of time points corresponding to the LFP signal.
     Raises:
         ValueError: If the `relative_to` parameter is not 'begin' or 'end'.
     Notes:
-        - If `destriped` is True, the function attempts to load pre-destriped LFP data 
+        - If `destriped` is True, the function attempts to load pre-destriped LFP data
           from a predefined path.
         - If `destriped` is False, the function downloads the raw LFP data using the ONE API.
-        - The function uses the `spikeglx.Reader` to read the LFP data and extract the 
+        - The function uses the `spikeglx.Reader` to read the LFP data and extract the
           specified time slice.
     """
 
@@ -1003,7 +1003,7 @@ def binned_rate_timewarped(spike_times, spike_clusters, trials_df, start='stimOn
     - Spike times outside the trial interval are excluded from the computation.
     - The bin width is computed as the average width of the bins within each trial.
     """
-    
+
     # Precompute unique neuron IDs and number of neurons
     neuron_ids = np.unique(spike_clusters)
     n_neurons = neuron_ids.shape[0]
@@ -1655,13 +1655,13 @@ def fit_glm(behav, prior_blocks=True, opto_stim=False, folds=3):
 
     # drop trials with contrast-level 50, only rarely present (should not be its own regressor)
     behav = behav[np.abs(behav.signed_contrast) != 50]
-    
+
     # create extra columns for 5-HT and no 5-HT trials
     behav['previous_choice_0'] = behav['previous_choice'] * (1 - behav['laser_stimulation'])
     behav['previous_choice_1'] = behav['previous_choice'] * behav['laser_stimulation']
     behav['prior_0'] = behav['block_id'] * (1 - behav['laser_stimulation'])
     behav['prior_1'] = behav['block_id'] * behav['laser_stimulation']
-    
+
     # Loop through unique contrast values
     for contrast in behav['contrast'].unique():
         behav[f'{int(contrast)}_0'] = np.zeros(behav.shape[0])
@@ -1672,7 +1672,7 @@ def fit_glm(behav, prior_blocks=True, opto_stim=False, folds=3):
         behav.loc[behav['contrast'] == contrast, f'{int(contrast)}_1'] = (
             behav.loc[behav['contrast'] == contrast, 'stim_side']
             * behav['laser_stimulation'])
-    
+
     # drop NaNs
     behav = behav.dropna(subset=['trial_feedback_type', 'choice', 'previous_choice']).reset_index(drop=True)
 
