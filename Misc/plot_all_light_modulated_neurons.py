@@ -14,11 +14,10 @@ import pandas as pd
 from brainbox.io.one import SpikeSortingLoader
 from brainbox.plot import peri_event_time_histogram
 from brainbox.singlecell import calculate_peths
-from stim_functions import paths, load_passive_opto_times, figure_style
-from one.api import ONE
+from stim_functions import paths, load_passive_opto_times, figure_style, init_one
 from iblatlas.atlas import AllenAtlas
 ba = AllenAtlas()
-one = ONE()
+one = init_one()
 
 # Settings
 #PATH = 'C:\\Users\\Guido1\\Figures\\5-HT\\SingleNeurons'

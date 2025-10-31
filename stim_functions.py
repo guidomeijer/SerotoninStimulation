@@ -149,8 +149,6 @@ def figure_style():
               'grey': [0.7, 0.7, 0.7],
               'sert': sns.color_palette('Dark2')[0],
               'wt': [0.6, 0.6, 0.6],
-              'awake': sns.color_palette('Dark2')[2],
-              'anesthesia': sns.color_palette('Dark2')[3],
               'enhanced': sns.color_palette('colorblind')[3],
               'suppressed': sns.color_palette('colorblind')[0],
               'stim': 'dodgerblue',
@@ -159,14 +157,7 @@ def figure_style():
               'WS': sns.color_palette('Set2')[1],
               'WS1': sns.color_palette('Set2')[1],
               'WS2': sns.color_palette('Set2')[2],
-              'main_states': sns.diverging_palette(20, 210, l=55, center='dark'),
-              'Frontal cortex': frontal,
-              'Sensory cortex': sensory,
-              'Midbrain': midbrain,
-              'Amygadala': amygdala,
-              'Thalamus': thalamus,
-              'Hippocampus': hipp,
-              'Striatum': striatum,
+
               'OFC': sns.color_palette('Set1')[7],
               'mPFC': sns.color_palette('Dark2')[1],
               'M2': sns.color_palette('Dark2')[2],
@@ -177,26 +168,23 @@ def figure_style():
               'SC': sns.color_palette('Dark2')[7],
               'Thal.': sns.color_palette('tab10')[9],
               'PAG': sns.color_palette('Dark2')[0],
-              'BC': sns.color_palette('Accent')[0],
               'Str.': sns.color_palette('Accent')[1],
               'MRN': sns.color_palette('Accent')[2],
               'OLF': sns.color_palette('tab10')[8],
-              'Orbitofrontal cortex': sns.color_palette('Dark2')[0],
+              'RSP': 'r',
+              'Orbitofrontal cortex': sns.color_palette('Set1')[7],
               'Medial prefrontal cortex': sns.color_palette('Dark2')[1],
               'Secondary motor cortex': sns.color_palette('Dark2')[2],
-              'Amygdala': sns.color_palette('Dark2')[3],
+              'Amygdala': sns.color_palette('Dark2')[6],
+              'Hippocampus': sns.color_palette('Dark2')[3],
               'Visual cortex': sns.color_palette('Dark2')[5],
-              'Piriform': sns.color_palette('Dark2')[6],
+              'Piriform cortex': sns.color_palette('Dark2')[4],
               'Superior colliculus': sns.color_palette('Dark2')[7],
-              'Periaqueductal gray': sns.color_palette('Set1')[7],
-              'Barrel cortex': sns.color_palette('Set2')[0],
-              'Tail of the striatum': sns.color_palette('Set2')[1],
-              'Midbrain reticular nucleus': sns.color_palette('Accent')[2],
+              'Thalamus': sns.color_palette('tab10')[9],
+              'Periaqueductal gray': sns.color_palette('Dark2')[0],
+              'Striatum': sns.color_palette('Accent')[1],
               'Olfactory areas': sns.color_palette('tab10')[8],
-              'Substantia nigra': [0.75, 0.75, 0.75],
               'Retrosplenial cortex': 'r',
-              'RSP': 'r',
-              'SNr': [0.75, 0.75, 0.75],
               'left-stim': sns.color_palette('Paired')[7],
               'left-no-stim': sns.color_palette('Paired')[6],
               'right-stim': sns.color_palette('Paired')[9],
@@ -356,14 +344,14 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=True):
             regions[np.in1d(acronyms, ['PO', 'LP', 'LD', 'RT', 'VAL'])] = 'Thal.'
         regions[np.in1d(acronyms, ['SCm', 'SCs', 'SCig', 'SCsg', 'SCdg'])] = 'SC'
         regions[np.in1d(acronyms, ['RSPv', 'RSPd'])] = 'RSP'
-        regions[np.in1d(acronyms, ['ZI'])] = 'ZI'
+        # regions[np.in1d(acronyms, ['ZI'])] = 'ZI'
         regions[np.in1d(acronyms, ['PAG'])] = 'PAG'
-        regions[np.in1d(acronyms, ['SSp-bfd'])] = 'BC'
+        # regions[np.in1d(acronyms, ['SSp-bfd'])] = 'BC'
         # regions[np.in1d(acronyms, ['LGv', 'LGd'])] = 'LG'
         regions[np.in1d(acronyms, ['PIR'])] = 'Pir.'
         # regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'SN'
         regions[np.in1d(acronyms, ['VISa', 'VISam', 'VISp', 'VISpm'])] = 'VIS'
-        regions[np.in1d(acronyms, ['AId', 'AIv', 'AIp'])] = 'AI'
+        # regions[np.in1d(acronyms, ['AId', 'AIv', 'AIp'])] = 'AI'
         regions[np.in1d(acronyms, ['MEA', 'CEA', 'BLA', 'COAa'])] = 'Amyg.'
         regions[np.in1d(acronyms, ['AON', 'TTd', 'DP'])] = 'OLF'
         regions[np.in1d(acronyms, ['CP', 'STR', 'STRd', 'STRv'])] = 'Str.'
@@ -383,12 +371,12 @@ def combine_regions(acronyms, split_thalamus=False, abbreviate=True):
         regions[np.in1d(acronyms, ['SCm', 'SCs', 'SCig', 'SCsg', 'SCdg'])] = 'Superior colliculus'
         regions[np.in1d(acronyms, ['RSPv', 'RSPd'])] = 'Retrosplenial cortex'
         regions[np.in1d(acronyms, ['AON', 'TTd', 'DP'])] = 'Olfactory areas'
-        regions[np.in1d(acronyms, ['ZI'])] = 'Zona incerta'
+        # regions[np.in1d(acronyms, ['ZI'])] = 'Zona incerta'
         regions[np.in1d(acronyms, ['PAG'])] = 'Periaqueductal gray'
-        regions[np.in1d(acronyms, ['AId', 'AIv', 'AIp'])] = 'Insular cortex'
-        regions[np.in1d(acronyms, ['SSp-bfd'])] = 'Barrel cortex'
+        # regions[np.in1d(acronyms, ['AId', 'AIv', 'AIp'])] = 'Insular cortex'
+        # regions[np.in1d(acronyms, ['SSp-bfd'])] = 'Barrel cortex'
         # regions[np.in1d(acronyms, ['LGv', 'LGd'])] = 'Lateral geniculate'
-        regions[np.in1d(acronyms, ['PIR'])] = 'Piriform'
+        regions[np.in1d(acronyms, ['PIR'])] = 'Piriform cortex'
         # regions[np.in1d(acronyms, ['SNr', 'SNc', 'SNl'])] = 'Substantia nigra'
         regions[np.in1d(acronyms, ['VISa', 'VISam', 'VISp', 'VISpm'])] = 'Visual cortex'
         regions[np.in1d(acronyms, ['MEA', 'CEA', 'BLA', 'COAa'])] = 'Amygdala'

@@ -32,7 +32,7 @@ light_neurons['cortical_layer'] = light_neurons['cortical_layer'].replace({
     '3': '2/3', 'a': '6', 'b': '6'})
 
 # Drop layer 1 and 4
-#light_neurons = light_neurons[((light_neurons['cortical_layer'] != '1') 
+#light_neurons = light_neurons[((light_neurons['cortical_layer'] != '1')
 #                               & (light_neurons['cortical_layer'] != '4'))]
 
 
@@ -52,11 +52,11 @@ f, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(7, 1.75), dpi=dpi)
 
 n_neurons_df = light_neurons.groupby('cortical_layer').size()
 ax1.bar(np.arange(n_neurons_df.shape[0]), n_neurons_df, color='grey')
-ax1.set(xticks=np.arange(n_neurons_df.shape[0]), xticklabels=n_neurons_df.index, 
+ax1.set(xticks=np.arange(n_neurons_df.shape[0]), xticklabels=n_neurons_df.index,
         xlabel='Cortical layer', ylabel='Number of recorded neurons')
 
 
-sns.barplot(data=summary_df, x='cortical_layer', y='perc_mod', ax=ax2, 
+sns.barplot(data=summary_df, x='cortical_layer', y='perc_mod', ax=ax2,
             order=['2/3', '5', '6'], errorbar='se', color='grey')
 ax2.set(xlabel='Cortical layer', ylim=[0, 0.3], yticks=[0, 0.15, 0.3], ylabel='Modulated neurons (%)',
         yticklabels=[0, 15, 30])
@@ -75,15 +75,14 @@ ax3.set(ylabel='Cortical layer', xlim=[-0.75, 0.75], xticks=[-0.75, 0, 0.75],
         xticklabels=[-0.75, 0, 0.75])
 ax3.set_xlabel('Modulation index', labelpad=1)
 
-light_neurons['latency'] = light_neurons['latency_peak_onset'] * 1000
-sns.stripplot(data=light_neurons[light_neurons['modulated']], y='cortical_layer', x='latency',
+sns.stripplot(data=light_neurons[light_neurons['modulated']], y='cortical_layer', x='latenzy',
               order=['2/3', '5', '6'], size=2, zorder=1, ax=ax4, color='grey')
-sns.boxplot(x='latency', y='cortical_layer', ax=ax4, data=light_neurons[light_neurons['modulated']],
+sns.boxplot(x='latenzy', y='cortical_layer', ax=ax4, data=light_neurons[light_neurons['modulated']],
             showmeans=True, order=['2/3', '5', '6'],
             meanprops={"marker": "|", "markeredgecolor": "red", "markersize": "8"},
             fliersize=0, zorder=2, **props)
-ax4.set(ylabel='Cortical layer')
-ax4.set_xlabel('Modulation onset latency (ms)', labelpad=1)
+ax4.set(ylabel='Cortical layer', xticks=[0, 0.5, 1], xticklabels=[0, 0.5, 1])
+ax4.set_xlabel('Modulation onset latency (s)', labelpad=1)
 
 sns.despine(trim=True)
 plt.tight_layout(w_pad=2)

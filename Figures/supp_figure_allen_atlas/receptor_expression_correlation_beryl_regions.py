@@ -23,7 +23,7 @@ fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 # Load in expression
 expr_df = pd.read_csv(join(data_path, 'receptor_expression.csv'))
 expr_df = expr_df[~np.isin(expr_df['acronym'], ['MMme', 'CUL4, 5', 'CUL4, 5gr', 'CUL4, 5mo'])]
-expr_df['region'] = combine_regions(remap(expr_df['acronym']))
+expr_df['region'] = remap(expr_df['acronym'])
 
 # Get expression value per region per receptor
 expression_mean = expr_df[['region', 'receptor', 'expression_energy']].groupby(
@@ -31,7 +31,7 @@ expression_mean = expr_df[['region', 'receptor', 'expression_energy']].groupby(
 
 # Load in neural data
 ephys_data = pd.read_csv(join(data_path, 'light_modulated_neurons.csv'))
-ephys_data['region'] = combine_regions(ephys_data['region'])
+#ephys_data['region'] = combine_regions(ephys_data['region'])
 subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     ephys_data.loc[ephys_data['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
@@ -54,6 +54,7 @@ ephys_summary = ephys_summary[~np.isin(ephys_summary['region'], ['AI', 'ZI', 'ro
 # %% Plot
 colors, dpi = figure_style()
 
+"""
 # htr1a
 plot_data = pd.merge(ephys_summary, expression_mean[expression_mean['receptor'] == '5-HT1a'], on=['region'])
 plot_data['color'] = [colors[i] for i in plot_data['region']]
@@ -76,6 +77,7 @@ plt.tight_layout()
 sns.despine(trim=True)
 
 plt.savefig(join(fig_path, 'legend.pdf'))
+"""
 
 # %% receptors
 
@@ -84,13 +86,12 @@ for receptor in np.unique(expression_mean['receptor']):
     plot_data = pd.merge(ephys_summary,
                          expression_mean[expression_mean['receptor'] == receptor],
                          on=['region'])
-    plot_data['color'] = [colors[i] for i in plot_data['region']]
+    #plot_data['color'] = [colors[i] for i in plot_data['region']]
 
     fig, axs = plt.subplots(1, 3, figsize=(1.5 * 3, 1.5), dpi=dpi, sharey=True)
 
     r, p = pearsonr(plot_data['mod_index'], plot_data['expression_energy'])
-    for _, row in plot_data.iterrows():
-        axs[0].scatter(row['mod_index'], row['expression_energy'], color=row['color'], s=20, zorder=1)
+    axs[0].scatter(plot_data['mod_index'], plot_data['expression_energy'], s=15, zorder=1)
     y_max = axs[0].get_ylim()[1]
     if y_max < 0.1:
         use_max = math.ceil(y_max * 10**2) / 10**2
@@ -134,8 +135,7 @@ for receptor in np.unique(expression_mean['receptor']):
             axs[1].text(25, y_max*0.9, '**', fontsize=12, ha='center', va='center')
         else:
             axs[1].text(25, y_max*0.9, '*', fontsize=12, ha='center', va='center')
-    for _, row in plot_data.iterrows():
-        axs[1].scatter(row['perc_mod'], row['expression_energy'], color=row['color'], s=20, zorder=1)
+    axs[1].scatter(plot_data['perc_mod'], plot_data['expression_energy'], s=15, zorder=1)
     axs[1].set(xlabel='Modulated neurons (%)',
            xlim=[10, 40], xticks=[10, 20, 30, 40])
 
@@ -151,13 +151,12 @@ for receptor in np.unique(expression_mean['receptor']):
             axs[2].text(0.45, y_max*0.9, '**', fontsize=12, ha='center', va='center')
         else:
             axs[2].text(0.45, y_max*0.9, '*', fontsize=12, ha='center', va='center')
-    for _, row in plot_data.iterrows():
-        axs[2].scatter(row['latency'], row['expression_energy'], color=row['color'], s=20, zorder=1)
+    axs[2].scatter(plot_data['latency'], plot_data['expression_energy'], s=15, zorder=1)
     axs[2].set(xlabel='Modulation latency (s)',
                xticks=[0.3, 0.4, 0.5, 0.6])
 
     plt.tight_layout()
     sns.despine(trim=True)
 
-    plt.savefig(join(fig_path, f'{receptor}_receptor.pdf'))
+    #plt.savefig(join(fig_path, f'{receptor}_receptor.pdf'))
 

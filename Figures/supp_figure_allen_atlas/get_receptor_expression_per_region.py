@@ -52,24 +52,36 @@ def get_expression_by_region(gene_acronym='Htr1a'):
     # 2. Find a relevant SectionDataSet (ISH experiment)
     # We look for a coronal ISH experiment (product_id=1) for our gene.
     # We also filter for 'failed$eqfalse' to get valid experiments.
-    try:
-        # Product ID 1 is the Mouse Brain Atlas ISH dataset
-        experiment_data = api.model_query(
-            'SectionDataSet',
-            criteria=f"[failed$eqfalse],products[id$eq1],genes[id$eq{gene_id}]"
-        )
-    except Exception as e:
-        print(f"Error querying for experiment: {e}")
-        return None
+    if gene_acronym == 'Htr2c':
+        experiment_id = 73636098
+    elif gene_acronym == 'Htr1b':
+        experiment_id = 583
+    elif gene_acronym == 'Htr1a':
+        experiment_id = 79556616
+    elif gene_acronym == 'Htr2a':
+        experiment_id = 81671344
+    elif gene_acronym == 'Htr1f':
+        experiment_id = 69859867
+    else:
 
-    if not experiment_data:
-        print(f"Error: No valid ISH experiment found for gene ID {gene_id}.")
-        return None
+        try:
+            # Product ID 1 is the Mouse Brain Atlas ISH dataset
+            experiment_data = api.model_query(
+                'SectionDataSet',
+                criteria=f"[failed$eqfalse],products[id$eq1],genes[id$eq{gene_id}]"
+            )
+        except Exception as e:
+            print(f"Error querying for experiment: {e}")
+            return None
 
-    # We'll just use the first experiment found
-    # You could add logic here to select a specific experiment (e.g., sagittal)
-    experiment_id = experiment_data[0]['id']
-    print(f"Found Experiment (SectionDataSet ID): {experiment_id}")
+        if not experiment_data:
+            print(f"Error: No valid ISH experiment found for gene ID {gene_id}.")
+            return None
+
+        # We'll just use the first experiment found
+        # You could add logic here to select a specific experiment (e.g., sagittal)
+        experiment_id = experiment_data[0]['id']
+        print(f"Found Experiment (SectionDataSet ID): {experiment_id}")
 
     # 3. Get StructureTree to map structure IDs to names/acronyms
     # We get all structures from the Allen Mouse Brain Reference Atlas (graph_id 1)

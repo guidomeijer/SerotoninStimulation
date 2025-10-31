@@ -43,6 +43,7 @@ for i, nickname in enumerate(np.unique(subjects['subject'])):
 sert_neurons = all_neurons[(all_neurons['sert-cre'] == 1) & (all_neurons['modulated'] == 1)]
 #sert_neurons['latency'] = sert_neurons['latency_peak_onset']
 sert_neurons['latency'] = sert_neurons['latenzy']
+print(np.sum(~np.isnan(sert_neurons['latency'])) / sert_neurons.shape[0])
 
 # Get percentage modulated per region
 reg_neurons = sert_neurons.groupby('full_region').median(numeric_only=True)['latency'].to_frame()
@@ -99,8 +100,8 @@ sns.boxplot(x='latency', y='full_region', ax=ax1, data=sert_neurons,
             fliersize=0, zorder=2, **PROPS)
 sns.stripplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
               color='k', size=1.5, ax=ax1)
-ax1.set(xlabel='Modulation onset latency (ms)', ylabel='',
-        xticks=np.arange(0, 1.2, 0.2), xlim=[-0.01, 1])
+ax1.set(xlabel='Modulation onset latency (s)', ylabel='',
+        xticks=np.arange(0, 1.2, 0.2), xticklabels=[0, 0.2, 0.4, 0.6, 0.8, 1], xlim=[-0.01, 1])
 # plt.xticks(rotation=90)
 # for i, region in enumerate(ordered_regions['full_region']):
 #    this_lat = ordered_regions.loc[ordered_regions['full_region'] == region, 'latency'].values[0] * 1000
@@ -196,7 +197,10 @@ y_fit = slope * x_fit + intercept
 f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
 ax1.scatter(use_neurons['mod_index_abs'], use_neurons['latency'], color='grey', s=3)
 ax1.plot(x_fit, y_fit, color='tab:red')
-ax1.set(xlabel='Modulation index', ylabel='Modulation latency (s)', xticks=[0, 0.5, 1])
+ax1.text(0.5, 0.9, '***', fontsize=12, ha='center')
+ax1.set(xlabel='Abs. modulation index', ylabel='Modulation latency (s)',
+        xticks=[0, 0.5, 1], xticklabels=[0, 0.5, 1],
+        yticks=[0, 0.2, 0.4, 0.6, 0.8, 1], yticklabels=[0, 0.2, 0.4, 0.6, 0.8, 1])
 
 plt.tight_layout()
 sns.despine(trim=True)

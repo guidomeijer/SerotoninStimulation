@@ -2,7 +2,7 @@
 """
 Created on Fri Oct 17 12:22:34 2025
 
-By Gemini Pro 
+By Gemini Pro
 """
 
 # Import necessary libraries from the AllenSDK and others
@@ -20,35 +20,6 @@ if not os.path.exists(cache_dir):
 mcc = MouseConnectivityCache(manifest_file=os.path.join(cache_dir, 'mouse_connectivity_manifest.json'),
                              cache=True)
 
-# --- Step 1: Get the structure tree and find the Dorsal Raphe Nucleus ---
-
-# The structure tree contains information about all brain regions,
-# including their names, acronyms, and IDs.
-structure_tree = mcc.get_structure_tree()
-
-# We can find the Dorsal Raphe Nucleus by its name.
-# This returns a list of matching structures; we'll take the first one.
-dr_structures = structure_tree.get_structures_by_name(['Dorsal nucleus raphe'])
-if not dr_structures:
-    raise ValueError("Could not find 'Dorsal raphe nucleus' in the structure tree.")
-dr_structure = dr_structures[0]
-dr_id = dr_structure['id']
-
-print(f"Found Dorsal Raphe Nucleus (DR) with ID: {dr_id}\n")
-
-
-# --- Step 2: Find experiments with injections in the Dorsal Raphe Nucleus ---
-
-# We search for all experiments where the injection was primarily in the DR.
-experiments = mcc.get_experiments(injection_structure_ids=[dr_id])
-experiment_ids = [exp['id'] for exp in experiments]
-
-print(f"Found {len(experiment_ids)} experiments with injections in the DR.")
-print(f"Experiment IDs: {experiment_ids}\n")
-
-if not experiment_ids:
-    print("No experiments found for the Dorsal Raphe Nucleus. Exiting.")
-    exit()
 
 # --- Step 3: Get projection data for these experiments ---
 
@@ -56,9 +27,11 @@ if not experiment_ids:
 # This method calculates the volume and density of projections to various target structures.
 # This can take some time as it may need to download data for each experiment.
 print("Fetching projection data... (This may take a while)")
-unionizes_df = mcc.get_structure_unionizes(experiment_ids=experiment_ids)
+unionizes_df = mcc.get_structure_unionizes(experiment_ids=[480074702, 114155190, 128055110])
 print("Projection data fetched successfully.\n")
 
+# Exclude injection site itself
+unionizes_df = unionizes_df[~unionizes_df['is_injection']]
 
 # --- Step 4: Process and aggregate the projection data ---
 
@@ -71,6 +44,7 @@ aggregated_projections = unionizes_df.groupby('structure_id')['projection_densit
 
 # The structure tree allows us to map the structure IDs back to their names.
 # We'll create a mapping from ID to name.
+structure_tree = mcc.get_structure_tree()
 structure_names = structure_tree.get_structures_by_id(aggregated_projections['structure_id'])
 id_to_name_map = {st['id']: st['name'] for st in structure_names}
 id_to_acronym_map = {st['id']: st['acronym'] for st in structure_names}
@@ -88,7 +62,7 @@ sorted_projections = aggregated_projections.sort_values(by='projection_density',
 final_df = sorted_projections[['structure_id', 'allen_acronym', 'region_name', 'projection_density']]
 
 # Save the results to a CSV file.
-output_filename = r'C:\Users\Guido1\Repositories\SerotoninStimulation\Data\dr_projection_strength.csv'
+output_filename = r'C:\Users\guido\Repositories\SerotoninStimulation\Data\dr_projection_strength.csv'
 final_df.to_csv(output_filename, index=False)
 
 print(f"Analysis complete. Results saved to '{output_filename}'")
