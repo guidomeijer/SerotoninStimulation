@@ -50,10 +50,15 @@ print(f'Modulation index: p = {p:.2f}')
 _, p = ttest_rel(per_mouse_df['NS'], per_mouse_df['WS'])
 print(f'Percentage: p = {p:.2f}')
 
+latency_df = merged_df[~np.isnan(merged_df['latenzy'])]
+_, p = ttest_ind(latency_df.loc[(latency_df['type'] == 'WS'), 'latenzy'],
+                 latency_df.loc[(latency_df['type'] == 'NS'), 'latenzy'])
+print(f'Latency: p = {p:.2f}')
+
 # %%
 colors, dpi = figure_style()
 
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(1.75*2, 1.75), dpi=dpi)
+f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(4.2, 1.75), dpi=dpi)
 
 for i in per_mouse_df.index:
     ax1.plot([0, 1], [per_mouse_df.loc[i, 'NS'], per_mouse_df.loc[i, 'WS']], color='k', marker='o',
@@ -68,8 +73,14 @@ ax2.set(ylabel='Modulation index', xticklabels=['Narrow\nspiking', 'Wide\nspikin
         xlabel='', yticks=[-1, -0.5, 0, 0.5, 1], ylim=[-1, 1])
 ax2.text(0.5, 1, 'n.s.', ha='center', va='center', fontsize=7)
 
+sns.violinplot(data=latency_df, x='type', y='latenzy', ax=ax3,
+               palette=[colors['NS'], colors['WS']], linewidth=0.5)
+ax3.set(ylabel='Latency (s)', xticklabels=['Narrow\nspiking', 'Wide\nspiking'],
+        xlabel='', yticks=[0, 0.5, 1], yticklabels=[0, 0.5, 1], ylim=[0, 1])
+ax3.text(0.5, 1, '**', ha='center', va='center', fontsize=12)
 
 sns.despine(trim=True)
-plt.tight_layout(w_pad=3)
+plt.tight_layout(w_pad=2)
 plt.savefig(join(fig_path, 'neuron_type_modulation.pdf'))
+
 
