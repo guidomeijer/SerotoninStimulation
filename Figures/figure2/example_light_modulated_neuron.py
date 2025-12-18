@@ -20,6 +20,26 @@ from stim_functions import paths, remap, load_passive_opto_times, figure_style, 
 one = init_one()
 
 # Settings
+
+"""
+# slow visual
+TITLE = 'Thalamus (RT) neuron'
+SUBJECT = 'ZFM-02601'
+DATE = '2021-11-16'
+PROBE = 'probe01'
+NEURON = 426
+SCALEBAR = 30
+PLOT_LATENCY = True
+"""
+
+# fast amygdala
+TITLE = 'Amygdala (BLA) neuron'
+SUBJECT = 'ZFM-04820'
+DATE = '2022-09-13'
+PROBE = 'probe01'
+NEURON = 1500
+SCALEBAR = 10
+PLOT_LATENCY = True
 """
 # frontal cortex enhancement
 TITLE = 'Frontal cortex (PL) neuron'
@@ -28,8 +48,8 @@ DATE = '2022-02-15'
 PROBE = 'probe00'
 NEURON = 323
 SCALEBAR = 30
+PLOT_LATENCY = False
 
-"""
 # Good example CA1
 TITLE = 'Hippocampus (CA1) neuron'
 SUBJECT = 'ZFM-04820'
@@ -37,6 +57,8 @@ DATE = '2022-09-15'
 PROBE = 'probe00'
 NEURON = 1039
 SCALEBAR = 10
+PLOT_LATENCY = False
+"""
 
 T_BEFORE = 1  # for plotting
 T_AFTER = 2
@@ -72,9 +94,9 @@ spikes.times = spikes.times[spikes.times > start_passive]
 # Calculate latency
 latency, _ = latenzy(spikes.times[spikes.clusters == NEURON],
                      opto_train_times,
-                     [0, 2],
+                     1.2,
                      jitter_size=2,
-                     peak_alpha=0.2)
+                     peak_alpha=0.05)
 
 # Get spike counts for baseline and event timewindow
 baseline_times = np.column_stack(((opto_train_times - PRE_TIME[0]), (opto_train_times - PRE_TIME[1])))
@@ -106,7 +128,7 @@ print(f'Modulation index: {mod_index[cluster_ids == NEURON][0]:.2f}')
 
 # %% Plot PSTH
 colors, dpi = figure_style()
-p, ax = plt.subplots(1, 1, figsize=(1.25, 2), dpi=dpi)
+p, ax = plt.subplots(1, 1, figsize=(1.1, 2), dpi=dpi)
 ax.add_patch(Rectangle((0, 0), 1, 100, color='royalblue', alpha=0.25, lw=0))
 ax.add_patch(Rectangle((0, 0), 1, -100, color='royalblue', alpha=0.25, lw=0))
 peri_event_time_histogram(spikes.times, spikes.clusters, opto_train_times,
@@ -122,7 +144,13 @@ peths, _ = calculate_peths(spikes.times, spikes.clusters, [NEURON],
 peak_ind = np.argmin(
     np.abs(peths['tscale'] - latency))
 peak_act = peths['means'][0][peak_ind]
+
 ax.plot([latency, latency], [peak_act, peak_act], marker='x', color='r', lw=2)
+if PLOT_LATENCY:
+    if latency < 0.5:
+        ax.text(latency+0.12, peak_act, f'{int(latency*1000)} ms', color='r', va='center')
+    else:
+        ax.text(latency-1.4, peak_act+4, f'{int(latency*1000)} ms', color='r', va='center')
 
 ax.plot([-1.05, -1.05], [0, SCALEBAR], color='k', lw=0.75, clip_on=False)
 ax.text(-1.05, SCALEBAR/2, f'{SCALEBAR} sp s$^{-1}$', ha='right', va='center', rotation=90)

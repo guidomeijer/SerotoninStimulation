@@ -21,11 +21,11 @@ ba = AllenAtlas(res_um=25)
 colors, dpi = figure_style()
 
 # Settings
-TARGET_VARIABLE = 'latency'
+MIN_MOD_NEURONS = 3
+MIN_NEURONS = 10
 #TARGET_VARIABLE = 'perc_mod'
-#TARGET_VARIABLE = 'mod_index'
-MIN_MOD_NEURONS = {'perc_mod': 0, 'mod_index': 15, 'latency': 15}
-MIN_NEURONS = {'perc_mod': 5, 'mod_index': 0, 'latency': 0}
+TARGET_VARIABLE = 'mod_index'
+NEURON_TYPE = 'WS'
 INCL_RECEPTORS = ['5-HT1a', '5-HT1b', '5-HT2a', '5-HT2c', '5-HT3a', '5-HT5a']
 
 # Paths
@@ -41,7 +41,6 @@ expr_df = expr_df[np.isin(expr_df['receptor'], INCL_RECEPTORS)]
 expression_mean = expr_df[['region', 'receptor', 'expression_energy']].groupby(
     ['region', 'receptor']).median().reset_index()
 
-
 # load structure and expression data set
 proj_df = pd.read_csv(join(data_path, 'dr_projection_strength.csv'))
 proj_df = proj_df[~np.isin(proj_df['allen_acronym'], ['MMd', 'MMme', 'MMl', 'MMm', 'MMp', 'CUL4, 5'])]
@@ -56,6 +55,11 @@ subjects = load_subjects()
 for i, nickname in enumerate(np.unique(subjects['subject'])):
     ephys_data.loc[ephys_data['subject'] == nickname, 'sert-cre'] = subjects.loc[subjects['subject'] == nickname, 'sert-cre'].values[0]
 
+# Load in neuron type
+type_df = pd.read_csv(join(data_path, 'neuron_type.csv'))
+ephys_data = pd.merge(ephys_data, type_df, on=['subject', 'pid', 'eid', 'probe', 'neuron_id'])
+ephys_data = ephys_data[ephys_data['type'] == NEURON_TYPE]
+
 # Calculate percentage modulated neurons
 per_mouse_df = ephys_data[ephys_data['sert-cre'] == 1].groupby(['region', 'subject']).sum(numeric_only=True)
 per_mouse_df['n_neurons'] = ephys_data[ephys_data['sert-cre'] == 1].groupby(['region', 'subject']).size()
@@ -64,10 +68,8 @@ per_mouse_df = per_mouse_df.reset_index()
 ephys_summary = per_mouse_df[['region', 'perc_mod']].groupby('region').mean()
 
 # Calculate summary per neuron
-ephys_summary[['mod_index']] = ephys_data[(ephys_data['sert-cre'] == 1) & (ephys_data['modulated'] == 1)][[
-    'region', 'mod_index']].groupby('region').mean()[['mod_index']]
-ephys_summary[['latenzy']] = ephys_data[(ephys_data['sert-cre'] == 1) & (ephys_data['modulated'] == 1)][[
-    'region', 'latenzy']].groupby('region').mean()[['latenzy']]
+ephys_summary[['mod_index', 'latenzy']] = ephys_data[(ephys_data['sert-cre'] == 1) & (ephys_data['modulated'] == 1)][[
+    'region', 'mod_index', 'latenzy']].groupby('region').mean()[['mod_index', 'latenzy']]
 ephys_summary = ephys_summary.rename(columns={'latenzy': 'latency'})
 
 # Add number of neurons
@@ -77,8 +79,8 @@ ephys_summary['modulated'] = ephys_data[(ephys_data['sert-cre'] == 1) & (ephys_d
     'region').size()
 
 # Drop regions with too few neurons
-ephys_summary = ephys_summary[ephys_summary['n_neurons'] >= MIN_NEURONS[TARGET_VARIABLE]]
-ephys_summary = ephys_summary[ephys_summary['modulated'] >= MIN_MOD_NEURONS[TARGET_VARIABLE]]
+ephys_summary = ephys_summary[ephys_summary['n_neurons'] >= MIN_NEURONS]
+ephys_summary = ephys_summary[ephys_summary['modulated'] >= MIN_MOD_NEURONS]
 
 # Drop some regions
 ephys_summary = ephys_summary.reset_index()
@@ -293,7 +295,7 @@ else:
             if plot_df['pvalue'].iloc[i] < 0.05:
                 # Place star slightly to the right of the upper CI
                 plot_star_x = plot_df['ci_high'].iloc[i] + 0.02
-                plt.text(star_x, y_pos[i] - 0.25, '*',
+                plt.text(star_x, y_pos[i] - 0.5, '*',
                          horizontalalignment='center', verticalalignment='center',
                          fontweight='bold', color='k', fontsize=14)
 
@@ -303,4 +305,4 @@ else:
 
         sns.despine(trim=True)
         plt.tight_layout()
-        plt.savefig(join(fig_path, f'GLM_{TARGET_VARIABLE}.pdf'))
+        plt.savefig(join(fig_path, f'GLM_{TARGET_VARIABLE}_{NEURON_TYPE}.pdf'))

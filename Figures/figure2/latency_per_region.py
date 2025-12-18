@@ -16,7 +16,7 @@ from matplotlib.colors import ListedColormap
 from stim_functions import paths, figure_style, load_subjects, combine_regions
 
 # Settings
-MIN_NEURONS = 15
+MIN_NEURONS = 5
 
 # Get paths
 f_path, save_path = paths()
@@ -79,8 +79,6 @@ grouped_df['latency_sem'] = stderr_df['latency']
 grouped_df['mod_index_sem'] = stderr_df['mod_index']
 grouped_df['full_region_name'] = stderr_df['full_region_name']
 
-# Get percentage
-np.sum(~np.isnan(sert_neurons['latency'])) / sert_neurons.shape[0]
 
 # %%
 
@@ -89,83 +87,17 @@ PROPS = {'boxprops': {'facecolor': 'none', 'edgecolor': 'none'}, 'medianprops': 
 
 colors, dpi = figure_style()
 f, ax1 = plt.subplots(1, 1, figsize=(1.6, 2), dpi=dpi)
-# sns.pointplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
-#              join=False, ci=68, color=colors['general'], ax=ax1)
-# sns.boxplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
-#            color=colors['general'], fliersize=0, linewidth=0.75, ax=ax1)
-#sns.violinplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
-#               color=colors['grey'], linewidth=0, ax=ax1)
 sns.boxplot(x='latency', y='full_region', ax=ax1, data=sert_neurons,
             order=ordered_regions['full_region'],
             fliersize=0, zorder=2, **PROPS)
 sns.stripplot(x='latency', y='full_region', data=sert_neurons, order=ordered_regions['full_region'],
               color='k', size=1.5, ax=ax1)
 ax1.set(xlabel='Modulation onset latency (s)', ylabel='',
-        xticks=np.arange(0, 1.2, 0.2), xticklabels=[0, 0.2, 0.4, 0.6, 0.8, 1], xlim=[-0.01, 1])
-# plt.xticks(rotation=90)
-# for i, region in enumerate(ordered_regions['full_region']):
-#    this_lat = ordered_regions.loc[ordered_regions['full_region'] == region, 'latency'].values[0] * 1000
-#    ax1.text(1200, i+0.25, f'{this_lat:.0f} ms', fontsize=5)
+        xticks=[0, 0.6, 1.2], xticklabels=[0, 0.6, 1.2], xlim=[-0.01, 1.2])
 plt.tight_layout()
 sns.despine(trim=True)
 plt.savefig(join(fig_path, 'modulation_latency_per_region.pdf'))
 
-
-# %%
-
-# Add colormap
-grouped_df['color'] = [colors[i] for i in grouped_df['full_region']]
-
-f, ax1 = plt.subplots(1, 1, figsize=(2, 2), dpi=dpi)
-# this only plots the line
-(
-    so.Plot(grouped_df, x='mod_index', y='latency')
-    .add(so.Dot(pointsize=0))
-    .add(so.Line(color='grey', linewidth=1), so.PolyFit(order=1))
-    .on(ax1)
-    .plot()
-)
-# this plots the colored region names
-for i in grouped_df.index:
-    ax1.text(grouped_df.loc[i, 'mod_index'],
-             grouped_df.loc[i, 'latency'],
-             grouped_df.loc[i, 'full_region'],
-             ha='center', va='center',
-             color=grouped_df.loc[i, 'color'], fontsize=6, fontweight='bold')
-ax1.set(yticks=[0, 0.1, 0.2], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
-        ylabel='Modulation latency (s)', xlabel='Modulation index')
-# ax1.text(0.1, 100, f'r = {r:.2f}', fontsize=6)
-ax1.text(0, 0.2, '**', fontsize=10, ha='center')
-
-sns.despine(offset=2, trim=True)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'modulation_latency_vs_index.pdf'))
-
-
-# %%
-
-r, p = pearsonr(grouped_df['mod_index'], grouped_df['latency'])
-
-slope, intercept = np.polyfit(grouped_df['mod_index'], grouped_df['latency'], 1)
-x_fit = np.linspace(grouped_df['mod_index'].min(), grouped_df['mod_index'].max(), 100)
-y_fit = slope * x_fit + intercept
-
-f, ax1 = plt.subplots(1, 1, figsize=(3.6, 2), dpi=dpi)
-ax1.plot(x_fit, y_fit, color='k', lw=1.5, label='_nolegend_')
-ax1.errorbar(grouped_df['mod_index'], grouped_df['latency'],
-             xerr=grouped_df['mod_index_sem'], yerr=grouped_df['latency_sem'],
-             fmt='none', ecolor=[0.7, 0.7, 0.7], capsize=2, capthick=1, zorder=0)
-for _, row in grouped_df.iterrows():
-    ax1.scatter(row['mod_index'], row['latency'], color=row['color'], s=20, marker='s', zorder=0)
-ax1.text(0, 0.2, '*', fontsize=12, ha='center')
-
-ax1.set(yticks=[0, 0.1, 0.2], xticks=[-0.25, 0, 0.25], xticklabels=[-0.25, 0, 0.25],
-        ylabel='Modulation latency (s)', xlabel='Modulation index')
-ax1.legend(labels=grouped_df['full_region_name'], bbox_to_anchor=(1.05, 1.1))
-
-sns.despine(trim=True)
-plt.tight_layout()
-plt.savefig(join(fig_path, 'modulation_latency_vs_index_errorbars.pdf'))
 
 # %%
 
@@ -197,10 +129,10 @@ y_fit = slope * x_fit + intercept
 f, ax1 = plt.subplots(figsize=(1.75, 1.75), dpi=dpi)
 ax1.scatter(use_neurons['mod_index_abs'], use_neurons['latency'], color='grey', s=3)
 ax1.plot(x_fit, y_fit, color='tab:red')
-ax1.text(0.5, 0.9, '***', fontsize=12, ha='center')
-ax1.set(xlabel='Abs. modulation index', ylabel='Modulation latency (s)',
-        xticks=[0, 0.5, 1], xticklabels=[0, 0.5, 1],
-        yticks=[0, 0.2, 0.4, 0.6, 0.8, 1], yticklabels=[0, 0.2, 0.4, 0.6, 0.8, 1])
+ax1.text(0.5, 1.1, '***', fontsize=12, ha='center')
+ax1.set(xlabel='Absolute modulation index', ylabel='Modulation latency (s)',
+        xticks=[0, 0.2, 0.4, 0.6, 0.8, 1], xticklabels=[0, 0.2, 0.4, 0.6, 0.8, 1],
+        yticks=[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2], yticklabels=[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2])
 
 plt.tight_layout()
 sns.despine(trim=True)

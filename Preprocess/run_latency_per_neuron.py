@@ -17,11 +17,12 @@ one = init_one()
 
 # Settings
 OVERWRITE = True
-USE_DUR = 1  # s
+USE_DUR = 1.2  # s
 
 # Load in results
 fig_path, save_path = paths()
 light_neurons = pd.read_csv(join(save_path, 'light_modulated_neurons.csv'))
+light_neurons = light_neurons.drop(columns=['latenzy'])
 
 if OVERWRITE:
     latency_df = pd.DataFrame()
@@ -35,7 +36,7 @@ for i, pid in enumerate(np.unique(light_neurons['pid'])):
     eid = np.unique(light_neurons.loc[light_neurons['pid'] == pid, 'eid'])[0]
     subject = np.unique(light_neurons.loc[light_neurons['pid'] == pid, 'subject'])[0]
     date = np.unique(light_neurons.loc[light_neurons['pid'] == pid, 'date'])[0]
-    print(f'Processing {subject} {date}')
+    print(f'Recording {i} of {np.unique(light_neurons["pid"]).shape[0]}')
 
     # Load in laser pulse times
     try:
@@ -46,8 +47,6 @@ for i, pid in enumerate(np.unique(light_neurons['pid'])):
     if len(opto_times) == 0:
         print('Did not find ANY laser pulses!')
         continue
-    else:
-        print(f'Found {len(opto_times)} passive laser pulses')
 
     # Load in spikes
     try:
@@ -72,7 +71,7 @@ for i, pid in enumerate(np.unique(light_neurons['pid'])):
                                     )
         except Exception:
             latency[i] = np.nan
-
+    
     # Add to dataframe
     light_neurons.loc[(light_neurons['modulated'] == 1)
                       & (light_neurons['pid'] == pid), 'latenzy'] = latency
