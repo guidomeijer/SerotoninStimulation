@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import seaborn.objects as so
+from scipy import stats
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -75,6 +76,28 @@ sert_neurons['log_latency'] = np.log10(sert_neurons['latency'])
 
 # Get absolute
 sert_neurons['mod_index_abs'] = sert_neurons['mod_index'].abs()
+
+# Statistical test over regions: Kruskal-Wallis + pairwise Mann-Whitney U (Holm corrected)
+lat_df = sert_neurons.dropna(subset=['latency'])
+lat_regions = np.unique(lat_df['full_region'])
+lat_groups = [lat_df.loc[lat_df['full_region'] == r, 'latency'].values for r in lat_regions]
+h_stat, p_kw = stats.kruskal(*lat_groups)
+print(f'\nLatency: Kruskal-Wallis across {len(lat_regions)} regions, '
+      f'H({len(lat_regions) - 1}) = {h_stat:.2f}, p = {p_kw:.4g}')
+pairs, pvals = [], []
+for i in range(len(lat_regions)):
+    for j in range(i + 1, len(lat_regions)):
+        pairs.append((lat_regions[i], lat_regions[j]))
+        pvals.append(stats.mannwhitneyu(lat_groups[i], lat_groups[j])[1])
+order = np.argsort(pvals)
+p_holm = np.empty(len(pvals))
+running_max = 0
+for rank, idx in enumerate(order):
+    running_max = max(running_max, (len(pvals) - rank) * pvals[idx])
+    p_holm[idx] = min(running_max, 1)
+posthoc_latency = pd.DataFrame({'region_1': [p[0] for p in pairs], 'region_2': [p[1] for p in pairs],
+                                'p_uncorrected': pvals, 'p_holm': p_holm})
+print(posthoc_latency[posthoc_latency['p_holm'] < 0.05].to_string(index=False))
 
 # Group by region
 grouped_df = sert_neurons.groupby('full_region').median(

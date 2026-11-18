@@ -93,6 +93,36 @@ for region in np.unique(per_ses_df['full_region']):
     p_values[region] = stats.ttest_1samp(per_ses_df.loc[per_ses_df['full_region'] == region,
                                                         'perc_mod'], 5)[1]
 
+# Statistical test over brain regions: Kruskal-Wallis omnibus + pairwise Mann-Whitney (Holm)
+def region_test(df, value_col, label):
+    regions = [r for r in np.unique(df['full_region'])]
+    groups = [df.loc[df['full_region'] == r, value_col].dropna().values for r in regions]
+    h_stat, p_kw = stats.kruskal(*groups)
+    print(f'\n{label}: Kruskal-Wallis across {len(regions)} regions, H({len(regions) - 1}) = {h_stat:.2f}, p = {p_kw:.4g}')
+    pairs, pvals = [], []
+    for i in range(len(regions)):
+        for j in range(i + 1, len(regions)):
+            pairs.append((regions[i], regions[j]))
+            pvals.append(stats.mannwhitneyu(groups[i], groups[j])[1])
+    # Holm-Bonferroni correction
+    order = np.argsort(pvals)
+    m = len(pvals)
+    p_holm = np.empty(m)
+    running_max = 0
+    for rank, idx in enumerate(order):
+        running_max = max(running_max, (m - rank) * pvals[idx])
+        p_holm[idx] = min(running_max, 1)
+    posthoc = pd.DataFrame({'region_1': [p[0] for p in pairs], 'region_2': [p[1] for p in pairs],
+                            'p_uncorrected': pvals, 'p_holm': p_holm})
+    print(posthoc[posthoc['p_holm'] < 0.05].to_string(index=False))
+    return p_kw, posthoc
+
+# Percentage modulated neurons (per recording)
+p_perc_kw, posthoc_perc = region_test(per_ses_df, 'perc_mod', 'Percentage modulated neurons')
+
+# Modulation index (per modulated neuron)
+p_mod_kw, posthoc_mod = region_test(mod_neurons, 'mod_index', 'Modulation index')
+
 
 # %%
 f, ax1 = plt.subplots(1, 1, figsize=(1.8, 2), dpi=dpi)
