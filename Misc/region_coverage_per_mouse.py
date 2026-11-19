@@ -92,20 +92,17 @@ coverage['p_binom'] = pd.Series(binom_p)
 print(f'\nBinomial test per region vs overall probability ({p_overall:.2f}):')
 print(coverage[['n_mice', 'p_binom']].to_string())
 
-# Plot: heatmap of neuron counts and presence
+# %% Plot: heatmap of neuron counts and presence
 region_order = coverage.index
 mouse_order = mouse_cov.sort_values('n_regions', ascending=False).index
 
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 0.22 * len(region_order) + 1.2), dpi=dpi,
-                             sharey=True)
-sns.heatmap(np.log10(counts.loc[region_order, mouse_order] + 1), cmap='viridis', ax=ax1,
-            cbar_kws={'label': 'log10 (neurons + 1)', 'shrink': 0.5})
-ax1.set(xlabel='Mouse', ylabel='', title='Neuron count')
-sns.heatmap(recorded.loc[region_order, mouse_order].astype(int), cmap=['white', 'k'], ax=ax2,
+f, ax1 = plt.subplots(1, 1, figsize=(2.5, 3), dpi=dpi, sharey=True)
+
+sns.heatmap(recorded.loc[region_order, mouse_order].astype(int), cmap=['white', 'k'], ax=ax1,
             cbar=False, linewidths=0.3, linecolor='lightgrey')
-ax2.set(xlabel='Mouse', ylabel='', title=f'Recorded (>= {MIN_NEURONS} neurons)')
+ax1.set(xlabel='Mouse', ylabel='', title=f'Recorded (>= {MIN_NEURONS} neurons)')
 plt.tight_layout()
-plt.savefig(join(f_path, 'supp_figure_region_coverage', 'region_coverage_per_mouse.pdf'))
+plt.savefig(join(f_path, 'supp_figure_histology', 'region_coverage_per_mouse.pdf'))
 plt.show()
 
 
@@ -205,6 +202,19 @@ ax1.invert_yaxis()
 
 sns.despine(trim=True)
 plt.tight_layout()
-plt.savefig(join(f_path, 'supp_figure_region_coverage', 'region_coverage_vs_expression.pdf'))
+plt.savefig(join(f_path, 'supp_figure_histology', 'region_coverage_vs_expression.pdf'))
 plt.show()
+
+# %% Plot expression per mouse
+
+f, ax1 = plt.subplots(figsize=(2, 3), dpi=dpi)
+expression_df = expression_df.sort_values('rel_fluo', ascending=False)
+sns.barplot(data=expression_df[expression_df['sert-cre'] == 1], x='subject', y='rel_fluo', ax=ax1,
+            color='k')
+ax1.set(xlabel='Mouse', ylabel='Expression (rel. fluo)')
+ax1.tick_params(axis='x', labelrotation=90)
+
+sns.despine()
+plt.tight_layout()
+plt.savefig(join(f_path, 'supp_figure_histology', 'expression_per_mouse.pdf'))
 

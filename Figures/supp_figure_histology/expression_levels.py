@@ -100,4 +100,4 @@ axs[-1].set(xticklabels=['SERT', 'WT'], ylabel='Relative fluoresence (%)', xlabe
             yticks=[0, 100, 200, 300, 400])
 
 sns.despine(trim=True)
-plt.savefig(join(fig_path, 'figure_histology.pdf'))
+plt.savefig(join(fig_path, 'supp_figure_histology', 'figure_histology.pdf'))
