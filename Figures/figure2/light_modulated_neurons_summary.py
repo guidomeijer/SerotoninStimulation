@@ -92,7 +92,7 @@ ax1.set_ylabel('Relative expression (%)', rotation=90, labelpad=2)
 ax1.set_xlabel('5-HT modulated neurons (%)', rotation=0, labelpad=2)
 r, p = pearsonr(merged_df['rel_fluo'], merged_df['perc_mod'])
 print(f'correlation p-value: {p:.3f}')
-ax1.text(30, 300, '**', fontsize=12, ha='center')
+ax1.text(30, 300, '*', fontsize=12, ha='center')
 
 
 f.subplots_adjust(bottom=0.3, left=0.32, right=0.88, top=0.9)
