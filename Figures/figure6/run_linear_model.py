@@ -19,7 +19,7 @@ one = init_one()
 _, save_path = paths()
 
 # Settings
-TIME_WIN = [0.2, 0.7]
+TIME_WIN = [0.3, 0.8]
 ONLY_SIG = False
 
 # Load in neurons
@@ -103,8 +103,8 @@ for i in rec.index.values:
             'neuron_id': neuron_id, 'acronym': clusters.acronym[clusters.cluster_id == neuron_id],
         })), ignore_index=True)
 
-    # Save results
-    if ONLY_SIG:
-        linear_df.to_csv(join(save_path, 'linear_model_results_sig.csv'), index=False)
-    else:
-        linear_df.to_csv(join(save_path, 'linear_model_results_2-7.csv'), index=False)
+# Save results
+if ONLY_SIG:
+    linear_df.to_csv(join(save_path, 'linear_model_results_sig.csv'), index=False)
+else:
+    linear_df.to_csv(join(save_path, 'linear_model_results_3-8.csv'), index=False)
