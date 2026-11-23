@@ -196,7 +196,7 @@ ax1.plot(plot_df['weighted_expr'], ypos, '|', color='k', ms=8, mew=1.5, zorder=3
 for i, p in enumerate(plot_df['p_perm']):
     if p < 0.05:
         ax1.text(300, i, '*', va='center', ha='right', fontsize=12)
-ax1.set(yticks=ypos, yticklabels=plot_df['region'], xlabel='Neuron-weighted expression (%)',
+ax1.set(yticks=ypos, yticklabels=plot_df['region'], xlabel='Relative expression (%)\nweighted by nr. of recorded neurons',
         ylabel='', xticks=[0, 100, 200, 300])
 ax1.invert_yaxis()
 
@@ -211,7 +211,7 @@ f, ax1 = plt.subplots(figsize=(2, 3), dpi=dpi)
 expression_df = expression_df.sort_values('rel_fluo', ascending=False)
 sns.barplot(data=expression_df[expression_df['sert-cre'] == 1], x='subject', y='rel_fluo', ax=ax1,
             color='k')
-ax1.set(xlabel='Mouse', ylabel='Expression (rel. fluo)')
+ax1.set(xlabel='Mouse', ylabel='Relative expression level (%)')
 ax1.tick_params(axis='x', labelrotation=90)
 
 sns.despine()
