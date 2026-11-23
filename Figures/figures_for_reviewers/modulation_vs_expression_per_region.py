@@ -127,13 +127,13 @@ def scatter_per_region(groups, ylabel, ylim_zero=False):
                 r, p = pearsonr(g['rel_fluo'], g['mean'])
                 sns.regplot(data=g, x='rel_fluo', y='mean', ax=ax, scatter=False, ci=None,
                             line_kws={'color': color, 'lw': 1})
-                title += f'\n{name[:3]}: r={r:.2f}, p={p:.2f}, n={g.shape[0]}'
+                title += f'\n{name[:3]}: r={r:.2f}, p={p:.2f}'
                 print(f'{region} {name}: r = {r:.2f}, p = {p:.3f}, n = {g.shape[0]} mice')
             else:
                 title += f'\n{name[:3]}: n={g.shape[0]}'
         if ylim_zero:
             ax.axhline(0, color='k', lw=0.5)
-        ax.set_title(title, fontsize=6)
+        ax.set_title(title, fontsize=7)
         ax.set(xlabel='', xticks=[0, 100, 200, 300], ylabel='')
     for ax in axs[len(all_regions):]:
         ax.axis('off')

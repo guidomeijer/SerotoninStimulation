@@ -118,7 +118,7 @@ def region_test(df, value_col, label):
     return p_kw, posthoc
 
 # Percentage modulated neurons (per recording)
-p_perc_kw, posthoc_perc = region_test(per_ses_df, 'perc_mod', 'Percentage modulated neurons')
+p_perc_kw, posthoc_perc = region_test(per_mouse_df, 'perc_mod', 'Percentage modulated neurons')
 
 # Modulation index (per modulated neuron)
 p_mod_kw, posthoc_mod = region_test(mod_neurons, 'mod_index', 'Modulation index')

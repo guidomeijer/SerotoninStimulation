@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# %% !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jun 14 15:19:58 2021
@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from os.path import join, realpath, dirname, split
 from stim_functions import paths, figure_style, load_subjects, plot_scalar_on_slice
 from iblatlas.atlas import AllenAtlas
-ba = AllenAtlas(res_um=10)
 
 # Settings
 HISTOLOGY = True
@@ -61,7 +60,7 @@ sim_neurons = sim_neurons.rename({0: 'n_neurons'}, axis=1)
 
 
 # %%
-
+ba = AllenAtlas(res_um=10)
 colors, dpi = figure_style()
 CMAP = 'turbo'
 

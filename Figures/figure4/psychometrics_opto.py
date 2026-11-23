@@ -166,6 +166,7 @@ p_rt = stats.ttest_1samp(perc_rt, 0)[1]
 p_lapse = stats.ttest_1samp(perc_lapse, 0)[1]
 p_slope = stats.ttest_1samp(perc_slope, 0)[1]
 p_perf = stats.ttest_1samp(perc_perf, 0)[1]
+adj_pvals = stats.false_discovery_control([p_bias, p_rt, p_lapse, p_slope, p_perf], method='bh')
 
 f, ax1 = plt.subplots(1, 1, figsize=(1.75, 2), dpi=dpi)
 sns.swarmplot(data=pd.melt(perc_df), x='variable', y='value', color='k', size=3)
