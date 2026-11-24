@@ -29,7 +29,7 @@ pca = PCA(n_components=N_DIM)
 colors, dpi = figure_style()
 
 # Get paths
-f_path, load_path = paths()  
+f_path, load_path = paths(save_dir='cache')  
 fig_path = join(f_path, split(dirname(realpath(__file__)))[-1])
 
 # Download data from figshare
@@ -69,12 +69,8 @@ for i, ses_path in enumerate(ses_paths):
     this_dict = np.load(ses_path, allow_pickle=True).flat[0]
     if this_dict['sert-cre'] == 0:
         continue
-    if DATASET == 'timewarped':
-        n_timepoints = this_dict['n_bins']
-        time_ax = np.arange(n_timepoints)
-    else:
-        n_timepoints = this_dict['time'].shape[0]
-        time_ax = this_dict['time']
+    n_timepoints = this_dict['time'].shape[0]
+    time_ax = this_dict['time']
     if i == 0:
         L = np.empty((0, n_timepoints))
         R = np.empty((0, n_timepoints))
@@ -334,7 +330,7 @@ ax1.fill_between(time_ax,
 ax1.plot(time_ax, choice_dist, marker='o')
 add_significance(time_ax, (choice_dist < np.quantile(choice_dist_shuf, 0.975, axis=1)).astype(int), ax1)
 ax1.set(xlabel='Time to choice (s)',ylabel='Choice separation (spks/s)', 
-        yticks=[50, 250], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
+        yticks=[50, 180], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 
 ax2.fill_between(time_ax,
@@ -344,7 +340,7 @@ ax2.fill_between(time_ax,
 ax2.plot(time_ax, opto_dist, marker='o')
 add_significance(time_ax, (opto_dist < np.quantile(opto_dist_shuf, 0.975, axis=1)).astype(int), ax2)
 ax2.set(xlabel='Time to choice (s)', ylabel='5-HT separation (spks/s)',
-        yticks=[50, 110], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
+        yticks=[50, 85], xticks=[-0.3, -0.2, -0.1, 0], xticklabels=[-0.3, -0.2, -0.1, 0])
 
 ax3.fill_between(time_ax,
                  np.quantile(dot_pca_shuffle, 0.025, axis=1),

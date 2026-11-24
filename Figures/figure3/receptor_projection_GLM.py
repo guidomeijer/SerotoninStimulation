@@ -22,10 +22,10 @@ ba = AllenAtlas(res_um=25)
 colors, dpi = figure_style()
 
 # Settings
-#TARGET_VARIABLE = 'latency'
+TARGET_VARIABLE = 'latency'
 #TARGET_VARIABLE = 'abs_mod_index'
 #TARGET_VARIABLE = 'perc_mod'
-TARGET_VARIABLE = 'mod_index'
+#TARGET_VARIABLE = 'mod_index'
 MIN_MOD_NEURONS = {'perc_mod': 0, 'mod_index': 15, 'abs_mod_index': 15, 'latency': 15}
 MIN_NEURONS = {'perc_mod': 5, 'mod_index': 0, 'abs_mod_index': 0, 'latency': 0}
 INCL_RECEPTORS = ['5-HT1a', '5-HT1b', '5-HT2a', '5-HT2c', '5-HT3a', '5-HT5a']

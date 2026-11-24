@@ -24,8 +24,8 @@ one = init_one()
 
 # Settings
 SPLITS = ['L_opto', 'R_opto', 'L_no_opto', 'R_no_opto', 'L', 'R', 'opto', 'no_opto']
-CENTER_ON = 'firstMovement_times'
-#CENTER_ON = 'stimOn_times'
+#CENTER_ON = 'firstMovement_times'
+CENTER_ON = 'stimOn_times'
 
 BIN_SIZE = 0.0125
 SMOOTHING = 0.02
